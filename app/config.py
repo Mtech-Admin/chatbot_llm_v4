@@ -1,3 +1,4 @@
+import os
 from typing import Literal
 
 from pydantic import AliasChoices, Field, model_validator
@@ -130,14 +131,34 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+
+def _groq_api_key() -> str:
+    return (settings.GROQ_API_KEY or os.environ.get("GROQ_API_KEY", "") or "").strip()
+
+
+def _deepinfra_api_key() -> str:
+    """Resolve token from Settings or OS env (PM2 / shell sometimes only set DEEPINFRA_TOKEN)."""
+    return (
+        (settings.DEEPINFRA_API_KEY or "").strip()
+        or os.environ.get("DEEPINFRA_TOKEN", "").strip()
+        or os.environ.get("DEEPINFRA_API_KEY", "").strip()
+    )
+
+
 def get_llm_client():
     """Return AsyncOpenAI client for Groq, vLLM, or DeepInfra (OpenAI-compatible)."""
     from openai import AsyncOpenAI
 
     if settings.LLM_PROVIDER == "groq":
+        key = _groq_api_key()
+        if not key:
+            raise ValueError(
+                "LLM_PROVIDER=groq requires GROQ_API_KEY (non-empty). "
+                "Set it in .env.local or the process environment."
+            )
         return AsyncOpenAI(
             base_url="https://api.groq.com/openai/v1",
-            api_key=settings.GROQ_API_KEY,
+            api_key=key,
         )
     if settings.LLM_PROVIDER == "vllm":
         return AsyncOpenAI(
@@ -145,9 +166,15 @@ def get_llm_client():
             api_key="not-needed",
         )
     if settings.LLM_PROVIDER == "deepinfra":
+        key = _deepinfra_api_key()
+        if not key:
+            raise ValueError(
+                "LLM_PROVIDER=deepinfra requires DEEPINFRA_TOKEN or DEEPINFRA_API_KEY "
+                "(non-empty). Set it in .env.local or PM2 env."
+            )
         return AsyncOpenAI(
             base_url=settings.DEEPINFRA_BASE_URL.rstrip("/"),
-            api_key=settings.DEEPINFRA_API_KEY,
+            api_key=key,
         )
     raise ValueError(f"Unknown LLM provider: {settings.LLM_PROVIDER}")
 

@@ -95,8 +95,8 @@ async def send_message(
             answer=state.response_message,
             timestamp=datetime.utcnow(),
             sources=state.sources if state.sources else None,
-            requires_action=state.requires_action,
-            action_url=state.action_url
+            requires_action=bool(state.requires_action),
+            action_url=state.action_url,
         )
 
         try:

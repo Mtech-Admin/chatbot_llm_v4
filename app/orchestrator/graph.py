@@ -115,12 +115,13 @@ async def process_message(state: OrchestratorState) -> OrchestratorState:
     # Execute graph
     result = await orchestrator_graph.ainvoke(state_dict)
     
-    # Update state with result
+    # Update state with result (LangGraph may merge keys with explicit None)
     state.intent = result.get("intent", state.intent)
     state.response_message = result.get("response_message", state.response_message)
     state.routing_agent = result.get("routing_agent", state.routing_agent)
-    state.requires_action = result.get("requires_action", state.requires_action)
-    state.sources = result.get("sources", state.sources)
+    _ra = result.get("requires_action", state.requires_action)
+    state.requires_action = False if _ra is None else bool(_ra)
+    state.sources = result.get("sources") if result.get("sources") is not None else state.sources
     state.skip_response_review = bool(
         result.get("skip_response_review", state.skip_response_review)
     )
