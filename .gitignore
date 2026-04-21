@@ -97,7 +97,8 @@ junit.xml
 .cache/
 **/.cache/
 hub/
-models/
+# ML weight dirs at repo root only — do NOT use plain "models/" (would ignore app/models/)
+/models/
 checkpoints/
 *.pt
 *.pth
