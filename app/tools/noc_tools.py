@@ -16,7 +16,7 @@ import json
 import re
 from calendar import monthrange
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from app.tools.hrms_client import hrms_client
 from app.tools.noc_status import (
@@ -120,7 +120,7 @@ NOC_TOOLS = [
 ]
 
 
-def _to_int(value: Any, default: int, min_value: int = 1, max_value: int | None = None) -> int:
+def _to_int(value: Any, default: int, min_value: int = 1, max_value: Optional[int] = None) -> int:
     try:
         parsed = int(str(value).strip())
     except (TypeError, ValueError):
@@ -176,8 +176,8 @@ def _success_payload(raw: Any) -> Dict[str, Any]:
 async def list_my_noc_requests(
     jwt_token: str,
     noc_type: str,
-    page: int | str = 1,
-    limit: int | str = 20,
+    page: Union[int, str] = 1,
+    limit: Union[int, str] = 20,
     query: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,

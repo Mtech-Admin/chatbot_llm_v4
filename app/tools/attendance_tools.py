@@ -3,7 +3,7 @@ Attendance Agent Tools - READ-ONLY operations for viewing attendance data
 All tools pass JWT token through to HRMS API
 """
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional, Union
 from app.tools.hrms_client import hrms_client
 import json
 
@@ -85,8 +85,8 @@ async def get_my_attendance(
     jwt_token: str,
     month: str,
     year: str,
-    page: int | str = 1,
-    limit: int | str = 20
+    page: Union[int, str] = 1,
+    limit: Union[int, str] = 20,
 ) -> Dict[str, Any]:
     """
     Get employee's attendance records for a specific month/year
@@ -229,7 +229,7 @@ def _error_message(error_code: str) -> str:
     return messages.get(error_code, "An error occurred while fetching attendance data.")
 
 
-def _to_int(value: Any, default: int, min_value: int = 1, max_value: int | None = None) -> int:
+def _to_int(value: Any, default: int, min_value: int = 1, max_value: Optional[int] = None) -> int:
     """Parse int from model/tool inputs with safe bounds."""
     try:
         parsed = int(value)

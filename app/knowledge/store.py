@@ -10,7 +10,7 @@ import math
 import re
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, List
+from typing import Any, List, Optional
 
 from sqlalchemy import Column, DateTime, Integer, Text, create_engine, func, select
 from sqlalchemy.dialects.postgresql import JSONB
@@ -53,8 +53,8 @@ class PolicyMatch:
     question: str
     answer: str
     score: float
-    source_file: str | None = None
-    row_number: int | None = None
+    source_file: Optional[str] = None
+    row_number: Optional[int] = None
 
 
 class PolicyKnowledgeStore:
@@ -86,7 +86,7 @@ class PolicyKnowledgeStore:
             session.query(PolicyQA).delete()
             session.commit()
 
-    def upsert_entries(self, entries: List[dict[str, Any]], source_file: str | None = None) -> int:
+    def upsert_entries(self, entries: List[dict[str, Any]], source_file: Optional[str] = None) -> int:
         with Session(self.engine) as session:
             for entry in entries:
                 question = str(entry.get("question", "")).strip()
