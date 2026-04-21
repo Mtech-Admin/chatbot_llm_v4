@@ -1,7 +1,8 @@
 from typing import Literal
-from urllib.parse import quote, quote_plus
-from pydantic import model_validator
+
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from urllib.parse import quote, quote_plus
 
 
 def _normalize_postgresql_connection_url(url: str) -> str:
@@ -58,9 +59,16 @@ class Settings(BaseSettings):
     """Application configuration"""
     
     # LLM Configuration
-    LLM_PROVIDER: Literal["groq", "vllm"] = "groq"
+    LLM_PROVIDER: Literal["groq", "vllm", "deepinfra"] = "groq"
     GROQ_API_KEY: str = ""
     VLLM_BASE_URL: str = "http://localhost:8000/v1"
+    # DeepInfra — OpenAI-compatible API (https://deepinfra.com/dash/api_keys)
+    DEEPINFRA_BASE_URL: str = "https://api.deepinfra.com/v1/openai"
+    DEEPINFRA_API_KEY: str = Field(
+        default="",
+        validation_alias=AliasChoices("DEEPINFRA_API_KEY", "DEEPINFRA_TOKEN"),
+    )
+    DEEPINFRA_MODEL: str = "deepseek-ai/DeepSeek-V3"
     
     # HRMS API Configuration
     HRMS_BASE_URL: str = "http://localhost:3001/api"
@@ -123,27 +131,33 @@ class Settings(BaseSettings):
 settings = Settings()
 
 def get_llm_client():
-    """Get configured LLM client (Groq or vLLM)"""
+    """Return AsyncOpenAI client for Groq, vLLM, or DeepInfra (OpenAI-compatible)."""
     from openai import AsyncOpenAI
-    
+
     if settings.LLM_PROVIDER == "groq":
         return AsyncOpenAI(
             base_url="https://api.groq.com/openai/v1",
             api_key=settings.GROQ_API_KEY,
         )
-    elif settings.LLM_PROVIDER == "vllm":
+    if settings.LLM_PROVIDER == "vllm":
         return AsyncOpenAI(
             base_url=settings.VLLM_BASE_URL,
             api_key="not-needed",
         )
-    else:
-        raise ValueError(f"Unknown LLM provider: {settings.LLM_PROVIDER}")
+    if settings.LLM_PROVIDER == "deepinfra":
+        return AsyncOpenAI(
+            base_url=settings.DEEPINFRA_BASE_URL.rstrip("/"),
+            api_key=settings.DEEPINFRA_API_KEY,
+        )
+    raise ValueError(f"Unknown LLM provider: {settings.LLM_PROVIDER}")
+
 
 def get_model_name() -> str:
-    """Get configured model name based on LLM provider"""
+    """Model id passed to chat.completions (provider-specific)."""
     if settings.LLM_PROVIDER == "groq":
         return "llama-3.3-70b-versatile"
-    elif settings.LLM_PROVIDER == "vllm":
+    if settings.LLM_PROVIDER == "vllm":
         return "Qwen/Qwen2.5-14B-Instruct-AWQ"
-    else:
-        raise ValueError(f"Unknown LLM provider: {settings.LLM_PROVIDER}")
+    if settings.LLM_PROVIDER == "deepinfra":
+        return settings.DEEPINFRA_MODEL
+    raise ValueError(f"Unknown LLM provider: {settings.LLM_PROVIDER}")
