@@ -30,6 +30,30 @@ def _normalize_postgresql_connection_url(url: str) -> str:
     return f"{prefix}{user}:{quote(password, safe='')}@{hostpart}"
 
 
+def _redis_url_with_password(
+    url: str, username: str = "", password: str = ""
+) -> str:
+    """
+    If REDIS_PASSWORD is set and the URL has no userinfo, insert :password@ or user:pass@.
+    Use when the server has requirepass / ACL and REDIS_URL is only host:port.
+    """
+    u = (url or "").strip()
+    pwd = (password or "").strip()
+    if not pwd:
+        return u
+    if "://" not in u:
+        return u
+    scheme, rest = u.split("://", 1)
+    if "@" in rest:
+        return u
+    user = (username or "").strip()
+    if user:
+        auth = f"{quote(user, safe='')}:{quote(pwd, safe='')}@"
+    else:
+        auth = f":{quote(pwd, safe='')}@"
+    return f"{scheme}://{auth}{rest}"
+
+
 class Settings(BaseSettings):
     """Application configuration"""
     
@@ -56,8 +80,10 @@ class Settings(BaseSettings):
     POSTGRES_DATABASE: str = "postgres"
     DATABASE_URL: str = ""
     
-    # Redis Configuration
+    # Redis — if the server uses requirepass, set REDIS_PASSWORD or use redis://:pass@host:6379/0
     REDIS_URL: str = "redis://localhost:6379"
+    REDIS_USERNAME: str = ""
+    REDIS_PASSWORD: str = ""
     SESSION_TTL: int = 1800  # 30 minutes
     MEMORY_TTL: int = 86400 * 7  # 7 days
     
@@ -82,6 +108,15 @@ class Settings(BaseSettings):
         self.DATABASE_URL = (
             f"postgresql://{self.POSTGRES_USERNAME}:{escaped_password}"
             f"@{self.POSTGRES_HOST}:{self.POSTGRES_LOCAL_PORT}/{self.POSTGRES_DATABASE}"
+        )
+        return self
+
+    @model_validator(mode="after")
+    def _apply_redis_auth(self):
+        self.REDIS_URL = _redis_url_with_password(
+            self.REDIS_URL,
+            self.REDIS_USERNAME,
+            self.REDIS_PASSWORD,
         )
         return self
 
