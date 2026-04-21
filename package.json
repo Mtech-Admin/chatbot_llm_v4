@@ -1,0 +1,26 @@
+{
+  "name": "dmrc-hrms-chatbot",
+  "version": "0.1.0",
+  "description": "Read-only AI chatbot for DMRC HRMS system",
+  "main": "app/main.py",
+  "scripts": {
+    "dev": "python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8001",
+    "start": "python -m uvicorn app.main:app --host 0.0.0.0 --port 8001",
+    "setup:db": "python scripts/setup_db.py",
+    "ingest:policy": "python scripts/ingest_policy_qa.py --file data/policy_qa.xlsx",
+    "ingest:docs": "python scripts/ingest_documents.py",
+    "test": "pytest tests/ -v",
+    "lint": "pylint app/ --disable=C0111,W0212",
+    "format": "black app/ --line-length=100"
+  },
+  "keywords": [
+    "chatbot",
+    "hrms",
+    "dmrc",
+    "langgraph",
+    "llm"
+  ],
+  "author": "DMRC",
+  "license": "UNLICENSED",
+  "python_requires": ">=3.10"
+}

@@ -1,0 +1,119 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments (all common names)
+.env/
+.venv/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# --- Environment & secrets (never commit) ---
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.p12
+id_rsa
+id_rsa.pub
+*.key
+secrets/
+*.secret
+
+# --- IDE & editors ---
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- Database & local data ---
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+dump.rdb
+
+# --- Logs & runtime ---
+*.log
+logs/
+*.pid
+tmp/
+temp/
+
+# --- Testing & quality ---
+.pytest_cache/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.hypothesis/
+pytestdebug.log
+test-results/
+junit.xml
+
+# --- ML / embeddings caches (sentence-transformers, Hugging Face, PyTorch) ---
+.cache/
+**/.cache/
+hub/
+models/
+checkpoints/
+*.pt
+*.pth
+*.onnx
+*.bin
+!requirements.txt
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- Packaging & tools ---
+node_modules/
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# --- Cursor / local AI (optional: remove next line if you commit team rules) ---
+.cursor/
