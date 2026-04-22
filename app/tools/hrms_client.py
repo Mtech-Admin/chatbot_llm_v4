@@ -6,19 +6,6 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 
-def _token_fingerprint_for_log(jwt_token: str) -> str:
-    """Non-secret view of a JWT for logs (do not log full tokens)."""
-    t = (jwt_token or "").strip()
-    if t.startswith("Bearer "):
-        t = t[7:].strip()
-    if not t:
-        return "empty"
-    n = len(t)
-    if n <= 20:
-        return f"len={n} (value redacted — too short to split safely)"
-    return f"len={n} {t[:10]}...{t[-6:]}"
-
-
 class HRMSClient:
     """HTTP client for HRMS API with JWT passthrough"""
     
@@ -54,11 +41,19 @@ class HRMSClient:
         
         url = f"{self.base_url}{endpoint}"
 
+        print(f"HRMS API request URL for {headers['Authorization']}")
+
         logger.info(
-            "HRMS API using JWT: %s for %s %s",
-            _token_fingerprint_for_log(jwt_token),
+            "HRMS API using full JWT for %s %s: %s",
             method,
             endpoint,
+            jwt_token,
+        )
+        logger.info(
+            "HRMS request headers for %s %s: %s",
+            method,
+            endpoint,
+            headers,
         )
 
         try:
