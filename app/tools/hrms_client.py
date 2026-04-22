@@ -1,6 +1,9 @@
 import httpx
 import logging
 from typing import Dict, Any, Optional
+import jwt
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -12,6 +15,69 @@ class HRMSClient:
     def __init__(self):
         self.base_url = settings.HRMS_BASE_URL
         self.timeout = settings.HRMS_TIMEOUT
+        self.engine = create_engine(settings.DATABASE_URL)
+
+    def _extract_emp_id_from_token(self, jwt_token: str) -> Optional[str]:
+        """Read empId claim from JWT without verifying signature."""
+        token = (jwt_token or "").strip()
+        if token.startswith("Bearer "):
+            token = token[7:].strip()
+        if not token:
+            return None
+        try:
+            payload = jwt.decode(token, options={"verify_signature": False})
+            emp_id = payload.get("empId") or payload.get("emp_id")
+            if emp_id is None:
+                return None
+            return str(emp_id).strip()
+        except Exception:
+            return None
+
+    def _latest_device_header_for_emp(self, emp_id: Optional[str]) -> Dict[str, str]:
+        """Fetch latest otp_logs device details for the employee."""
+        fallback = {"device_type": "WEB"}
+        if not emp_id:
+            return fallback
+        query = text(
+            """
+            SELECT device_id, device_type
+            FROM public.otp_logs
+            WHERE "empId" = :emp_id
+              AND deleted_at IS NULL
+            ORDER BY created_at DESC, id DESC
+            LIMIT 1
+            """
+        )
+        try:
+            with Session(self.engine) as session:
+                row = session.execute(query, {"emp_id": emp_id}).mappings().first()
+            if not row:
+                return fallback
+            device_id = (row.get("device_id") or "").strip()
+            device_type = (row.get("device_type") or "").strip() or "WEB"
+            header: Dict[str, str] = {"device_type": device_type}
+            if device_id:
+                header["device_id"] = device_id
+            return header
+        except Exception as e:
+            logger.warning("Failed to read otp_logs for empId %s: %s", emp_id, str(e))
+            return fallback
+
+    def _build_hrms_wrapped_body(
+        self,
+        jwt_token: str,
+        body: Optional[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        Convert payload to RequestInterceptor-friendly shape:
+        { Header: {device_id, device_type}, Request: { data: <original body> } }.
+        """
+        emp_id = self._extract_emp_id_from_token(jwt_token)
+        header = self._latest_device_header_for_emp(emp_id)
+        return {
+            "Header": header,
+            "Request": {"data": body or {}},
+        }
     
     async def call_api(
         self,
@@ -38,10 +104,9 @@ class HRMSClient:
             "Authorization": f"Bearer {jwt_token}",
             "Content-Type": "application/json",
         }
+        wrapped_body = self._build_hrms_wrapped_body(jwt_token, body)
         
         url = f"{self.base_url}{endpoint}"
-
-        print(f"HRMS API request URL for {headers['Authorization']}")
 
         logger.info(
             "HRMS API using full JWT for %s %s: %s",
@@ -55,11 +120,17 @@ class HRMSClient:
             endpoint,
             headers,
         )
+        logger.info(
+            "HRMS wrapped body for %s %s: %s",
+            method,
+            endpoint,
+            wrapped_body,
+        )
 
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 if method == "POST":
-                    response = await client.post(url, json=body or {}, headers=headers)
+                    response = await client.post(url, json=wrapped_body, headers=headers)
                 elif method == "GET":
                     response = await client.get(url, params=params, headers=headers)
                 else:
