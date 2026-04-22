@@ -69,7 +69,10 @@ def _error_message(error_code: str) -> str:
     messages = {
         "access_denied": "You do not have access to this profile information.",
         "not_found": "No profile record was found.",
-        "unauthorized": "Your session has expired. Please log in again.",
+        "unauthorized": (
+            "HRMS could not accept your login token for profile data (unauthorized). "
+            "Sign in again in the HRMS app or portal so you get a fresh token, then retry this chat."
+        ),
         "timeout": "The request took too long. Please try again.",
     }
     return messages.get(error_code, "An error occurred while fetching profile data.")

@@ -9,6 +9,7 @@ from app.agents.policy_agent import PolicyAgent
 from app.agents.profile_agent import ProfileAgent
 from app.agents.noc_agent import NocAgent
 from app.agents.leave_agent import LeaveAgent
+from app.agents.vpf_agent import VpfAgent
 from app.orchestrator.intent import validate_read_only_constraint, get_redirect_message
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,7 @@ policy_agent = PolicyAgent()
 profile_agent = ProfileAgent()
 noc_agent = NocAgent()
 leave_agent = LeaveAgent()
+vpf_agent = VpfAgent()
 
 async def route_request(state: OrchestratorState) -> OrchestratorState:
     """
@@ -54,6 +56,10 @@ async def route_request(state: OrchestratorState) -> OrchestratorState:
         logger.info("Routing %s to noc_agent", state.employee_id)
         state = await noc_agent.process(state)
 
+    elif state.intent == "vpf_inquiry":
+        logger.info("Routing %s to vpf_agent", state.employee_id)
+        state = await vpf_agent.process(state)
+
     elif state.intent == "policy_inquiry":
         logger.info(f"Routing {state.employee_id} to policy_agent")
         state = await policy_agent.process(state)
@@ -71,6 +77,7 @@ async def route_request(state: OrchestratorState) -> OrchestratorState:
             "- See team attendance (if you're a manager)\n"
             "- Look up your employee profile details (for example PAN or department)\n"
             "- Check your NOC requests (outside job, ex-India, visa/passport, etc.)\n"
+            "- View VPF (Voluntary Provident Fund) requests and status\n"
             "- View leave balances, leave requests, and the public holiday calendar\n\n"
             "What would you like to know?"
         )

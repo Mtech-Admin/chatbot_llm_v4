@@ -39,7 +39,11 @@ Analyze the user's message and classify it into ONE of these intents:
    Examples: "What is the status of my NOC?", "Show my outside job NOC requests", "Ex-India NOC status",
    "Visa passport NOC", "My reimbursement NOC", "Online courses NOC list", "Higher studies NOC details"
 
-8. "unknown" - User's intent doesn't fit above categories
+8. "vpf_inquiry" - User wants to VIEW VPF (Voluntary Provident Fund) requests, status, balance of requests, or details (read-only)
+   Examples: "Show my VPF requests", "VPF status", "What is the status of my voluntary provident fund request?",
+   "How many VPF requests do I have?"
+
+9. "unknown" - User's intent doesn't fit above categories
    Examples: "Hi", "How are you?", "Tell me about DMRC"
 
 Rules:
@@ -47,6 +51,7 @@ Rules:
 - If user wants to VIEW/CHECK something about their attendance → "attendance_inquiry"
 - If user wants to VIEW their own profile / identity / job / contact data (not policy, not attendance) → "profile_inquiry"
 - If user wants to VIEW NOC request status or details (any NOC module) → "noc_inquiry"
+- If user wants to VIEW VPF / Voluntary Provident Fund requests or status (not applying or withdrawing) → "vpf_inquiry"
 - If user wants to VIEW leave balances, leave types, their leave requests/status, or leave calendar (not applying) → "leave_inquiry"
 - If user asks about public holidays / holiday list / upcoming holidays (organizational calendar) → "holiday_inquiry"
 - If the question is about leave *policy* or *rules* (admissibility, eligibility), prefer "policy_inquiry" over "leave_inquiry"
@@ -63,6 +68,7 @@ async def classify_intent(
     "attendance_inquiry",
     "profile_inquiry",
     "noc_inquiry",
+    "vpf_inquiry",
     "policy_inquiry",
     "redirect_to_portal",
     "holiday_inquiry",
@@ -110,6 +116,8 @@ async def classify_intent(
             r"^noc(_|$|inquiry|request)", normalized_intent
         ):
             return "noc_inquiry"
+        elif "vpf_inquiry" in normalized_intent or re.search(r"\bvpf\b", normalized_intent):
+            return "vpf_inquiry"
         elif "policy_inquiry" in normalized_intent or "policy" in normalized_intent or "admissible" in normalized_intent:
             return "policy_inquiry"
         elif "redirect_to_portal" in normalized_intent or "redirect" in normalized_intent:
@@ -153,6 +161,17 @@ async def classify_intent(
             )
             if noc_hit and not has_action:
                 return "noc_inquiry"
+
+            vpf_hit = (
+                re.search(r"\bvpf\b", msg)
+                or re.search(r"voluntary\s*provident", msg)
+                or (
+                    re.search(r"provident\s*fund", msg)
+                    and re.search(r"\bvoluntary\b", msg)
+                )
+            )
+            if vpf_hit and not has_action:
+                return "vpf_inquiry"
 
             profile_markers = [
                 "address",

@@ -132,36 +132,10 @@ def _to_int(value: Any, default: int, min_value: int = 1, max_value: Optional[in
     return parsed
 
 
-def _is_hrms_response_envelope(d: dict) -> bool:
-    """True for Nest createResponse shape `{ status: number, message, data }` only."""
-    if "data" not in d or "message" not in d:
-        return False
-    st = d.get("status")
-    if isinstance(st, (int, float)):
-        return True
-    if isinstance(st, str) and st.strip().isdigit():
-        return True
-    return False
-
-
 def _unwrap_hrms_payload(root: Dict[str, Any]) -> Any:
-    """
-    Strip nested CommonResponseDto wrappers.
+    from app.tools.hrms_unwrap import unwrap_hrms_fully
 
-    IMPORTANT: Many list endpoints return `data: { data: [...], total, page }`.
-    We must NOT descend into the inner `data` array — that drops `total` and breaks counts.
-    """
-    if "error" in root:
-        return root
-    cur: Any = root
-    for _ in range(8):
-        if not isinstance(cur, dict):
-            return cur
-        if _is_hrms_response_envelope(cur):
-            cur = cur["data"]
-            continue
-        return cur
-    return cur
+    return unwrap_hrms_fully(root)
 
 
 def _error_result(code: str, message: str) -> Dict[str, Any]:
