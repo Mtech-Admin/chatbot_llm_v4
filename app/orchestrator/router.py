@@ -8,6 +8,7 @@ from app.agents.attendance_agent import AttendanceAgent
 from app.agents.policy_agent import PolicyAgent
 from app.agents.profile_agent import ProfileAgent
 from app.agents.noc_agent import NocAgent
+from app.agents.leave_agent import LeaveAgent
 from app.orchestrator.intent import validate_read_only_constraint, get_redirect_message
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ attendance_agent = AttendanceAgent()
 policy_agent = PolicyAgent()
 profile_agent = ProfileAgent()
 noc_agent = NocAgent()
+leave_agent = LeaveAgent()
 
 async def route_request(state: OrchestratorState) -> OrchestratorState:
     """
@@ -56,10 +58,9 @@ async def route_request(state: OrchestratorState) -> OrchestratorState:
         logger.info(f"Routing {state.employee_id} to policy_agent")
         state = await policy_agent.process(state)
     
-    elif state.intent == "holiday_inquiry":
-        # TODO: Implement policy agent
-        logger.info("Holiday inquiry routed to placeholder response for employee %s", state.employee_id)
-        state.response_message = "Holiday and leave policy features coming soon. Please check the HRMS portal for current policies."
+    elif state.intent in ("leave_inquiry", "holiday_inquiry"):
+        logger.info("Routing %s to leave_agent (intent=%s)", state.employee_id, state.intent)
+        state = await leave_agent.process(state)
     
     elif state.intent == "unknown":
         logger.info("Unknown intent fallback triggered for employee %s", state.employee_id)
@@ -69,7 +70,8 @@ async def route_request(state: OrchestratorState) -> OrchestratorState:
             "- View your daily attendance\n"
             "- See team attendance (if you're a manager)\n"
             "- Look up your employee profile details (for example PAN or department)\n"
-            "- Check your NOC requests (outside job, ex-India, visa/passport, etc.)\n\n"
+            "- Check your NOC requests (outside job, ex-India, visa/passport, etc.)\n"
+            "- View leave balances, leave requests, and the public holiday calendar\n\n"
             "What would you like to know?"
         )
     

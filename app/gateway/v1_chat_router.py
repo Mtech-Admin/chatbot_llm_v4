@@ -9,41 +9,49 @@ from typing import Optional
 
 from fastapi import APIRouter, Header, HTTPException, Query, status
 
-from app.gateway.auth import get_token_from_header, verify_jwt_token
-from app.models.chat_history import ChatHistoryItem, ChatHistoryResponse
-from app.storage.chatbot_conversations import fetch_conversation_history
+from app.gateway.auth import get_token_from_header, verify_jwt_token_history_h256
+from app.models.chat_history import ChatHistoryV1Item, ChatHistoryV1Response
+from app.storage.chatbot_conversations import fetch_conversation_history_page
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v1/chat", tags=["chat-v1"])
 
 
-@router.get("/history", response_model=ChatHistoryResponse)
+@router.get("/history", response_model=ChatHistoryV1Response)
 async def get_chat_history(
     authorization: Optional[str] = Header(None),
-    limit: int = Query(50, ge=1, le=200),
-    offset: int = Query(0, ge=0),
-) -> ChatHistoryResponse:
+    page: int = Query(1, description="1-based page (values < 1 are treated as 1)"),
+    page_size: int = Query(
+        10,
+        description="Rows per page (default 10; < 1 → 10; > 50 → 50)",
+    ),
+) -> ChatHistoryV1Response:
     """
-    List persisted user/bot messages for the authenticated employee
-    (newest first). Data comes from `chatbot_conversations` in PostgreSQL.
+    Paginated chat history for the authenticated employee (GET, no body).
+
+    **Auth:** `Authorization: Bearer <JWT>` — HS256, verified with `JWT_SECRET`
+    (or `SECRET_KEY` if `JWT_SECRET` is empty). Claims must include `empId` or `emp_id`.
+
+    **Query:** `page` (default 1), `page_size` (default 10, max 50).
     """
     try:
-        jwt_token = get_token_from_header(authorization)
-        auth_info = verify_jwt_token(jwt_token)
+        token = get_token_from_header(authorization)
+        auth_info = verify_jwt_token_history_h256(token)
         employee_id = str(auth_info["employee_id"])
 
-        rows, total = fetch_conversation_history(
-            employee_id,
-            limit=limit,
-            offset=offset,
+        history_rows, total_count, current_page, page_size_out = (
+            fetch_conversation_history_page(employee_id, page, page_size)
         )
-        items = [ChatHistoryItem(**row) for row in rows]
-        return ChatHistoryResponse(
-            items=items,
-            total=total,
-            limit=limit,
-            offset=offset,
+
+        history = [ChatHistoryV1Item(**row) for row in history_rows]
+
+        return ChatHistoryV1Response(
+            status="success",
+            total_count=total_count,
+            current_page=current_page,
+            page_size=page_size_out,
+            history=history,
         )
     except HTTPException:
         raise

@@ -70,7 +70,10 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("DEEPINFRA_API_KEY", "DEEPINFRA_TOKEN"),
     )
     DEEPINFRA_MODEL: str = "deepseek-ai/DeepSeek-V3"
-    
+    # Optional: model id for final response polish only (same OpenAI-compatible API as main LLM).
+    # If empty, uses the main model. Set a smaller instruct model to cut ~50% latency on review calls.
+    LLM_REVIEW_MODEL: str = "Qwen/Qwen3.5-4B"
+
     # HRMS API Configuration
     HRMS_BASE_URL: str = "http://localhost:3001/api"
     HRMS_TIMEOUT: int = 15
@@ -78,6 +81,8 @@ class Settings(BaseSettings):
     # SSO/JWT Configuration
     SSO_PUBLIC_KEY: str = ""
     SECRET_KEY: str = "dev_secret_key_change_in_production"
+    # GET /v1/chat/history — HS256 tokens verified with this secret (falls back to SECRET_KEY if empty).
+    JWT_SECRET: str = ""
     
     # Database — same PostgreSQL as DMRC_HRMS_API (TypeORM migrations own policy_qa, chatbot_conversations).
     # If set, overrides POSTGRES_*-built URL (e.g. paste the same DATABASE URL as Nest uses for Postgres).
@@ -188,3 +193,23 @@ def get_model_name() -> str:
     if settings.LLM_PROVIDER == "deepinfra":
         return settings.DEEPINFRA_MODEL
     raise ValueError(f"Unknown LLM provider: {settings.LLM_PROVIDER}")
+
+
+def get_review_model_name() -> str:
+    """Model for `review_user_response` only; defaults to main model if unset."""
+    override = (settings.LLM_REVIEW_MODEL or "").strip()
+    if override:
+        return override
+    return get_model_name()
+
+
+def get_review_model_fallback_chain() -> list[str]:
+    """
+    Models to try for response review, in order: optional fast model, then main chat model.
+    Used when the review model id is wrong or unavailable on the provider.
+    """
+    main = get_model_name()
+    r = (settings.LLM_REVIEW_MODEL or "").strip()
+    if r and r != main:
+        return [r, main]
+    return [main]

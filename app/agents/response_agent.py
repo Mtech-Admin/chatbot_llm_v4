@@ -7,8 +7,9 @@ from __future__ import annotations
 
 import logging
 import re
+from typing import Optional
 
-from app.config import get_llm_client, get_model_name
+from app.config import get_llm_client, get_review_model_fallback_chain
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +80,10 @@ def _fallback_cleanup(text: str, user_message: str) -> str:
     if any(k in cleaned.lower() for k in blocked_keywords):
         cleaned = "I am unable to fetch that right now. Please try again in a moment."
 
+    # Strip hallucinated "tool" text some models emit when a prior tool failed
+    if re.search(r"!function_call|function_call\s*:", cleaned, re.IGNORECASE):
+        cleaned = "I am unable to fetch that right now. Please try again in a moment."
+
     if _is_pure_greeting(user_message):
         return "Hello. How can I assist you today?"
     return cleaned
@@ -87,28 +92,32 @@ def _fallback_cleanup(text: str, user_message: str) -> str:
 async def review_user_response(user_message: str, draft_response: str, language: str = "en") -> str:
     if _is_pure_greeting(user_message):
         return "Hello. How can I assist you today?"
-    try:
-        client = get_llm_client()
-        model = get_model_name()
-        prompt = (
-            f"User message: {user_message}\n"
-            f"Draft response: {draft_response}\n"
-            f"Language: {language}\n"
-            "Final response:"
-        )
-        response = await client.chat.completions.create(
-            model=model,
-            max_tokens=300,
-            temperature=0.2,
-            messages=[
-                {"role": "system", "content": REVIEW_PROMPT},
-                {"role": "user", "content": prompt},
-            ],
-        )
-        final_text = (response.choices[0].message.content or "").strip()
-        if not final_text:
-            return _fallback_cleanup(draft_response, user_message)
-        return final_text
-    except Exception as exc:
-        logger.warning("Response review failed, using fallback cleanup: %s", str(exc))
-        return _fallback_cleanup(draft_response, user_message)
+    client = get_llm_client()
+    prompt = (
+        f"User message: {user_message}\n"
+        f"Draft response: {draft_response}\n"
+        f"Language: {language}\n"
+        "Final response:"
+    )
+    last_exc: Optional[Exception] = None
+    for model in get_review_model_fallback_chain():
+        try:
+            response = await client.chat.completions.create(
+                model=model,
+                max_tokens=300,
+                temperature=0.2,
+                messages=[
+                    {"role": "system", "content": REVIEW_PROMPT},
+                    {"role": "user", "content": prompt},
+                ],
+            )
+            final_text = (response.choices[0].message.content or "").strip()
+            if not final_text:
+                return _fallback_cleanup(draft_response, user_message)
+            return final_text
+        except Exception as exc:
+            last_exc = exc
+            logger.warning("Response review failed for model %s: %s", model, str(exc))
+    if last_exc:
+        logger.warning("All review model attempts failed, using fallback cleanup")
+    return _fallback_cleanup(draft_response, user_message)

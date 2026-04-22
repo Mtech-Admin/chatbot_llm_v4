@@ -96,3 +96,45 @@ def fetch_conversation_history(
                 }
             )
         return out, total
+
+
+def normalize_history_pagination(page: int, page_size: int) -> tuple[int, int]:
+    """
+    page defaults to 1 if < 1.
+    page_size defaults to 10 if < 1; capped at 50 if > 50.
+    """
+    p = 1 if page < 1 else page
+    if page_size < 1:
+        ps = 10
+    else:
+        ps = min(page_size, 50)
+    return p, ps
+
+
+def fetch_conversation_history_page(
+    emp_id: str, page: int, page_size: int
+) -> tuple[list[dict[str, Any]], int, int, int]:
+    """
+    One page of messages for an employee (newest first), plus total row count, normalized page, page_size.
+    """
+    p, ps = normalize_history_pagination(page, page_size)
+    offset = (p - 1) * ps
+    rows, total = fetch_conversation_history(emp_id, limit=ps, offset=offset)
+    slim: list[dict[str, Any]] = []
+    for r in rows:
+        ca = r.get("created_at")
+        if ca is not None and hasattr(ca, "isoformat"):
+            ca_out = ca.isoformat()
+        elif ca is not None:
+            ca_out = str(ca)
+        else:
+            ca_out = None
+        slim.append(
+            {
+                "id": r.get("id"),
+                "user_message": r.get("user_message", ""),
+                "bot_response": r.get("bot_response", ""),
+                "created_at": ca_out,
+            }
+        )
+    return slim, total, p, ps

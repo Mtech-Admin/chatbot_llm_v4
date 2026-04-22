@@ -70,3 +70,54 @@ def get_token_from_header(auth_header: Optional[str]) -> str:
         )
     
     return auth_header[7:]  # Remove 'Bearer ' prefix
+
+
+def verify_jwt_token_history_h256(token: str) -> dict:
+    """
+    Verify HS256 JWT for /v1/chat/history. Claims must include empId or emp_id.
+    Uses settings.JWT_SECRET, or SECRET_KEY if JWT_SECRET is empty.
+    """
+    if token.startswith("Bearer "):
+        token = token[7:].strip()
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing token",
+        )
+
+    secret = (settings.JWT_SECRET or settings.SECRET_KEY or "").strip()
+    if not secret:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Server JWT secret is not configured",
+        )
+
+    try:
+        payload = jwt.decode(
+            token,
+            secret,
+            algorithms=["HS256"],
+            options={"verify_signature": True},
+        )
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired",
+        )
+    except jwt.InvalidTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid token: {str(e)}",
+        )
+
+    employee_id = payload.get("emp_id") or payload.get("empId")
+    if not employee_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token: missing emp_id or empId claim",
+        )
+
+    return {
+        "employee_id": str(employee_id).strip(),
+        "role": (payload.get("role") or payload.get("user_type") or "employee"),
+    }

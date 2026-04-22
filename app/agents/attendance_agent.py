@@ -10,6 +10,7 @@ from typing import Dict, Any
 from app.config import get_llm_client, get_model_name
 from app.agents.base import BaseAgent
 from app.orchestrator.state import OrchestratorState
+from app.llm_tool_payload_compact import serialize_tool_result_for_llm
 from app.tools.attendance_tools import (
     ATTENDANCE_TOOLS,
     get_my_attendance,
@@ -172,7 +173,7 @@ class AttendanceAgent(BaseAgent):
                     {
                         "role": "tool",
                         "tool_call_id": tool_result["tool_call_id"],
-                        "content": json.dumps(tool_result["result"]),
+                        "content": serialize_tool_result_for_llm(tool_result["result"]),
                     }
                 )
 

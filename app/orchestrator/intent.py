@@ -29,14 +29,17 @@ Analyze the user's message and classify it into ONE of these intents:
 4. "policy_inquiry" - User asks policy/rules/eligibility/admissibility questions
    Examples: "What leaves are admissible on PRCE basis?", "What is leave policy?"
 
-5. "holiday_inquiry" - User wants to know holidays (future - not attendance)
-   Examples: "What are the holidays?"
+5. "leave_inquiry" - User wants to VIEW leave information (read-only): leave types, balances, leave status, leave count, my leave requests, leave calendar
+   Examples: "What leave types do I have?", "What is my casual leave balance?", "Show my leave requests", "Leave status last month", "How many leaves left?"
 
-6. "noc_inquiry" - User wants to VIEW their own NOC (No Objection Certificate) requests / status / details (read-only)
+6. "holiday_inquiry" - User wants public / official holidays (organizational calendar), not personal leave
+   Examples: "What are the public holidays?", "Upcoming holidays in 2026", "Holiday list"
+
+7. "noc_inquiry" - User wants to VIEW their own NOC (No Objection Certificate) requests / status / details (read-only)
    Examples: "What is the status of my NOC?", "Show my outside job NOC requests", "Ex-India NOC status",
    "Visa passport NOC", "My reimbursement NOC", "Online courses NOC list", "Higher studies NOC details"
 
-7. "unknown" - User's intent doesn't fit above categories
+8. "unknown" - User's intent doesn't fit above categories
    Examples: "Hi", "How are you?", "Tell me about DMRC"
 
 Rules:
@@ -44,6 +47,9 @@ Rules:
 - If user wants to VIEW/CHECK something about their attendance → "attendance_inquiry"
 - If user wants to VIEW their own profile / identity / job / contact data (not policy, not attendance) → "profile_inquiry"
 - If user wants to VIEW NOC request status or details (any NOC module) → "noc_inquiry"
+- If user wants to VIEW leave balances, leave types, their leave requests/status, or leave calendar (not applying) → "leave_inquiry"
+- If user asks about public holidays / holiday list / upcoming holidays (organizational calendar) → "holiday_inquiry"
+- If the question is about leave *policy* or *rules* (admissibility, eligibility), prefer "policy_inquiry" over "leave_inquiry"
 - If there's ANY ambiguity about actions vs viewing, prefer "redirect_to_portal" to be safe
 - Respond ONLY with the intent name, nothing else
 
@@ -60,6 +66,7 @@ async def classify_intent(
     "policy_inquiry",
     "redirect_to_portal",
     "holiday_inquiry",
+    "leave_inquiry",
     "unknown",
 ]:
     """
@@ -107,6 +114,10 @@ async def classify_intent(
             return "policy_inquiry"
         elif "redirect_to_portal" in normalized_intent or "redirect" in normalized_intent:
             return "redirect_to_portal"
+        elif "leave_inquiry" in normalized_intent or re.match(
+            r"^leave(_|$|inquiry)", normalized_intent
+        ):
+            return "leave_inquiry"
         elif "holiday_inquiry" in normalized_intent or "holiday" in normalized_intent:
             return "holiday_inquiry"
         else:
@@ -164,6 +175,40 @@ async def classify_intent(
             ]
             if any(p in msg for p in profile_markers) and not has_action:
                 return "profile_inquiry"
+
+            leave_markers = [
+                "leave balance",
+                "leave type",
+                "types of leave",
+                "casual leave",
+                "earned leave",
+                "annual leave",
+                "sick leave",
+                "my leave",
+                "leave request",
+                "leave status",
+                "leave calendar",
+                "how many leave",
+                "remaining leave",
+                "leave quota",
+                "time account",
+                "absence type",
+            ]
+            public_holiday_markers = [
+                "public holiday",
+                "official holiday",
+                "holiday calendar",
+                "list of holidays",
+                "upcoming holiday",
+                "next holiday",
+                "is it a holiday",
+            ]
+            if any(p in msg for p in public_holiday_markers) and not has_action:
+                return "holiday_inquiry"
+            if any(p in msg for p in leave_markers) and not has_action:
+                return "leave_inquiry"
+            if re.search(r"\bleave\b", msg) and not has_action and "policy" not in msg:
+                return "leave_inquiry"
             logger.warning(
                 "Intent classifier fallback to unknown for employee %s, raw='%s'",
                 state.employee_id,
