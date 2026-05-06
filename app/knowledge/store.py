@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 Base = declarative_base()
 
 _EMBEDDING_MODEL = None
+_EMBEDDING_MODEL_LOAD_FAILED = False
 _DOC_EMBEDDING_DIM = 384  # all-MiniLM-L6-v2
 
 
@@ -366,14 +367,21 @@ class PolicyKnowledgeStore:
     def _embed_doc_text(self, text: str) -> list[float]:
         model = self._get_sentence_transformer()
         if model is None:
-            raise RuntimeError("Sentence-transformers model is required for pgvector document retrieval")
-        vec = model.encode(text, normalize_embeddings=True)
-        out = [float(x) for x in vec.tolist()]
-        if len(out) != _DOC_EMBEDDING_DIM:
-            raise RuntimeError(
-                f"Embedding dimension mismatch for document retrieval: expected {_DOC_EMBEDDING_DIM}, got {len(out)}"
-            )
-        return out
+            return self._hash_embedding(text, dim=_DOC_EMBEDDING_DIM)
+        try:
+            vec = model.encode(text, normalize_embeddings=True)
+            out = [float(x) for x in vec.tolist()]
+            if len(out) != _DOC_EMBEDDING_DIM:
+                logger.warning(
+                    "Document embedding dimension mismatch (expected=%s got=%s). Falling back to hash embedding.",
+                    _DOC_EMBEDDING_DIM,
+                    len(out),
+                )
+                return self._hash_embedding(text, dim=_DOC_EMBEDDING_DIM)
+            return out
+        except Exception as exc:
+            logger.warning("Document embedding failed, using hash fallback: %s", str(exc))
+            return self._hash_embedding(text, dim=_DOC_EMBEDDING_DIM)
 
     def _embed_text(self, text: str) -> list[float]:
         model = self._get_sentence_transformer()
@@ -381,8 +389,31 @@ class PolicyKnowledgeStore:
             vec = model.encode(text, normalize_embeddings=True)
             return [float(x) for x in vec.tolist()]
 
+        return self._hash_embedding(text, dim=256)
+
+    def _get_sentence_transformer(self):
+        global _EMBEDDING_MODEL
+        global _EMBEDDING_MODEL_LOAD_FAILED
+        if _EMBEDDING_MODEL is not None:
+            return _EMBEDDING_MODEL
+        if _EMBEDDING_MODEL_LOAD_FAILED:
+            return None
+        try:
+            from sentence_transformers import SentenceTransformer
+
+            _EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+            _EMBEDDING_MODEL_LOAD_FAILED = False
+            logger.info("Loaded sentence-transformer model for policy retrieval")
+            return _EMBEDDING_MODEL
+        except Exception as exc:
+            logger.warning("Falling back to hash embeddings: %s", str(exc))
+            _EMBEDDING_MODEL = None
+            _EMBEDDING_MODEL_LOAD_FAILED = True
+            return None
+
+    @staticmethod
+    def _hash_embedding(text: str, *, dim: int) -> list[float]:
         tokens = re.findall(r"[a-zA-Z0-9]+", text.lower())
-        dim = 256
         vec = [0.0] * dim
         if not tokens:
             return vec
@@ -392,21 +423,6 @@ class PolicyKnowledgeStore:
             vec[idx] += 1.0
         norm = math.sqrt(sum(v * v for v in vec)) or 1.0
         return [v / norm for v in vec]
-
-    def _get_sentence_transformer(self):
-        global _EMBEDDING_MODEL
-        if _EMBEDDING_MODEL is not None:
-            return _EMBEDDING_MODEL
-        try:
-            from sentence_transformers import SentenceTransformer
-
-            _EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
-            logger.info("Loaded sentence-transformer model for policy retrieval")
-            return _EMBEDDING_MODEL
-        except Exception as exc:
-            logger.warning("Falling back to hash embeddings: %s", str(exc))
-            _EMBEDDING_MODEL = None
-            return None
 
     @staticmethod
     def _tokenize(text: str) -> set[str]:
