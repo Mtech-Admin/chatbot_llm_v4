@@ -3,6 +3,7 @@ Router - Routes requests to appropriate specialist agents
 """
 
 import logging
+import re
 from app.orchestrator.state import OrchestratorState
 from app.agents.attendance_agent import AttendanceAgent
 from app.agents.policy_agent import PolicyAgent
@@ -13,6 +14,18 @@ from app.agents.vpf_agent import VpfAgent
 from app.orchestrator.intent import validate_read_only_constraint, get_redirect_message
 
 logger = logging.getLogger(__name__)
+
+
+def _is_pure_greeting(message: str) -> bool:
+    raw = (message or "").strip().lower()
+    if not raw or len(raw) > 48:
+        return False
+    if any(ch in raw for ch in ("?", "!", ":")):
+        return False
+    if not re.search(r"\b(hi|hello|hey|namaste|good morning|good afternoon|good evening)\b", raw):
+        return False
+    tokens = re.findall(r"[a-zA-Z]+", raw)
+    return len(tokens) <= 4
 
 # Initialize agents
 attendance_agent = AttendanceAgent()
@@ -70,17 +83,20 @@ async def route_request(state: OrchestratorState) -> OrchestratorState:
     
     elif state.intent == "unknown":
         logger.info("Unknown intent fallback triggered for employee %s", state.employee_id)
-        state.response_message = (
-            "I'm not sure what you're looking for. I can help you with:\n"
-            "- Check your attendance records\n"
-            "- View your daily attendance\n"
-            "- See team attendance (if you're a manager)\n"
-            "- Look up your employee profile details (for example PAN or department)\n"
-            "- Check your NOC requests (outside job, ex-India, visa/passport, etc.)\n"
-            "- View VPF (Voluntary Provident Fund) requests and status\n"
-            "- View leave balances, leave requests, and the public holiday calendar\n\n"
-            "What would you like to know?"
-        )
+        if _is_pure_greeting(state.user_message):
+            state.response_message = "Hello. How can I assist you today?"
+        else:
+            state.response_message = (
+                "I'm not sure what you're looking for. I can help you with:\n"
+                "- Check your attendance records\n"
+                "- View your daily attendance\n"
+                "- See team attendance (if you're a manager)\n"
+                "- Look up your employee profile details (for example PAN or department)\n"
+                "- Check your NOC requests (outside job, ex-India, visa/passport, etc.)\n"
+                "- View VPF (Voluntary Provident Fund) requests and status\n"
+                "- View leave balances, leave requests, and the public holiday calendar\n\n"
+                "What would you like to know?"
+            )
     
     else:
         logger.warning("Unhandled intent '%s' for employee %s", state.intent, state.employee_id)

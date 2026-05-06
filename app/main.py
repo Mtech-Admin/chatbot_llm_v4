@@ -13,6 +13,7 @@ from app.gateway.router import router as chat_router
 from app.gateway.v1_chat_router import router as v1_chat_router
 from app.gateway.session import session_manager
 from app.knowledge.store import policy_store
+from app.tools.hrms_client import hrms_client
 
 # Configure logging
 logging.basicConfig(
@@ -20,6 +21,12 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Third-party HTTP debug logs are very verbose and add avoidable overhead in production.
+if not settings.DEBUG:
+    logging.getLogger("httpx").setLevel(logging.INFO)
+    logging.getLogger("httpcore").setLevel(logging.INFO)
+    logging.getLogger("openai").setLevel(logging.INFO)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,6 +43,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Shutting down DMRC HRMS Chatbot...")
     await session_manager.close()
+    await hrms_client.aclose()
     logger.info("Redis connection closed")
 
 # Create FastAPI app

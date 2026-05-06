@@ -6,7 +6,7 @@ import json
 import logging
 import re
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional, Tuple
 from app.config import get_llm_client, get_model_name
 from app.agents.base import BaseAgent
 from app.orchestrator.state import OrchestratorState
@@ -47,6 +47,9 @@ RESPONSE FORMAT:
 - Include relevant data (dates, status, counts)
 - If there are multiple records, organize by date
 - Always end with: "Would you like to see anything else about your attendance?"
+
+TEXT TO SPEECH:
+- Your response will be converted into an audio file, so keep it short, crisp, and written in clear, readable sentences without using symbols like dashes or asterisks.
 """
 
 class AttendanceAgent(BaseAgent):
@@ -61,6 +64,11 @@ class AttendanceAgent(BaseAgent):
         Process attendance query using LLM with tool calling
         """
         try:
+            if self._is_month_summary_request(state.user_message):
+                fast_state = await self._handle_month_summary_fast_path(state)
+                if fast_state is not None:
+                    return fast_state
+
             client = get_llm_client()
             model = get_model_name()
             logger.info(
@@ -104,6 +112,36 @@ class AttendanceAgent(BaseAgent):
             )
             state.response_message = "I encountered an error while retrieving your attendance. Please try again."
             return state
+
+    async def _handle_month_summary_fast_path(
+        self, state: OrchestratorState
+    ) -> Optional[OrchestratorState]:
+        target = self._extract_month_year(state.user_message)
+        if not target:
+            return None
+        month, year = target
+        result = await get_my_attendance(
+            state.jwt_token,
+            str(month),
+            str(year),
+            page=1,
+            limit=31,
+        )
+        if result.get("status") != "success":
+            return None
+        summary = self._build_month_summary_response(result.get("data", {}), month, year)
+        if not summary:
+            return None
+        state.response_message = summary
+        state.skip_response_review = True
+        state.routing_agent = "attendance_agent"
+        logger.info(
+            "Attendance fast-path summary used for employee %s month=%s year=%s",
+            state.employee_id,
+            month,
+            year,
+        )
+        return state
     
     async def _process_response(self, response: Any, state: OrchestratorState) -> OrchestratorState:
         """
@@ -239,3 +277,85 @@ class AttendanceAgent(BaseAgent):
         if not explicit_year_in_query:
             normalized["year"] = str(datetime.utcnow().year)
         return normalized
+
+    def _is_month_summary_request(self, user_message: str) -> bool:
+        msg = (user_message or "").lower()
+        has_attendance = bool(re.search(r"\b(attendance|present|absent|late|early leaving)\b", msg))
+        asks_month = (
+            "last month" in msg
+            or "this month" in msg
+            or bool(re.search(r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b", msg))
+            or bool(re.search(r"\b\d{1,2}/\d{4}\b", msg))
+        )
+        asks_summary = "summary" in msg or "show" in msg or "tell me" in msg or "attendance" in msg
+        return has_attendance and asks_month and asks_summary
+
+    def _extract_month_year(self, user_message: str) -> Optional[Tuple[int, int]]:
+        msg = (user_message or "").lower()
+        now = datetime.utcnow()
+        if "last month" in msg:
+            month = now.month - 1
+            year = now.year
+            if month == 0:
+                month = 12
+                year -= 1
+            return month, year
+        if "this month" in msg:
+            return now.month, now.year
+
+        month_map = {
+            "jan": 1, "january": 1,
+            "feb": 2, "february": 2,
+            "mar": 3, "march": 3,
+            "apr": 4, "april": 4,
+            "may": 5,
+            "jun": 6, "june": 6,
+            "jul": 7, "july": 7,
+            "aug": 8, "august": 8,
+            "sep": 9, "sept": 9, "september": 9,
+            "oct": 10, "october": 10,
+            "nov": 11, "november": 11,
+            "dec": 12, "december": 12,
+        }
+        month_match = re.search(
+            r"\b(january|february|march|april|may|june|july|august|september|sept|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\b",
+            msg,
+        )
+        if month_match:
+            month = month_map[month_match.group(1)]
+            year_match = re.search(r"\b(19|20)\d{2}\b", msg)
+            year = int(year_match.group(0)) if year_match else now.year
+            return month, year
+        return None
+
+    def _build_month_summary_response(self, payload: Dict[str, Any], month: int, year: int) -> str:
+        month_name = datetime(year, month, 1).strftime("%B")
+        present = int(payload.get("present", 0) or 0)
+        absent = int(payload.get("absent", 0) or 0)
+        half_day = int(payload.get("half_day", 0) or 0)
+        late = int(payload.get("late_coming", 0) or 0)
+        early = int(payload.get("early_leaving", 0) or 0)
+        holiday = int(payload.get("holiday", 0) or 0)
+        total = int(payload.get("total", 0) or 0)
+        rows = payload.get("records") or payload.get("data") or []
+        first_date = ""
+        if rows and isinstance(rows, list):
+            dt = rows[0].get("check_in_time") or rows[0].get("created_at")
+            if dt:
+                first_date = str(dt)[:10]
+
+        lines = [
+            f"Here is your attendance summary for {month_name} {year}:",
+            f"- Total records: {total}",
+            f"- Present: {present}",
+            f"- Late coming: {late}",
+            f"- Early leaving: {early}",
+            f"- Absent: {absent}",
+            f"- Half day: {half_day}",
+            f"- Holiday: {holiday}",
+        ]
+        if first_date:
+            lines.append(f"- Latest recorded day: {first_date}")
+        lines.append("")
+        lines.append("Would you like to see anything else about your attendance?")
+        return "\n".join(lines)

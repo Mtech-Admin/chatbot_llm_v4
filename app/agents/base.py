@@ -10,12 +10,24 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+COMMON_RESPONSE_GUARDRAILS = """FINAL RESPONSE RULES:
+- Return user-facing text only.
+- Keep response concise, clear, and professional.
+- Never expose backend/system/debug/API details.
+- Do not mention internal components: agent, tool, API, endpoint, upload script, database, schema, logs.
+- Do not add facts, numbers, or caveats not supported by available data.
+- If the user message is ONLY a short greeting (hi/hello/namaste/good morning etc.) with no other request,
+  respond with EXACTLY: Hello. How can I assist you today?
+- If data cannot be fetched due to technical failure, respond calmly:
+  I am unable to fetch that right now. Please try again in a moment.
+- If a field/value is not available in records, state that clearly (do not call it a system failure)."""
+
 class BaseAgent(ABC):
     """Base class for all specialist agents"""
     
     def __init__(self, agent_name: str, system_prompt: str):
         self.agent_name = agent_name
-        self.system_prompt = system_prompt
+        self.system_prompt = f"{system_prompt}\n\n{COMMON_RESPONSE_GUARDRAILS}"
         self.tools = []
     
     @abstractmethod

@@ -10,6 +10,64 @@ from app.orchestrator.state import OrchestratorState
 
 logger = logging.getLogger(__name__)
 
+_ACTION_MARKERS = (
+    "update",
+    "change",
+    "modify",
+    "add",
+    "delete",
+    "remove",
+    "upload",
+    "submit",
+    "apply",
+    "register",
+    "enroll",
+    "approve",
+    "reject",
+    "check in",
+    "check out",
+    "checkin",
+    "checkout",
+)
+
+
+def _has_action_intent(msg: str) -> bool:
+    return any(re.search(rf"\b{re.escape(marker)}\b", msg) for marker in _ACTION_MARKERS)
+
+
+def _classify_intent_fast(user_message: str) -> str | None:
+    msg = (user_message or "").lower().strip()
+    if not msg:
+        return "unknown"
+
+    has_action = _has_action_intent(msg)
+
+    if has_action:
+        return "redirect_to_portal"
+
+    if re.search(r"\b(attendance|present|absent|late|early leaving|punch|check[- ]?in time|check[- ]?out time)\b", msg):
+        return "attendance_inquiry"
+
+    if re.search(r"\b(public holiday|official holiday|holiday list|holiday calendar|upcoming holiday|next holiday)\b", msg):
+        return "holiday_inquiry"
+
+    if "policy" in msg or "admissible" in msg or "eligibility" in msg:
+        return "policy_inquiry"
+
+    if re.search(r"\bvpf\b|voluntary\s*provident", msg):
+        return "vpf_inquiry"
+
+    if re.search(r"\bnoc\b|no\s+objection|ex\s*-?\s*india|outside job|visa|passport|higher studies|online course", msg):
+        return "noc_inquiry"
+
+    if re.search(r"\bleave\b", msg):
+        return "leave_inquiry"
+
+    if re.search(r"\b(profile|pan|aadhaar|aadhar|ifsc|department|designation|reporting manager|employee id|date of joining|dob)\b", msg):
+        return "profile_inquiry"
+
+    return None
+
 INTENT_CLASSIFIER_PROMPT = """You are an expert intent classifier for an HR chatbot.
 
 Analyze the user's message and classify it into ONE of these intents:
@@ -85,6 +143,15 @@ async def classify_intent(
         Intent classification
     """
     try:
+        heuristic_intent = _classify_intent_fast(state.user_message)
+        if heuristic_intent:
+            logger.info(
+                "Intent classified by fast heuristic for employee %s: %s",
+                state.employee_id,
+                heuristic_intent,
+            )
+            return heuristic_intent  # type: ignore[return-value]
+
         client = get_llm_client()
         model = get_model_name()
         

@@ -73,6 +73,7 @@ class Settings(BaseSettings):
     # Optional: model id for final response polish only (same OpenAI-compatible API as main LLM).
     # If empty, uses the main model. Set a smaller instruct model to cut ~50% latency on review calls.
     LLM_REVIEW_MODEL: str = "Qwen/Qwen3.5-4B"
+    ENABLE_RESPONSE_REVIEW: bool = False
 
     # HRMS API Configuration
     HRMS_BASE_URL: str = "http://localhost:3001/api"
@@ -135,6 +136,8 @@ class Settings(BaseSettings):
         return self
 
 settings = Settings()
+_llm_client = None
+_llm_client_signature: tuple[str, str, str] | None = None
 
 
 def _groq_api_key() -> str:
@@ -154,33 +157,57 @@ def get_llm_client():
     """Return AsyncOpenAI client for Groq, vLLM, or DeepInfra (OpenAI-compatible)."""
     from openai import AsyncOpenAI
 
+    global _llm_client
+    global _llm_client_signature
+
+    provider = settings.LLM_PROVIDER
+    base_url = ""
+    api_key = ""
+    if provider == "groq":
+        api_key = _groq_api_key()
+        base_url = "https://api.groq.com/openai/v1"
+    elif provider == "vllm":
+        api_key = "not-needed"
+        base_url = settings.VLLM_BASE_URL
+    elif provider == "deepinfra":
+        api_key = _deepinfra_api_key()
+        base_url = settings.DEEPINFRA_BASE_URL.rstrip("/")
+
+    signature = (provider, base_url, api_key)
+    if _llm_client is not None and _llm_client_signature == signature:
+        return _llm_client
+
     if settings.LLM_PROVIDER == "groq":
-        key = _groq_api_key()
-        if not key:
+        if not api_key:
             raise ValueError(
                 "LLM_PROVIDER=groq requires GROQ_API_KEY (non-empty). "
                 "Set it in .env.local or the process environment."
             )
-        return AsyncOpenAI(
-            base_url="https://api.groq.com/openai/v1",
-            api_key=key,
+        _llm_client = AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
         )
+        _llm_client_signature = signature
+        return _llm_client
     if settings.LLM_PROVIDER == "vllm":
-        return AsyncOpenAI(
-            base_url=settings.VLLM_BASE_URL,
-            api_key="not-needed",
+        _llm_client = AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
         )
+        _llm_client_signature = signature
+        return _llm_client
     if settings.LLM_PROVIDER == "deepinfra":
-        key = _deepinfra_api_key()
-        if not key:
+        if not api_key:
             raise ValueError(
                 "LLM_PROVIDER=deepinfra requires DEEPINFRA_TOKEN or DEEPINFRA_API_KEY "
                 "(non-empty). Set it in .env.local or PM2 env."
             )
-        return AsyncOpenAI(
-            base_url=settings.DEEPINFRA_BASE_URL.rstrip("/"),
-            api_key=key,
+        _llm_client = AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
         )
+        _llm_client_signature = signature
+        return _llm_client
     raise ValueError(f"Unknown LLM provider: {settings.LLM_PROVIDER}")
 
 

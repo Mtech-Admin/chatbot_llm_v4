@@ -16,6 +16,21 @@ class HRMSClient:
         self.base_url = settings.HRMS_BASE_URL
         self.timeout = settings.HRMS_TIMEOUT
         self.engine = create_engine(settings.DATABASE_URL)
+        self.http_client = httpx.AsyncClient(
+            timeout=self.timeout,
+            limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
+        )
+
+    def _masked_token(self, jwt_token: str) -> str:
+        token = (jwt_token or "").strip()
+        if token.startswith("Bearer "):
+            token = token[7:].strip()
+        if len(token) <= 12:
+            return "***"
+        return f"{token[:6]}...{token[-6:]}"
+
+    async def aclose(self) -> None:
+        await self.http_client.aclose()
 
     def _extract_emp_id_from_token(self, jwt_token: str) -> Optional[str]:
         """Read empId claim from JWT without verifying signature."""
@@ -107,55 +122,46 @@ class HRMSClient:
         wrapped_body = self._build_hrms_wrapped_body(jwt_token, body)
         
         url = f"{self.base_url}{endpoint}"
-
-        logger.info(
-            "HRMS API using full JWT for %s %s: %s",
-            method,
-            endpoint,
-            jwt_token,
-        )
-        logger.info(
-            "HRMS request headers for %s %s: %s",
-            method,
-            endpoint,
-            headers,
-        )
-        logger.info(
-            "HRMS wrapped body for %s %s: %s",
-            method,
-            endpoint,
-            wrapped_body,
-        )
+        logger.info("HRMS API request: %s %s", method, endpoint)
+        if settings.DEBUG:
+            logger.debug(
+                "HRMS request details endpoint=%s params=%s body_keys=%s token=%s",
+                endpoint,
+                params,
+                list((body or {}).keys()),
+                self._masked_token(jwt_token),
+            )
 
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                if method == "POST":
-                    response = await client.post(url, json=wrapped_body, headers=headers)
-                elif method == "GET":
-                    response = await client.get(url, params=params, headers=headers)
-                else:
-                    raise ValueError(f"Unsupported HTTP method: {method}")
-                
-                # Log request/response for audit trail
-                logger.info(
-                    f"HRMS API call: {method} {endpoint} - Status: {response.status_code}"
-                )
-                
-                # Treat any 2xx as success (HRMS returns 201 for some read endpoints)
-                if 200 <= response.status_code < 300:
-                    return response.json()
-                elif response.status_code == 403:
-                    logger.warning(f"Access denied for endpoint: {endpoint}")
-                    return {"error": "access_denied"}
-                elif response.status_code == 404:
-                    logger.warning(f"Resource not found: {endpoint}")
-                    return {"error": "not_found"}
-                elif response.status_code == 401:
-                    logger.warning(f"Unauthorized access to: {endpoint}")
-                    return {"error": "unauthorized"}
-                else:
-                    logger.error(f"HRMS API error {response.status_code}: {response.text}")
-                    return {"error": f"hrms_error_{response.status_code}"}
+            if method == "POST":
+                response = await self.http_client.post(url, json=wrapped_body, headers=headers)
+            elif method == "GET":
+                response = await self.http_client.get(url, params=params, headers=headers)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+
+            logger.info(
+                "HRMS API response: %s %s status=%s",
+                method,
+                endpoint,
+                response.status_code,
+            )
+
+            # Treat any 2xx as success (HRMS returns 201 for some read endpoints)
+            if 200 <= response.status_code < 300:
+                return response.json()
+            elif response.status_code == 403:
+                logger.warning(f"Access denied for endpoint: {endpoint}")
+                return {"error": "access_denied"}
+            elif response.status_code == 404:
+                logger.warning(f"Resource not found: {endpoint}")
+                return {"error": "not_found"}
+            elif response.status_code == 401:
+                logger.warning(f"Unauthorized access to: {endpoint}")
+                return {"error": "unauthorized"}
+            else:
+                logger.error(f"HRMS API error {response.status_code}: {response.text}")
+                return {"error": f"hrms_error_{response.status_code}"}
         
         except httpx.TimeoutException:
             logger.error(f"Timeout calling HRMS API: {endpoint}")

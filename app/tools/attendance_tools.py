@@ -125,9 +125,38 @@ async def get_my_attendance(
             "message": _error_message(result["error"])
         }
     
+    payload = result.get("data", {}) or {}
+    rows = payload.get("data", []) if isinstance(payload, dict) else []
+    compact_rows = []
+    for row in rows if isinstance(rows, list) else []:
+        compact_rows.append(
+            {
+                "date": (row.get("check_in_time") or row.get("created_at") or "")[:10],
+                "attendance_status": row.get("attendance_status"),
+                "attendance_work_type": row.get("attendance_work_type"),
+                "work_day_type": row.get("work_day_type"),
+                "late_coming": bool(row.get("late_coming")),
+                "early_leaving": bool(row.get("early_leaving")),
+                "check_in_time": row.get("check_in_time"),
+                "check_out_time": row.get("check_out_time"),
+                "working_hours": row.get("working_hours"),
+            }
+        )
+
     return {
         "status": "success",
-        "data": result.get("data", []),
+        "data": {
+            "month": payload.get("month"),
+            "year": payload.get("year"),
+            "total": payload.get("total", 0),
+            "present": payload.get("present", 0),
+            "absent": payload.get("absent", 0),
+            "half_day": payload.get("half_day", 0),
+            "late_coming": payload.get("late_coming", 0),
+            "early_leaving": payload.get("early_leaving", 0),
+            "holiday": payload.get("holiday", 0),
+            "records": compact_rows,
+        },
         "pagination": {
             "page": safe_page,
             "limit": safe_limit,

@@ -15,7 +15,6 @@ from app.gateway.auth import verify_jwt_token, get_token_from_header
 from app.gateway.session import session_manager
 from app.orchestrator.state import OrchestratorState
 from app.orchestrator.graph import process_message
-from app.agents.response_agent import review_user_response
 from app.knowledge.ingest import read_policy_rows
 from app.knowledge.store import policy_store
 from app.storage.chatbot_conversations import save_conversation
@@ -81,14 +80,6 @@ async def send_message(
         # Step 5: Process message through orchestrator
         state = await process_message(state)
 
-        # Step 5.5: Final user-facing response review (skip for deterministic outputs)
-        if not getattr(state, "skip_response_review", False):
-            state.response_message = await review_user_response(
-                user_message=request.message,
-                draft_response=state.response_message,
-                language=request.language,
-            )
-        
         # Step 6: Build response
         response = ChatResponse(
             session_id=session_id,
