@@ -4,6 +4,7 @@ FastAPI Router - HTTP endpoints for chatbot
 
 import logging
 from pathlib import Path
+import re
 import tempfile
 
 from fastapi import APIRouter, Header, HTTPException, UploadFile, File, status
@@ -15,13 +16,21 @@ from app.gateway.auth import verify_jwt_token, get_token_from_header
 from app.gateway.session import session_manager
 from app.orchestrator.state import OrchestratorState
 from app.orchestrator.graph import process_message
-from app.knowledge.ingest import read_policy_rows
+from app.knowledge.ingest import read_policy_docx_chunks, read_policy_rows
 from app.knowledge.store import policy_store
 from app.storage.chatbot_conversations import save_conversation
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v1", tags=["chat"])
+
+
+def _build_document_key(file_name: str, explicit_key: Optional[str]) -> str:
+    key = (explicit_key or "").strip()
+    if key:
+        return key
+    generated = re.sub(r"[^a-z0-9_]+", "_", Path(file_name).stem.lower()).strip("_")
+    return generated or "policy_document"
 
 @router.post("/chat", response_model=ChatResponse)
 async def send_message(
@@ -162,11 +171,16 @@ async def health_check() -> dict:
 async def upload_policy_knowledge(
     file: UploadFile = File(...),
     replace: bool = True,
+    document_key: Optional[str] = None,
+    document_title: Optional[str] = None,
+    document_version: Optional[str] = None,
     authorization: Optional[str] = Header(None),
 ) -> dict:
     """
-    Upload policy Q&A Excel/CSV and ingest into knowledge store.
-    Required file columns: question, answer
+    Upload policy knowledge and ingest into knowledge store.
+    Supported:
+      - .csv/.xlsx/.xlsm (FAQ rows with question+answer columns)
+      - .docx (long-form policy document chunks for RAG)
     """
     try:
         jwt_token = get_token_from_header(authorization)
@@ -175,10 +189,10 @@ async def upload_policy_knowledge(
 
         file_name = file.filename or "uploaded_policy_file"
         suffix = Path(file_name).suffix.lower()
-        if suffix not in {".csv", ".xlsx", ".xlsm"}:
+        if suffix not in {".csv", ".xlsx", ".xlsm", ".docx"}:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Unsupported file type. Upload .csv, .xlsx, or .xlsm",
+                detail="Unsupported file type. Upload .csv, .xlsx, .xlsm, or .docx",
             )
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -187,16 +201,52 @@ async def upload_policy_knowledge(
             tmp.write(content)
 
         try:
-            rows = read_policy_rows(tmp_path)
-            valid_rows = [r for r in rows if str(r.get("question", "")).strip() and str(r.get("answer", "")).strip()]
-            if replace:
-                policy_store.clear()
-            total_rows = policy_store.upsert_entries(valid_rows, source_file=file_name)
+            if suffix == ".docx":
+                chunks = read_policy_docx_chunks(tmp_path)
+                key = _build_document_key(file_name, document_key)
+                title = (document_title or "").strip() or Path(file_name).stem
+                version = (document_version or "").strip() or None
+                if replace:
+                    policy_store.clear(policy_docs=True, policy_qa=False)
+                result = policy_store.upsert_policy_document(
+                    document_key=key,
+                    title=title,
+                    source_file=file_name,
+                    chunks=chunks,
+                    version=version,
+                    replace_existing=True,
+                    metadata={
+                        "ingest_source": "api_upload",
+                        "uploaded_by_employee_id": employee_id,
+                    },
+                )
+            else:
+                rows = read_policy_rows(tmp_path)
+                valid_rows = [r for r in rows if str(r.get("question", "")).strip() and str(r.get("answer", "")).strip()]
+                if replace:
+                    policy_store.clear(policy_qa=True, policy_docs=False)
+                total_rows = policy_store.upsert_entries(valid_rows, source_file=file_name)
         finally:
             tmp_path.unlink(missing_ok=True)
 
+        if suffix == ".docx":
+            logger.info(
+                "Policy DOCX uploaded by employee %s, file=%s, document_key=%s, chunks_saved=%s",
+                employee_id,
+                file_name,
+                result["document_key"],
+                result["chunk_count"],
+            )
+            return {
+                "status": "success",
+                "file": file_name,
+                "document_key": result["document_key"],
+                "chunks_saved": result["chunk_count"],
+                "replace": replace,
+            }
+
         logger.info(
-            "Policy knowledge uploaded by employee %s, file=%s, rows_read=%s, valid_rows=%s, rows_in_store=%s",
+            "Policy FAQ uploaded by employee %s, file=%s, rows_read=%s, valid_rows=%s, rows_in_store=%s",
             employee_id,
             file_name,
             len(rows),
@@ -218,6 +268,82 @@ async def upload_policy_knowledge(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Policy upload failed: {str(exc)}",
+        )
+
+
+@router.post("/knowledge/upload/docx")
+async def upload_policy_docx(
+    file: UploadFile = File(...),
+    replace: bool = True,
+    document_key: Optional[str] = None,
+    document_title: Optional[str] = None,
+    document_version: Optional[str] = None,
+    authorization: Optional[str] = Header(None),
+) -> dict:
+    """
+    Upload and ingest a policy DOCX file only.
+    """
+    try:
+        jwt_token = get_token_from_header(authorization)
+        auth_info = verify_jwt_token(jwt_token)
+        employee_id = auth_info["employee_id"]
+
+        file_name = file.filename or "policy_document.docx"
+        suffix = Path(file_name).suffix.lower()
+        if suffix != ".docx":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Unsupported file type. Upload only .docx for this endpoint",
+            )
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp_path = Path(tmp.name)
+            content = await file.read()
+            tmp.write(content)
+
+        try:
+            chunks = read_policy_docx_chunks(tmp_path)
+            key = _build_document_key(file_name, document_key)
+            title = (document_title or "").strip() or Path(file_name).stem
+            version = (document_version or "").strip() or None
+            if replace:
+                policy_store.clear(policy_docs=True, policy_qa=False)
+            result = policy_store.upsert_policy_document(
+                document_key=key,
+                title=title,
+                source_file=file_name,
+                chunks=chunks,
+                version=version,
+                replace_existing=True,
+                metadata={
+                    "ingest_source": "api_upload_docx",
+                    "uploaded_by_employee_id": employee_id,
+                },
+            )
+        finally:
+            tmp_path.unlink(missing_ok=True)
+
+        logger.info(
+            "Policy DOCX uploaded via docx endpoint by employee %s, file=%s, document_key=%s, chunks_saved=%s",
+            employee_id,
+            file_name,
+            result["document_key"],
+            result["chunk_count"],
+        )
+        return {
+            "status": "success",
+            "file": file_name,
+            "document_key": result["document_key"],
+            "chunks_saved": result["chunk_count"],
+            "replace": replace,
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Policy DOCX upload failed: %s", str(exc), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Policy DOCX upload failed: {str(exc)}",
         )
 
 

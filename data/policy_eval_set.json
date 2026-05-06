@@ -1,0 +1,52 @@
+[
+  {
+    "id": "leave_eligibility",
+    "question": "What is the eligibility criteria for earned leave?",
+    "expected_keywords": ["earned leave", "eligibility"]
+  },
+  {
+    "id": "probation_leave_rule",
+    "question": "Can employees apply for leave during probation period?",
+    "expected_keywords": ["probation", "leave"]
+  },
+  {
+    "id": "medical_reimbursement_window",
+    "question": "By when should medical reimbursement claims be submitted?",
+    "expected_keywords": ["medical", "reimbursement", "submit"]
+  },
+  {
+    "id": "maternity_policy",
+    "question": "How many days of maternity leave are available?",
+    "expected_keywords": ["maternity", "leave", "days"]
+  },
+  {
+    "id": "grievance_channel",
+    "question": "Where should an employee report a workplace grievance?",
+    "expected_keywords": ["grievance", "report"]
+  },
+  {
+    "id": "travel_allowance",
+    "question": "What are the rules for official travel allowance reimbursement?",
+    "expected_keywords": ["travel", "allowance", "reimbursement"]
+  },
+  {
+    "id": "late_arrival_policy",
+    "question": "What happens if someone repeatedly reports late to duty?",
+    "expected_keywords": ["late", "duty", "disciplinary"]
+  },
+  {
+    "id": "wfh_rules",
+    "question": "Is work-from-home allowed and under what conditions?",
+    "expected_keywords": ["work from home", "conditions"]
+  },
+  {
+    "id": "retirement_benefits",
+    "question": "What policy covers post-retirement benefits?",
+    "expected_keywords": ["retirement", "benefits"]
+  },
+  {
+    "id": "disciplinary_process",
+    "question": "What is the disciplinary process for policy violations?",
+    "expected_keywords": ["disciplinary", "violation", "process"]
+  }
+]

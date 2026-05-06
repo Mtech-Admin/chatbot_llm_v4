@@ -8,7 +8,8 @@
     "start": "python -m uvicorn app.main:app --host 0.0.0.0 --port 8001",
     "setup:db": "python scripts/setup_db.py",
     "ingest:policy": "python scripts/ingest_policy_qa.py --file data/policy_qa.xlsx",
-    "ingest:docs": "python scripts/ingest_documents.py",
+    "ingest:docs": "python scripts/ingest_documents.py --file data/policy.docx --replace",
+    "eval:policy-rag": "python scripts/evaluate_policy_rag.py --file data/policy_eval_set.json",
     "test": "pytest tests/ -v",
     "lint": "pylint app/ --disable=C0111,W0212",
     "format": "black app/ --line-length=100"

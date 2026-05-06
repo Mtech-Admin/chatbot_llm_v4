@@ -6,13 +6,18 @@ import logging
 import re
 
 from app.agents.base import BaseAgent
-from app.knowledge.store import policy_store
+from app.config import get_llm_client, get_model_name, settings
+from app.knowledge.store import PolicyChunkMatch, policy_store
 from app.orchestrator.state import OrchestratorState
 
 logger = logging.getLogger(__name__)
 
-POLICY_AGENT_PROMPT = """You answer HR policy questions using the internal policy Q&A knowledge base."""
+POLICY_AGENT_PROMPT = """You answer HR policy questions using the internal policy document knowledge base.
 
+Grounding rules:
+- Use only retrieved policy evidence when answering policy questions.
+- If policy evidence is weak/unclear, say you are not confident and provide a concise fallback guidance.
+- Do not invent policy clauses or section references."""
 
 class PolicyAgent(BaseAgent):
     def __init__(self):
@@ -26,30 +31,64 @@ class PolicyAgent(BaseAgent):
                 state.employee_id,
                 kb_stats,
             )
-            if kb_stats.get("rows", 0) == 0:
+            has_doc_index = kb_stats.get("policy_chunk_count", 0) > 0
+            has_faq_index = kb_stats.get("rows", 0) > 0
+            if not has_doc_index and not has_faq_index:
                 state.response_message = (
                     "I am unable to find policy information right now. "
                     "Please try again in a little while or contact HR."
                 )
-                state.sources = [{"type": "policy_qa", "kb_stats": kb_stats}]
+                state.sources = [{"type": "policy_kb", "kb_stats": kb_stats}]
+                return state
+
+            if settings.POLICY_RAG_ENABLED and has_doc_index:
+                doc_matches = policy_store.search_chunks(
+                    state.user_message,
+                    top_k=max(1, settings.POLICY_RAG_TOP_K),
+                )
+                if doc_matches:
+                    best_doc = doc_matches[0]
+                    if best_doc.combined_score >= settings.POLICY_RAG_DOC_CONFIDENCE_THRESHOLD:
+                        state.response_message = await self._build_grounded_policy_answer(state, doc_matches)
+                        state.sources = [
+                            {
+                                "type": "policy_doc_chunk",
+                                "document_key": m.document_key,
+                                "document_title": m.document_title,
+                                "source_file": m.source_file,
+                                "chunk_index": m.chunk_index,
+                                "section_title": m.section_title,
+                                "page_number": m.page_number,
+                                "vector_score": round(m.vector_score, 4),
+                                "keyword_score": round(m.keyword_score, 4),
+                                "combined_score": round(m.combined_score, 4),
+                            }
+                            for m in doc_matches[:3]
+                        ] + [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
+                        state.routing_agent = "policy_agent"
+                        logger.info(
+                            "Policy doc retrieval success for employee %s combined=%.4f source=%s",
+                            state.employee_id,
+                            best_doc.combined_score,
+                            best_doc.source_file,
+                        )
+                        return state
+
+            if not has_faq_index:
+                state.response_message = self._general_fallback_response()
+                state.sources = [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
                 return state
 
             matches = policy_store.search(state.user_message, top_k=10)
             if not matches:
-                state.response_message = (
-                    "I could not find a matching policy answer right now. "
-                    "Please try rephrasing your question."
-                )
-                state.sources = [{"type": "policy_qa", "kb_stats": kb_stats}]
+                state.response_message = self._general_fallback_response()
+                state.sources = [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
                 return state
 
-            ranked = self._rank_matches(state.user_message, matches)
+            ranked = self._rank_faq_matches(state.user_message, matches)
             best = ranked[0]
-            if best["combined"] < 0.25:
-                state.response_message = (
-                    "I found related policy topics, but I am not fully confident about the exact answer. "
-                    "Please share a bit more detail in your question."
-                )
+            if best["combined"] < settings.POLICY_RAG_FAQ_CONFIDENCE_THRESHOLD:
+                state.response_message = self._general_fallback_response()
                 state.sources = [
                     {
                         "type": "policy_qa",
@@ -107,7 +146,7 @@ class PolicyAgent(BaseAgent):
         union = len(q_tokens | d_tokens) or 1
         return inter / union
 
-    def _rank_matches(self, query: str, matches):
+    def _rank_faq_matches(self, query: str, matches):
         ranked = []
         for m in matches:
             kw = self._keyword_overlap(query, m.question)
@@ -115,3 +154,65 @@ class PolicyAgent(BaseAgent):
             ranked.append({"match": m, "vector": float(m.score), "keyword": float(kw), "combined": combined})
         ranked.sort(key=lambda x: x["combined"], reverse=True)
         return ranked
+
+    async def _build_grounded_policy_answer(
+        self,
+        state: OrchestratorState,
+        matches: list[PolicyChunkMatch],
+    ) -> str:
+        context_blocks = []
+        for idx, m in enumerate(matches[:3], start=1):
+            section = m.section_title or "Policy section"
+            page_label = f" | page={m.page_number}" if m.page_number else ""
+            context_blocks.append(
+                f"[{idx}] {section}{page_label}\n"
+                f"source={m.source_file} chunk={m.chunk_index} score={m.combined_score:.3f}\n"
+                f"{m.content}"
+            )
+        evidence = "\n\n".join(context_blocks)
+
+        prompt = (
+            "Answer the user question using only the retrieved policy excerpts below.\n"
+            "Rules:\n"
+            "- Keep it concise and actionable.\n"
+            "- If evidence is partial, mention the uncertainty explicitly.\n"
+            "- End with a short 'Source:' line citing excerpt numbers used (example: Source: [1], [2]).\n"
+            "- Do not mention internal systems, embeddings, or retrieval.\n\n"
+            f"User question: {state.user_message}\n\n"
+            f"Policy excerpts:\n{evidence}"
+        )
+
+        try:
+            client = get_llm_client()
+            model = get_model_name()
+            response = await client.chat.completions.create(
+                model=model,
+                max_tokens=420,
+                messages=[
+                    {"role": "system", "content": self._build_context_prompt(state)},
+                    {"role": "user", "content": prompt},
+                ],
+            )
+            content = (response.choices[0].message.content or "").strip()
+            if content:
+                return content
+        except Exception as exc:
+            logger.warning("Grounded policy answer generation failed: %s", str(exc))
+
+        best = matches[0]
+        excerpt = best.content[:420].strip()
+        suffix = "..." if len(best.content) > 420 else ""
+        section = best.section_title or "policy section"
+        return (
+            f"Based on the policy document ({section}), here is the closest guidance:\n"
+            f"{excerpt}{suffix}\n\n"
+            "Source: [1]"
+        )
+
+    @staticmethod
+    def _general_fallback_response() -> str:
+        return (
+            "I could not find a confident policy-grounded answer for that query. "
+            "Please rephrase with more specifics (policy topic, rule, or clause). "
+            "I can also help with attendance, leave, profile, NOC, and VPF queries."
+        )
