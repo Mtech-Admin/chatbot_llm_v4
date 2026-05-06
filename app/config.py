@@ -98,7 +98,7 @@ class Settings(BaseSettings):
     # Redis — if the server uses requirepass, set REDIS_PASSWORD or use redis://:pass@host:6379/0
     REDIS_URL: str = "redis://localhost:6379"
     REDIS_USERNAME: str = ""
-    REDIS_PASSWORD: str = ""
+    REDIS_PASSWORD: str = "406de28661f5fb0a"
     SESSION_TTL: int = 1800  # 30 minutes
     MEMORY_TTL: int = 86400 * 7  # 7 days
     
