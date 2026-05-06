@@ -5,10 +5,13 @@ Helpers for ingesting policy Q&A files.
 from __future__ import annotations
 
 import csv
+import logging
 import re
+import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from xml.etree import ElementTree as ET
 
 QUESTION_HEADERS = {
     "question",
@@ -25,6 +28,8 @@ ANSWER_HEADERS = {
     "faq_answer",
     "bot_answer",
 }
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -79,29 +84,11 @@ def read_policy_docx_chunks(
     except ImportError as exc:
         raise RuntimeError("python-docx is required for .docx ingestion. Install: pip install python-docx") from exc
 
-    doc = Document(str(file_path))
-    section_title = "Policy Document"
-    sections: list[tuple[str, str]] = []
-    current_lines: list[str] = []
-
-    for paragraph in doc.paragraphs:
-        raw = paragraph.text or ""
-        text = _clean_text(raw)
-        if not text:
-            continue
-
-        style_name = (paragraph.style.name or "").lower() if paragraph.style else ""
-        if "heading" in style_name:
-            if current_lines:
-                sections.append((section_title, "\n".join(current_lines).strip()))
-                current_lines = []
-            section_title = text
-            continue
-
-        current_lines.append(text)
-
-    if current_lines:
-        sections.append((section_title, "\n".join(current_lines).strip()))
+    try:
+        sections = _extract_docx_sections_via_python_docx(file_path)
+    except Exception as exc:
+        logger.warning("python-docx parse failed for %s: %s. Falling back to XML parser.", file_path, str(exc))
+        sections = _extract_docx_sections_via_xml(file_path)
 
     chunks: list[PolicyDocChunk] = []
     chunk_index = 0
@@ -160,6 +147,98 @@ def _read_xlsx(file_path: Path) -> list[dict[str, Any]]:
 
 def _clean_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
+
+
+def _extract_docx_sections_via_python_docx(file_path: Path) -> list[tuple[str, str]]:
+    from docx import Document
+
+    doc = Document(str(file_path))
+    section_title = "Policy Document"
+    sections: list[tuple[str, str]] = []
+    current_lines: list[str] = []
+
+    for paragraph in doc.paragraphs:
+        raw = paragraph.text or ""
+        text = _clean_text(raw)
+        if not text:
+            continue
+
+        style_name = (paragraph.style.name or "").lower() if paragraph.style else ""
+        if "heading" in style_name:
+            if current_lines:
+                sections.append((section_title, "\n".join(current_lines).strip()))
+                current_lines = []
+            section_title = text
+            continue
+
+        current_lines.append(text)
+
+    if current_lines:
+        sections.append((section_title, "\n".join(current_lines).strip()))
+    return sections
+
+
+def _extract_docx_sections_via_xml(file_path: Path) -> list[tuple[str, str]]:
+    """
+    Fallback parser for malformed .docx archives where python-docx fails
+    (e.g., broken rel targets like word/NULL).
+    """
+    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+
+    with zipfile.ZipFile(file_path, "r") as zf:
+        if "word/document.xml" not in zf.namelist():
+            raise ValueError("Invalid DOCX: missing word/document.xml")
+        doc_root = ET.fromstring(zf.read("word/document.xml"))
+
+        style_to_name: dict[str, str] = {}
+        if "word/styles.xml" in zf.namelist():
+            try:
+                styles_root = ET.fromstring(zf.read("word/styles.xml"))
+                for style in styles_root.findall(".//w:style", ns):
+                    style_id = style.attrib.get(f"{{{ns['w']}}}styleId", "")
+                    name_node = style.find("w:name", ns)
+                    if style_id and name_node is not None:
+                        style_name = name_node.attrib.get(f"{{{ns['w']}}}val", "")
+                        if style_name:
+                            style_to_name[style_id] = style_name
+            except Exception:
+                style_to_name = {}
+
+    section_title = "Policy Document"
+    sections: list[tuple[str, str]] = []
+    current_lines: list[str] = []
+
+    for paragraph in doc_root.findall(".//w:body/w:p", ns):
+        texts = []
+        for text_node in paragraph.findall(".//w:t", ns):
+            if text_node.text:
+                texts.append(text_node.text)
+        text = _clean_text("".join(texts))
+        if not text:
+            continue
+
+        style_id = ""
+        style_node = paragraph.find("w:pPr/w:pStyle", ns)
+        if style_node is not None:
+            style_id = style_node.attrib.get(f"{{{ns['w']}}}val", "")
+        style_name = style_to_name.get(style_id, style_id)
+        is_heading = style_name.lower().startswith("heading")
+
+        if is_heading:
+            if current_lines:
+                sections.append((section_title, "\n".join(current_lines).strip()))
+                current_lines = []
+            section_title = text
+            continue
+
+        current_lines.append(text)
+
+    if current_lines:
+        sections.append((section_title, "\n".join(current_lines).strip()))
+
+    if not sections:
+        raise ValueError("Could not extract readable text from DOCX")
+    return sections
 
 
 def _chunk_section_text(
