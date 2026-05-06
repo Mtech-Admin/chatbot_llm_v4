@@ -4,7 +4,7 @@ Intent Classification - Determines routing for user query
 
 import logging
 import re
-from typing import Literal
+from typing import Literal, Optional
 from app.config import get_llm_client, get_model_name
 from app.orchestrator.state import OrchestratorState
 
@@ -35,7 +35,7 @@ def _has_action_intent(msg: str) -> bool:
     return any(re.search(rf"\b{re.escape(marker)}\b", msg) for marker in _ACTION_MARKERS)
 
 
-def _classify_intent_fast(user_message: str) -> str | None:
+def _classify_intent_fast(user_message: str) -> Optional[str]:
     msg = (user_message or "").lower().strip()
     if not msg:
         return "unknown"

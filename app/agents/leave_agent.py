@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 import logging
 from datetime import date, datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from app.agents.base import BaseAgent
 from app.config import get_llm_client, get_model_name
@@ -234,7 +234,7 @@ class LeaveAgent(BaseAgent):
 
             if tool_name == "get_public_holiday_calendar":
                 y = tool_args.get("year")
-                yi: int | None = None
+                yi: Optional[int] = None
                 if y is not None and str(y).strip().isdigit():
                     yi = int(str(y).strip())
                 return await get_public_holiday_calendar(jwt_token, yi)

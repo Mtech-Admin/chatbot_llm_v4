@@ -1,5 +1,5 @@
 import os
-from typing import Literal
+from typing import Literal, Optional, Tuple
 
 from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -137,7 +137,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 _llm_client = None
-_llm_client_signature: tuple[str, str, str] | None = None
+_llm_client_signature: Optional[Tuple[str, str, str]] = None
 
 
 def _groq_api_key() -> str:
