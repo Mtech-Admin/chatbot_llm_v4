@@ -125,7 +125,7 @@ async def get_my_attendance(
             "message": _error_message(result["error"])
         }
     
-    payload = result.get("data", {}) or {}
+    payload = _extract_attendance_payload(result)
     rows = payload.get("data", []) if isinstance(payload, dict) else []
     compact_rows = []
     for row in rows if isinstance(rows, list) else []:
@@ -160,7 +160,7 @@ async def get_my_attendance(
         "pagination": {
             "page": safe_page,
             "limit": safe_limit,
-            "total": result.get("total", 0)
+            "total": payload.get("total", 0) if isinstance(payload, dict) else 0,
         }
     }
 
@@ -270,3 +270,22 @@ def _to_int(value: Any, default: int, min_value: int = 1, max_value: Optional[in
     if max_value is not None and parsed > max_value:
         return max_value
     return parsed
+
+
+def _extract_attendance_payload(result: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Normalize HRMS response shapes for attendance list endpoint.
+    Common variants:
+    - {"data": {"status": 201, "message": "...", "data": {...}}}
+    - {"status": 201, "message": "...", "data": {...}}
+    - {"data": {...}}
+    """
+    if not isinstance(result, dict):
+        return {}
+    top = result.get("data")
+    if isinstance(top, dict):
+        nested = top.get("data")
+        if isinstance(nested, dict):
+            return nested
+        return top
+    return {}
