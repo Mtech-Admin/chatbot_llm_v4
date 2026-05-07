@@ -41,54 +41,75 @@ class PolicyAgent(BaseAgent):
                 state.sources = [{"type": "policy_kb", "kb_stats": kb_stats}]
                 return state
 
+            doc_matches = []
             if settings.POLICY_RAG_ENABLED and has_doc_index:
                 doc_matches = policy_store.search_chunks(
                     state.user_message,
                     top_k=max(1, settings.POLICY_RAG_TOP_K),
                 )
-                if doc_matches:
-                    best_doc = doc_matches[0]
-                    if best_doc.combined_score >= settings.POLICY_RAG_DOC_CONFIDENCE_THRESHOLD:
-                        state.response_message = await self._build_grounded_policy_answer(state, doc_matches)
-                        state.sources = [
-                            {
-                                "type": "policy_doc_chunk",
-                                "document_key": m.document_key,
-                                "document_title": m.document_title,
-                                "source_file": m.source_file,
-                                "chunk_index": m.chunk_index,
-                                "section_title": m.section_title,
-                                "page_number": m.page_number,
-                                "vector_score": round(m.vector_score, 4),
-                                "keyword_score": round(m.keyword_score, 4),
-                                "combined_score": round(m.combined_score, 4),
-                            }
-                            for m in doc_matches[:3]
-                        ] + [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
-                        state.routing_agent = "policy_agent"
-                        logger.info(
-                            "Policy doc retrieval success for employee %s combined=%.4f source=%s",
-                            state.employee_id,
-                            best_doc.combined_score,
-                            best_doc.source_file,
-                        )
-                        return state
 
-            if not has_faq_index:
-                state.response_message = self._general_fallback_response()
-                state.sources = [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
+            ranked_faq = []
+            if has_faq_index:
+                faq_matches = policy_store.search(state.user_message, top_k=10)
+                if faq_matches:
+                    ranked_faq = self._rank_faq_matches(state.user_message, faq_matches)
+
+            best_doc_score = doc_matches[0].combined_score if doc_matches else 0.0
+            best_faq_score = ranked_faq[0]["combined"] if ranked_faq else 0.0
+            logger.info(
+                "Policy merged retrieval for employee %s: best_doc=%.4f best_faq=%.4f",
+                state.employee_id,
+                best_doc_score,
+                best_faq_score,
+            )
+
+            # Unified policy behavior:
+            # - Prefer document chunks whenever confidence is reasonable.
+            # - FAQ remains supplementary/fallback, not the default winner over docs.
+            doc_floor = max(0.18, settings.POLICY_RAG_DOC_CONFIDENCE_THRESHOLD - 0.08)
+            if doc_matches and best_doc_score >= doc_floor:
+                state.response_message = await self._build_grounded_policy_answer(state, doc_matches)
+                sources = [
+                    {
+                        "type": "policy_doc_chunk",
+                        "document_key": m.document_key,
+                        "document_title": m.document_title,
+                        "source_file": m.source_file,
+                        "chunk_index": m.chunk_index,
+                        "section_title": m.section_title,
+                        "page_number": m.page_number,
+                        "vector_score": round(m.vector_score, 4),
+                        "keyword_score": round(m.keyword_score, 4),
+                        "combined_score": round(m.combined_score, 4),
+                    }
+                    for m in doc_matches[:3]
+                ]
+                if ranked_faq:
+                    faq_best = ranked_faq[0]
+                    sources.append(
+                        {
+                            "type": "policy_qa_support",
+                            "question": faq_best["match"].question,
+                            "vector_score": round(faq_best["vector"], 4),
+                            "keyword_score": round(faq_best["keyword"], 4),
+                            "combined_score": round(faq_best["combined"], 4),
+                            "source_file": faq_best["match"].source_file,
+                            "row_number": faq_best["match"].row_number,
+                        }
+                    )
+                state.sources = sources + [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
+                state.routing_agent = "policy_agent"
+                logger.info(
+                    "Policy agent selected document path for employee %s doc_score=%.4f faq_score=%.4f",
+                    state.employee_id,
+                    best_doc_score,
+                    best_faq_score,
+                )
                 return state
 
-            matches = policy_store.search(state.user_message, top_k=10)
-            if not matches:
-                state.response_message = self._general_fallback_response()
-                state.sources = [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
-                return state
-
-            ranked = self._rank_faq_matches(state.user_message, matches)
-            best = ranked[0]
-            if best["combined"] < settings.POLICY_RAG_FAQ_CONFIDENCE_THRESHOLD:
-                state.response_message = self._general_fallback_response()
+            if ranked_faq and best_faq_score >= settings.POLICY_RAG_FAQ_CONFIDENCE_THRESHOLD:
+                best = ranked_faq[0]
+                state.response_message = best["match"].answer
                 state.sources = [
                     {
                         "type": "policy_qa",
@@ -101,29 +122,16 @@ class PolicyAgent(BaseAgent):
                         "kb_stats": kb_stats,
                     }
                 ]
+                state.routing_agent = "policy_agent"
+                logger.info(
+                    "Policy agent selected FAQ fallback for employee %s combined=%.4f",
+                    state.employee_id,
+                    best["combined"],
+                )
                 return state
 
-            state.response_message = best["match"].answer
-            state.sources = [
-                {
-                    "type": "policy_qa",
-                    "question": best["match"].question,
-                    "vector_score": round(best["vector"], 4),
-                    "keyword_score": round(best["keyword"], 4),
-                    "combined_score": round(best["combined"], 4),
-                    "source_file": best["match"].source_file,
-                    "row_number": best["match"].row_number,
-                    "kb_stats": kb_stats,
-                }
-            ]
-            state.routing_agent = "policy_agent"
-            logger.info(
-                "Policy agent matched question for employee %s combined=%.4f vector=%.4f keyword=%.4f",
-                state.employee_id,
-                best["combined"],
-                best["vector"],
-                best["keyword"],
-            )
+            state.response_message = self._general_fallback_response()
+            state.sources = [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
             return state
         except Exception as exc:
             logger.error("Policy agent error for employee %s: %s", state.employee_id, str(exc), exc_info=True)
