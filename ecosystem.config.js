@@ -69,7 +69,7 @@ module.exports = {
       error_file: "logs/dmrc_chatbot_err.log",
       out_file: "logs/dmrc_chatbot_out.log",
       autorestart: true,
-      max_memory_restart: "500M",
+      max_memory_restart: "1500M",
     },
   ],
 };
