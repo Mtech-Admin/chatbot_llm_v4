@@ -43,11 +43,17 @@ class PolicyAgent(BaseAgent):
 
             doc_matches = []
             if settings.POLICY_RAG_ENABLED and has_doc_index:
-                doc_matches = policy_store.search_chunks(
-                    state.user_message,
+                retrieval_query = self._normalize_policy_query(state.user_message)
+                raw_doc_matches = policy_store.search_chunks(
+                    retrieval_query,
+                    top_k=max(max(1, settings.POLICY_RAG_TOP_K) * 4, 20),
+                )
+                doc_matches = self._select_relevant_doc_matches(
+                    query=retrieval_query,
+                    matches=raw_doc_matches,
                     top_k=max(1, settings.POLICY_RAG_TOP_K),
                 )
-                self._log_doc_retrieval(state.employee_id, state.user_message, doc_matches)
+                self._log_doc_retrieval(state.employee_id, retrieval_query, doc_matches)
 
             ranked_faq = []
             if has_faq_index:
@@ -199,6 +205,79 @@ class PolicyAgent(BaseAgent):
                 match.combined_score,
                 preview,
             )
+
+    def _normalize_policy_query(self, query: str) -> str:
+        text = (query or "").strip()
+        if not text:
+            return text
+        # Remove common greeting prefixes that dilute retrieval (e.g. "Hello. Tell me ...").
+        text = re.sub(
+            r"^(?:\s*(?:hi|hello|hey|good\s+morning|good\s+afternoon|good\s+evening|namaste)[\s\.,!;:-]*)+",
+            "",
+            text,
+            flags=re.IGNORECASE,
+        ).strip()
+        return text or query
+
+    def _select_relevant_doc_matches(
+        self,
+        *,
+        query: str,
+        matches: list[PolicyChunkMatch],
+        top_k: int,
+    ) -> list[PolicyChunkMatch]:
+        if not matches:
+            return []
+        terms = self._query_terms(query)
+        if not terms:
+            return matches[:top_k]
+
+        # Prefer chunks containing at least one meaningful query term in section/content.
+        term_hits: list[PolicyChunkMatch] = []
+        for m in matches:
+            hay = f"{m.section_title or ''} {m.content or ''}".lower()
+            if any(t in hay for t in terms):
+                term_hits.append(m)
+
+        if term_hits:
+            return term_hits[:top_k]
+        return matches[:top_k]
+
+    @staticmethod
+    def _query_terms(query: str) -> list[str]:
+        stop = {
+            "about",
+            "allow",
+            "any",
+            "can",
+            "detail",
+            "details",
+            "for",
+            "give",
+            "hello",
+            "hey",
+            "hi",
+            "how",
+            "i",
+            "info",
+            "information",
+            "is",
+            "me",
+            "of",
+            "on",
+            "please",
+            "policy",
+            "tell",
+            "the",
+            "what",
+        }
+        out = []
+        for tok in re.findall(r"[a-zA-Z0-9]+", (query or "").lower()):
+            if len(tok) < 3 or tok in stop:
+                continue
+            if tok not in out:
+                out.append(tok)
+        return out
 
     async def _build_grounded_policy_answer(
         self,
