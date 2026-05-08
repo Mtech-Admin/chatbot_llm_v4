@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, Text, create_engine, func
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, Text, create_engine, func, or_
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, declarative_base
@@ -26,6 +26,131 @@ Base = declarative_base()
 _EMBEDDING_MODEL = None
 _EMBEDDING_MODEL_LOAD_FAILED = False
 _DOC_EMBEDDING_DIM = 384  # all-MiniLM-L6-v2
+_LEXICAL_STOPWORDS = {
+    "about",
+    "above",
+    "after",
+    "again",
+    "against",
+    "am",
+    "an",
+    "and",
+    "any",
+    "are",
+    "as",
+    "at",
+    "be",
+    "because",
+    "been",
+    "before",
+    "being",
+    "below",
+    "between",
+    "both",
+    "but",
+    "by",
+    "can",
+    "did",
+    "do",
+    "does",
+    "doing",
+    "down",
+    "during",
+    "each",
+    "few",
+    "for",
+    "from",
+    "further",
+    "had",
+    "has",
+    "have",
+    "having",
+    "he",
+    "her",
+    "here",
+    "hers",
+    "herself",
+    "him",
+    "himself",
+    "his",
+    "how",
+    "i",
+    "if",
+    "in",
+    "into",
+    "is",
+    "it",
+    "its",
+    "itself",
+    "just",
+    "me",
+    "more",
+    "most",
+    "my",
+    "myself",
+    "no",
+    "nor",
+    "not",
+    "now",
+    "of",
+    "off",
+    "on",
+    "once",
+    "only",
+    "or",
+    "other",
+    "our",
+    "ours",
+    "ourselves",
+    "out",
+    "over",
+    "own",
+    "please",
+    "same",
+    "she",
+    "should",
+    "so",
+    "some",
+    "such",
+    "than",
+    "that",
+    "the",
+    "their",
+    "theirs",
+    "them",
+    "themselves",
+    "then",
+    "there",
+    "these",
+    "they",
+    "this",
+    "those",
+    "through",
+    "to",
+    "too",
+    "under",
+    "until",
+    "up",
+    "very",
+    "was",
+    "we",
+    "were",
+    "what",
+    "when",
+    "where",
+    "which",
+    "while",
+    "who",
+    "whom",
+    "why",
+    "with",
+    "would",
+    "you",
+    "your",
+    "yours",
+    "yourself",
+    "yourselves",
+}
 
 
 class PolicyQA(Base):
@@ -287,10 +412,13 @@ class PolicyKnowledgeStore:
             return []
 
         query_embedding = self._embed_doc_text(query)
+        query_terms = self._extract_query_terms(query)
+        vector_candidate_limit = max(top_k * 8, 24)
+        lexical_candidate_limit = max(top_k * 8, 24)
         with Session(self.engine) as session:
             try:
                 distance_expr = PolicyChunk.embedding.cosine_distance(query_embedding)
-                rows = (
+                vector_rows = (
                     session.query(
                         PolicyChunk,
                         PolicyDocument,
@@ -300,16 +428,47 @@ class PolicyKnowledgeStore:
                     .filter(PolicyDocument.is_active.is_(True))
                 )
                 if document_key:
-                    rows = rows.filter(PolicyDocument.document_key == document_key)
-                rows = rows.order_by(distance_expr.asc()).limit(max(top_k * 3, top_k)).all()
+                    vector_rows = vector_rows.filter(PolicyDocument.document_key == document_key)
+                vector_rows = vector_rows.order_by(distance_expr.asc()).limit(vector_candidate_limit).all()
             except SQLAlchemyError as exc:
                 logger.warning("pgvector search failed, using in-memory fallback: %s", str(exc))
-                rows = self._fallback_chunk_search(session, query_embedding, document_key, limit=max(top_k * 3, top_k))
+                vector_rows = self._fallback_chunk_search(
+                    session,
+                    query_embedding,
+                    document_key,
+                    limit=vector_candidate_limit,
+                )
+
+            lexical_rows = self._lexical_chunk_candidates(
+                session,
+                query=query,
+                query_terms=query_terms,
+                document_key=document_key,
+                limit=lexical_candidate_limit,
+            )
+
+        candidate_by_chunk_id: dict[int, tuple[PolicyChunk, PolicyDocument, float]] = {}
+        for chunk_row, doc_row, vector_score in vector_rows:
+            candidate_by_chunk_id[int(chunk_row.id)] = (chunk_row, doc_row, float(vector_score))
+
+        for chunk_row, doc_row in lexical_rows:
+            key = int(chunk_row.id)
+            if key in candidate_by_chunk_id:
+                continue
+            emb = chunk_row.embedding
+            vec_list = emb if isinstance(emb, list) else []
+            vector_score = self._cosine_similarity(query_embedding, vec_list)
+            candidate_by_chunk_id[key] = (chunk_row, doc_row, float(vector_score))
 
         ranked: list[PolicyChunkMatch] = []
-        for chunk_row, doc_row, vector_score in rows:
+        for chunk_row, doc_row, vector_score in candidate_by_chunk_id.values():
             kw = self._keyword_overlap(query, chunk_row.content)
-            combined = vector_weight * float(vector_score) + keyword_weight * float(kw)
+            exact_term_bonus = self._exact_term_bonus(query_terms, chunk_row.content)
+            combined = (
+                vector_weight * float(vector_score)
+                + keyword_weight * float(kw)
+                + 0.10 * float(exact_term_bonus)
+            )
             ranked.append(
                 PolicyChunkMatch(
                     document_key=doc_row.document_key,
@@ -328,6 +487,37 @@ class PolicyKnowledgeStore:
 
         ranked.sort(key=lambda m: m.combined_score, reverse=True)
         return ranked[:top_k]
+
+    def _lexical_chunk_candidates(
+        self,
+        session: Session,
+        *,
+        query: str,
+        query_terms: list[str],
+        document_key: str | None,
+        limit: int,
+    ) -> list[tuple[PolicyChunk, PolicyDocument]]:
+        if not query_terms and not query.strip():
+            return []
+
+        q = session.query(PolicyChunk, PolicyDocument).join(PolicyDocument, PolicyDocument.id == PolicyChunk.document_id)
+        q = q.filter(PolicyDocument.is_active.is_(True))
+        if document_key:
+            q = q.filter(PolicyDocument.document_key == document_key)
+
+        filters = []
+        phrase = query.strip().lower()
+        if len(phrase) >= 5:
+            filters.append(func.lower(PolicyChunk.content).like(f"%{phrase}%"))
+        for term in query_terms[:8]:
+            filters.append(func.lower(PolicyChunk.content).like(f"%{term}%"))
+
+        if filters:
+            q = q.filter(or_(*filters))
+        else:
+            return []
+
+        return q.order_by(PolicyChunk.chunk_index.asc()).limit(limit).all()
 
     def _fallback_chunk_search(
         self,
@@ -436,6 +626,32 @@ class PolicyKnowledgeStore:
         inter = len(q_tokens & d_tokens)
         union = len(q_tokens | d_tokens) or 1
         return inter / union
+
+    @staticmethod
+    def _extract_query_terms(text: str) -> list[str]:
+        terms = []
+        for tok in re.findall(r"[a-zA-Z0-9]+", text.lower()):
+            if len(tok) < 3:
+                continue
+            if tok in _LEXICAL_STOPWORDS:
+                continue
+            terms.append(tok)
+        seen: set[str] = set()
+        deduped: list[str] = []
+        for term in terms:
+            if term in seen:
+                continue
+            deduped.append(term)
+            seen.add(term)
+        return deduped
+
+    @staticmethod
+    def _exact_term_bonus(query_terms: list[str], content: str) -> float:
+        if not query_terms:
+            return 0.0
+        body = content.lower()
+        hits = sum(1 for term in query_terms if term in body)
+        return min(1.0, hits / max(1, len(query_terms)))
 
     @staticmethod
     def _cosine_similarity(v1: list[float], v2: list[float]) -> float:
