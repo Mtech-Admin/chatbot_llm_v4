@@ -47,6 +47,7 @@ class PolicyAgent(BaseAgent):
                     state.user_message,
                     top_k=max(1, settings.POLICY_RAG_TOP_K),
                 )
+                self._log_doc_retrieval(state.employee_id, state.user_message, doc_matches)
 
             ranked_faq = []
             if has_faq_index:
@@ -162,6 +163,42 @@ class PolicyAgent(BaseAgent):
             ranked.append({"match": m, "vector": float(m.score), "keyword": float(kw), "combined": combined})
         ranked.sort(key=lambda x: x["combined"], reverse=True)
         return ranked
+
+    def _log_doc_retrieval(
+        self,
+        employee_id: str,
+        query: str,
+        matches: list[PolicyChunkMatch],
+        *,
+        limit: int = 3,
+    ) -> None:
+        if not matches:
+            logger.info("RAG retrieval for employee %s returned no document chunks", employee_id)
+            return
+
+        logger.info(
+            "RAG retrieval summary for employee %s: query=%r total_matches=%s",
+            employee_id,
+            query,
+            len(matches),
+        )
+        for idx, match in enumerate(matches[:limit], start=1):
+            preview = re.sub(r"\s+", " ", (match.content or "")).strip()[:260]
+            logger.info(
+                (
+                    "RAG chunk[%s] employee=%s doc=%s chunk=%s section=%r "
+                    "vector=%.4f keyword=%.4f combined=%.4f preview=%r"
+                ),
+                idx,
+                employee_id,
+                match.source_file,
+                match.chunk_index,
+                match.section_title,
+                match.vector_score,
+                match.keyword_score,
+                match.combined_score,
+                preview,
+            )
 
     async def _build_grounded_policy_answer(
         self,
