@@ -755,3 +755,367 @@ def _log_chunk_type_summary(chunks: list[PolicyDocChunk]) -> None:
     chapter_counts: Counter[str] = Counter(c.chapter for c in chunks if c.chapter)
     logger.info("Chunk type distribution: %s", dict(counts))
     logger.info("Chunks per chapter: %s", dict(sorted(chapter_counts.items())))
+
+
+# ---------------------------------------------------------------------------
+# Structured JSON Knowledge Base ingestion
+# ---------------------------------------------------------------------------
+
+def read_policy_kb_json_chunks(file_path: Path) -> list[PolicyDocChunk]:
+    """
+    Parse a pre-built structured JSON knowledge base (DMRC HR Compendium format)
+    and return fully typed PolicyDocChunk objects ready for pgvector ingestion.
+
+    Expected JSON schema (top-level keys):
+        metadata, chapters, master_authority_index,
+        master_oo_index, master_cross_reference, leave_types_complete (optional)
+
+    Each chapter contains:
+        summary_chunk        → 1 × chapter_summary chunk
+        rules[]              → 1 × rule_chunk per rule
+        tables[]             → 1 × table_chunk per table
+        authority_index[]    → authority_chunk (grouped per chapter)
+        office_order_index[] → oo_index chunk (grouped per chapter)
+        cross_references[]   → cross_ref chunk (grouped per chapter)
+
+    Master-level indexes produce additional cross-chapter chunks.
+    """
+    if not file_path.exists():
+        raise FileNotFoundError(f"Knowledge-base JSON not found: {file_path}")
+
+    with file_path.open("r", encoding="utf-8") as fh:
+        kb: dict[str, Any] = json.load(fh)
+
+    chunks: list[PolicyDocChunk] = []
+    idx = 0
+
+    chapters: dict[str, Any] = kb.get("chapters", {})
+
+    # Update the internal chapter-title map from the loaded KB
+    for ch_letter, ch_data in chapters.items():
+        title = ch_data.get("chapter_title", "")
+        if title:
+            _CHAPTER_TITLES[ch_letter] = title
+
+    # ── Per-chapter chunks ──────────────────────────────────────────────────
+    for ch_letter, ch_data in chapters.items():
+        ch_title = ch_data.get("chapter_title", _CHAPTER_TITLES.get(ch_letter, f"Chapter {ch_letter}"))
+        page_range = ch_data.get("page_range", "")
+
+        # 1. Chapter summary
+        summary_text = ch_data.get("summary_chunk", "") or ch_data.get("summary", "")
+        if summary_text:
+            chunks.append(PolicyDocChunk(
+                chunk_index=idx,
+                content=summary_text.strip(),
+                chunk_type=CHUNK_TYPE_CHAPTER_SUMMARY,
+                chapter=ch_letter,
+                chapter_title=ch_title,
+                applies_to=[],
+                oo_references=[],
+                section_title=f"Chapter {ch_letter}: {ch_title}",
+                page_number=_parse_page_start(page_range),
+                metadata={"strategy": "structured_kb_json", "source_type": CHUNK_TYPE_CHAPTER_SUMMARY,
+                          "page_range": page_range, "key_topics": ch_data.get("key_topics", [])},
+            ))
+            idx += 1
+
+        # 2. Rule chunks
+        for rule in ch_data.get("rules", []):
+            rule_content = _build_rule_content(rule)
+            if not rule_content:
+                continue
+            oo_refs = [_normalise_oo(o) for o in rule.get("office_orders", []) if o]
+            applies = rule.get("applies_to", [])
+            chunks.append(PolicyDocChunk(
+                chunk_index=idx,
+                content=rule_content,
+                chunk_type=CHUNK_TYPE_RULE,
+                chapter=ch_letter,
+                chapter_title=ch_title,
+                rule_number=rule.get("rule_id", ""),
+                rule_title=rule.get("rule_title", ""),
+                applies_to=applies,
+                oo_references=oo_refs,
+                section_title=f"{rule.get('rule_id','')} {rule.get('rule_title','')}".strip(),
+                page_number=_parse_page_start(page_range),
+                metadata={"strategy": "structured_kb_json", "source_type": CHUNK_TYPE_RULE,
+                          "approval_authority": rule.get("approval_authority", ""),
+                          "amounts_or_limits": rule.get("amounts_or_limits", ""),
+                          "key_points": rule.get("key_points", [])},
+            ))
+            idx += 1
+
+        # 3. Table chunks
+        for table in ch_data.get("tables", []):
+            table_content = _build_table_content(table, ch_letter, ch_title)
+            if not table_content:
+                continue
+            chunks.append(PolicyDocChunk(
+                chunk_index=idx,
+                content=table_content,
+                chunk_type=CHUNK_TYPE_TABLE,
+                chapter=ch_letter,
+                chapter_title=ch_title,
+                section_title=f"Table: {table.get('table_title', '')}",
+                page_number=_parse_page_start(page_range),
+                metadata={"strategy": "structured_kb_json", "source_type": CHUNK_TYPE_TABLE,
+                          "table_id": table.get("table_id", ""),
+                          "table_title": table.get("table_title", "")},
+            ))
+            idx += 1
+
+        # 4. Authority index chunk (one chunk per chapter grouping all entries)
+        auth_entries = ch_data.get("authority_index", [])
+        if auth_entries:
+            auth_content = _build_authority_content(auth_entries, ch_letter, ch_title)
+            chunks.append(PolicyDocChunk(
+                chunk_index=idx,
+                content=auth_content,
+                chunk_type=CHUNK_TYPE_AUTHORITY,
+                chapter=ch_letter,
+                chapter_title=ch_title,
+                section_title=f"Approval Authority Index — Chapter {ch_letter}: {ch_title}",
+                page_number=_parse_page_start(page_range),
+                metadata={"strategy": "structured_kb_json", "source_type": CHUNK_TYPE_AUTHORITY},
+            ))
+            idx += 1
+
+        # 5. Office Order index chunk (one chunk per chapter)
+        oo_entries = ch_data.get("office_order_index", [])
+        if oo_entries:
+            oo_content = _build_oo_index_content(oo_entries, ch_letter, ch_title)
+            oo_refs = [_normalise_oo(e.get("oo_number", "")) for e in oo_entries if e.get("oo_number")]
+            chunks.append(PolicyDocChunk(
+                chunk_index=idx,
+                content=oo_content,
+                chunk_type=CHUNK_TYPE_OO_INDEX,
+                chapter=ch_letter,
+                chapter_title=ch_title,
+                oo_references=oo_refs,
+                section_title=f"Office Order Index — Chapter {ch_letter}: {ch_title}",
+                page_number=_parse_page_start(page_range),
+                metadata={"strategy": "structured_kb_json", "source_type": CHUNK_TYPE_OO_INDEX},
+            ))
+            idx += 1
+
+        # 6. Cross-reference chunk (one chunk per chapter)
+        xrefs = ch_data.get("cross_references", [])
+        if xrefs:
+            xref_content = _build_xref_content(xrefs, ch_letter, ch_title)
+            chunks.append(PolicyDocChunk(
+                chunk_index=idx,
+                content=xref_content,
+                chunk_type=CHUNK_TYPE_CROSS_REF,
+                chapter=ch_letter,
+                chapter_title=ch_title,
+                section_title=f"Cross-References — Chapter {ch_letter}: {ch_title}",
+                page_number=_parse_page_start(page_range),
+                metadata={"strategy": "structured_kb_json", "source_type": CHUNK_TYPE_CROSS_REF},
+            ))
+            idx += 1
+
+    # ── Master index chunks ─────────────────────────────────────────────────
+
+    # Master authority index — consolidated across all chapters
+    master_auth = kb.get("master_authority_index", [])
+    if master_auth:
+        lines = ["DMRC HR Compendium — Master Approval Authority Index (all chapters)\n"]
+        for entry in master_auth:
+            chapters_str = entry.get("chapters", entry.get("chapter", ""))
+            if isinstance(chapters_str, list):
+                chapters_str = ", ".join(chapters_str)
+            lines.append(f"Action: {entry.get('action','')}")
+            lines.append(f"  Authority: {entry.get('authority','')}")
+            lines.append(f"  Chapters: {chapters_str}\n")
+        chunks.append(PolicyDocChunk(
+            chunk_index=idx,
+            content="\n".join(lines).strip(),
+            chunk_type=CHUNK_TYPE_AUTHORITY,
+            section_title="Master Approval Authority Index",
+            metadata={"strategy": "structured_kb_json", "source_type": CHUNK_TYPE_AUTHORITY, "scope": "master"},
+        ))
+        idx += 1
+
+    # Master OO index — all office orders in one searchable chunk
+    master_oo = kb.get("master_oo_index", [])
+    if master_oo:
+        lines = ["DMRC HR Compendium — Master Office Order Index\n"]
+        for entry in master_oo:
+            lines.append(
+                f"OO: {entry.get('oo_number','')}  Date: {entry.get('date','')}  "
+                f"Chapter: {entry.get('chapter','')}  Subject: {entry.get('subject','')}  "
+                f"Rule: {entry.get('rule_ref','')}"
+            )
+        oo_refs = [_normalise_oo(e.get("oo_number", "")) for e in master_oo if e.get("oo_number")]
+        chunks.append(PolicyDocChunk(
+            chunk_index=idx,
+            content="\n".join(lines).strip(),
+            chunk_type=CHUNK_TYPE_OO_INDEX,
+            oo_references=oo_refs,
+            section_title="Master Office Order Index",
+            metadata={"strategy": "structured_kb_json", "source_type": CHUNK_TYPE_OO_INDEX, "scope": "master"},
+        ))
+        idx += 1
+
+    # Master cross-reference index
+    master_xref = kb.get("master_cross_reference", [])
+    if master_xref:
+        lines = ["DMRC HR Compendium — Master Cross-Reference Index\n"]
+        for entry in master_xref:
+            lines.append(
+                f"Rule {entry.get('from_rule','')} (Ch.{entry.get('source_chapter','')}) → "
+                f"Chapter {entry.get('to_chapter','')} Rule {entry.get('to_rule','')}: "
+                f"{entry.get('relationship','')}"
+            )
+        chunks.append(PolicyDocChunk(
+            chunk_index=idx,
+            content="\n".join(lines).strip(),
+            chunk_type=CHUNK_TYPE_CROSS_REF,
+            section_title="Master Cross-Reference Index",
+            metadata={"strategy": "structured_kb_json", "source_type": CHUNK_TYPE_CROSS_REF, "scope": "master"},
+        ))
+        idx += 1
+
+    # Special consolidated leave chunk (if present)
+    leave_block = kb.get("leave_types_complete", {})
+    if leave_block:
+        summary_for_bot = leave_block.get("summary_for_chatbot", "")
+        if summary_for_bot:
+            chunks.append(PolicyDocChunk(
+                chunk_index=idx,
+                content=summary_for_bot.strip(),
+                chunk_type=CHUNK_TYPE_CHAPTER_SUMMARY,
+                chapter="F",
+                chapter_title=_CHAPTER_TITLES.get("F", "Leave Rules"),
+                section_title="All DMRC Leave Types — Quick Reference",
+                metadata={"strategy": "structured_kb_json", "source_type": CHUNK_TYPE_CHAPTER_SUMMARY,
+                          "scope": "leave_types_complete",
+                          "leave_count": leave_block.get("count", 0),
+                          "leave_types": leave_block.get("types", [])},
+            ))
+            idx += 1
+
+    # Re-index to be safe
+    for new_idx, chunk in enumerate(chunks):
+        chunk.chunk_index = new_idx
+
+    logger.info("JSON KB structured ingestion: %s total chunks", len(chunks))
+    _log_chunk_type_summary(chunks)
+    return chunks
+
+
+# ---------------------------------------------------------------------------
+# JSON KB helper functions
+# ---------------------------------------------------------------------------
+
+def _build_rule_content(rule: dict[str, Any]) -> str:
+    """Assemble rich text content for a rule chunk."""
+    parts: list[str] = []
+    rule_id = rule.get("rule_id", "")
+    rule_title = rule.get("rule_title", "")
+    if rule_id or rule_title:
+        parts.append(f"Rule {rule_id} — {rule_title}".strip(" —"))
+
+    applies_to = rule.get("applies_to", [])
+    if applies_to:
+        parts.append(f"Applies to: {', '.join(applies_to)}")
+
+    authority = rule.get("approval_authority", "")
+    if authority:
+        parts.append(f"Approval Authority: {authority}")
+
+    amounts = rule.get("amounts_or_limits", "")
+    if amounts:
+        parts.append(f"Amounts/Limits: {amounts}")
+
+    content = (rule.get("content", "") or "").strip()
+    if content:
+        parts.append(content)
+
+    key_points = rule.get("key_points", [])
+    if key_points:
+        parts.append("Key Points:")
+        for pt in key_points:
+            parts.append(f"  • {pt}")
+
+    oo_list = rule.get("office_orders", [])
+    if oo_list:
+        parts.append(f"Office Orders: {'; '.join(oo_list)}")
+
+    return "\n".join(parts).strip()
+
+
+def _build_table_content(table: dict[str, Any], ch_letter: str, ch_title: str) -> str:
+    """Assemble rich text + JSON for a table chunk."""
+    parts: list[str] = []
+    tid = table.get("table_id", "")
+    ttitle = table.get("table_title", "")
+    desc = table.get("description", "")
+    data = table.get("data", [])
+
+    header = f"Table {tid} — {ttitle}" if tid else ttitle
+    parts.append(f"{header}\nChapter {ch_letter}: {ch_title}")
+    if desc:
+        parts.append(desc)
+
+    # Prose representation (rows as key: value)
+    if data and isinstance(data, list) and isinstance(data[0], dict):
+        for row in data:
+            row_parts = [f"{k}: {v}" for k, v in row.items() if v not in (None, "", [])]
+            if row_parts:
+                parts.append("; ".join(row_parts))
+
+    # Raw JSON for exact-match retrieval
+    parts.append(f"\nRaw data: {json.dumps(data, ensure_ascii=False)}")
+    return "\n".join(parts).strip()
+
+
+def _build_authority_content(entries: list[dict[str, Any]], ch_letter: str, ch_title: str) -> str:
+    """Assemble authority index chunk content."""
+    lines = [f"Approval Authority Index — Chapter {ch_letter}: {ch_title}\n"]
+    for entry in entries:
+        lines.append(f"Action: {entry.get('action', '')}")
+        lines.append(f"  Sanctioning Authority: {entry.get('authority', '')}")
+        rule_ref = entry.get("rule_ref", "")
+        if rule_ref:
+            lines.append(f"  Rule Reference: {rule_ref}")
+        lines.append("")
+    return "\n".join(lines).strip()
+
+
+def _build_oo_index_content(entries: list[dict[str, Any]], ch_letter: str, ch_title: str) -> str:
+    """Assemble office order index chunk content."""
+    lines = [f"Office Order Index — Chapter {ch_letter}: {ch_title}\n"]
+    for entry in entries:
+        oo = entry.get("oo_number", "")
+        date = entry.get("date", "")
+        subject = entry.get("subject", "")
+        rule_ref = entry.get("rule_ref", "")
+        lines.append(f"{oo}  [{date}]  Subject: {subject}  Rule: {rule_ref}")
+    return "\n".join(lines).strip()
+
+
+def _build_xref_content(entries: list[dict[str, Any]], ch_letter: str, ch_title: str) -> str:
+    """Assemble cross-reference chunk content."""
+    lines = [f"Cross-References — Chapter {ch_letter}: {ch_title}\n"]
+    for entry in entries:
+        from_rule = entry.get("from_rule", "")
+        to_ch = entry.get("to_chapter", "")
+        to_rule = entry.get("to_rule", "")
+        rel = entry.get("relationship", "")
+        lines.append(f"Rule {from_rule} → Chapter {to_ch}, Rule {to_rule}: {rel}")
+    return "\n".join(lines).strip()
+
+
+def _parse_page_start(page_range: str) -> int | None:
+    """Extract start page number from a range like '165-186'."""
+    if not page_range:
+        return None
+    m = re.match(r"(\d+)", page_range.strip())
+    return int(m.group(1)) if m else None
+
+
+def _normalise_oo(oo_string: str) -> str:
+    """Strip 'O.O. No. ' prefix for compact storage, keeping the number."""
+    return re.sub(r"^O\.O\.\s*No\.\s*", "", (oo_string or "").strip())
