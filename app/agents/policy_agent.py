@@ -44,14 +44,48 @@ class PolicyAgent(BaseAgent):
             doc_matches = []
             if settings.POLICY_RAG_ENABLED and has_doc_index:
                 retrieval_query = self._normalize_policy_query(state.user_message)
+                top_k_final = max(1, settings.POLICY_RAG_TOP_K)
+
+                # Step 1: hybrid vector+lexical search (broad candidates).
                 raw_doc_matches = policy_store.search_chunks(
                     retrieval_query,
-                    top_k=max(max(1, settings.POLICY_RAG_TOP_K) * 4, 20),
+                    top_k=max(top_k_final * 4, 20),
                 )
+
+                # Step 2: extract rare/specific terms and do a guaranteed DB lookup.
+                specific_terms = self._specific_query_terms(retrieval_query)
+                exact_matches: list[PolicyChunkMatch] = []
+                if specific_terms:
+                    exact_matches = policy_store.search_chunks_by_exact_terms(
+                        retrieval_query,
+                        specific_terms,
+                        top_k=top_k_final,
+                    )
+                    logger.info(
+                        "RAG exact-term lookup for employee %s terms=%s found=%s",
+                        state.employee_id,
+                        specific_terms,
+                        len(exact_matches),
+                    )
+
+                # Step 3: merge — exact-term hits occupy first slots, hybrid fills rest.
+                seen_chunk_ids: set[int] = set()
+                merged: list[PolicyChunkMatch] = []
+                for m in exact_matches:
+                    key = (m.source_file, m.chunk_index)
+                    if key not in seen_chunk_ids:
+                        seen_chunk_ids.add(key)
+                        merged.append(m)
+                for m in raw_doc_matches:
+                    key = (m.source_file, m.chunk_index)
+                    if key not in seen_chunk_ids:
+                        seen_chunk_ids.add(key)
+                        merged.append(m)
+
                 doc_matches = self._select_relevant_doc_matches(
                     query=retrieval_query,
-                    matches=raw_doc_matches,
-                    top_k=max(1, settings.POLICY_RAG_TOP_K),
+                    matches=merged,
+                    top_k=top_k_final,
                 )
                 self._log_doc_retrieval(state.employee_id, retrieval_query, doc_matches)
 
@@ -248,6 +282,95 @@ class PolicyAgent(BaseAgent):
         if hits:
             return hits[:top_k]
         return matches[:top_k]
+
+    @staticmethod
+    def _specific_query_terms(query: str) -> list[str]:
+        """
+        Extract rare/discriminating terms from the query by stripping both generic
+        stopwords AND common HR domain words that appear in nearly every chunk.
+        Whatever remains (e.g. 'paternity', 'maternity', 'ltc', 'vpf', 'noc') is
+        used for a guaranteed direct DB lookup.
+        """
+        hr_common = {
+            "leave",
+            "employee",
+            "employees",
+            "dmrc",
+            "office",
+            "order",
+            "ref",
+            "department",
+            "rules",
+            "rule",
+            "regulation",
+            "regulations",
+            "shall",
+            "date",
+            "dated",
+            "number",
+            "may",
+            "will",
+            "pay",
+            "allowance",
+            "service",
+            "work",
+            "period",
+            "days",
+            "months",
+            "year",
+            "salary",
+            "grant",
+            "benefit",
+            "benefits",
+            "account",
+            "officer",
+            "authority",
+            "circular",
+            "applicable",
+            "subject",
+            "request",
+            "approval",
+            "approved",
+            "apply",
+            "application",
+            "eligible",
+            "eligibility",
+            "provide",
+            "provided",
+        }
+        generic = {
+            "about",
+            "allow",
+            "any",
+            "can",
+            "detail",
+            "details",
+            "for",
+            "give",
+            "hello",
+            "hey",
+            "hi",
+            "how",
+            "info",
+            "information",
+            "is",
+            "me",
+            "of",
+            "on",
+            "please",
+            "policy",
+            "tell",
+            "the",
+            "what",
+        }
+        stop_all = generic | hr_common
+        out: list[str] = []
+        for tok in re.findall(r"[a-zA-Z0-9]+", (query or "").lower()):
+            if len(tok) < 4 or tok in stop_all:
+                continue
+            if tok not in out:
+                out.append(tok)
+        return out
 
     @staticmethod
     def _query_terms(query: str) -> list[str]:

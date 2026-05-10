@@ -523,6 +523,72 @@ class PolicyKnowledgeStore:
 
         return q.order_by(PolicyChunk.chunk_index.asc()).limit(limit).all()
 
+    def search_chunks_by_exact_terms(
+        self,
+        query: str,
+        specific_terms: list[str],
+        *,
+        top_k: int = 5,
+        document_key: str | None = None,
+    ) -> list[PolicyChunkMatch]:
+        """
+        Guaranteed direct DB lookup for specific/rare terms regardless of vector ranking.
+        All chunks containing ANY of the terms are fetched and re-ranked by combined score.
+        """
+        if not specific_terms:
+            return []
+
+        query_embedding = self._embed_doc_text(query)
+        term_filters = [
+            func.lower(PolicyChunk.content).like(f"%{t.lower()}%")
+            for t in specific_terms
+        ]
+
+        with Session(self.engine) as session:
+            q = (
+                session.query(PolicyChunk, PolicyDocument)
+                .join(PolicyDocument, PolicyDocument.id == PolicyChunk.document_id)
+                .filter(PolicyDocument.is_active.is_(True))
+                .filter(or_(*term_filters))
+            )
+            if document_key:
+                q = q.filter(PolicyDocument.document_key == document_key)
+            rows = q.all()
+
+        results: list[PolicyChunkMatch] = []
+        for chunk_row, doc_row in rows:
+            try:
+                vec_list = list(chunk_row.embedding) if chunk_row.embedding is not None else []
+            except Exception:
+                vec_list = []
+            vector_score = self._cosine_similarity(query_embedding, vec_list)
+            kw = self._keyword_overlap(query, chunk_row.content)
+            term_hits = sum(
+                1 for t in specific_terms if t.lower() in (chunk_row.content or "").lower()
+            )
+            combined = (
+                0.70 * vector_score
+                + 0.15 * kw
+                + 0.15 * (term_hits / max(1, len(specific_terms)))
+            )
+            results.append(
+                PolicyChunkMatch(
+                    document_key=doc_row.document_key,
+                    document_title=doc_row.title,
+                    source_file=doc_row.source_file,
+                    chunk_index=chunk_row.chunk_index,
+                    section_title=chunk_row.section_title,
+                    page_number=chunk_row.page_number,
+                    content=chunk_row.content,
+                    vector_score=float(vector_score),
+                    keyword_score=float(kw),
+                    combined_score=float(combined),
+                    metadata=chunk_row.meta or {},
+                )
+            )
+        results.sort(key=lambda m: m.combined_score, reverse=True)
+        return results[:top_k]
+
     def _fallback_chunk_search(
         self,
         session: Session,
@@ -539,7 +605,11 @@ class PolicyKnowledgeStore:
         scored: list[tuple[PolicyChunk, PolicyDocument, float]] = []
         for chunk_row, doc_row in rows:
             emb = chunk_row.embedding
-            score = self._cosine_similarity(query_embedding, emb if isinstance(emb, list) else [])
+            try:
+                vec_list = list(emb) if emb is not None else []
+            except Exception:
+                vec_list = []
+            score = self._cosine_similarity(query_embedding, vec_list)
             scored.append((chunk_row, doc_row, score))
         scored.sort(key=lambda x: x[2], reverse=True)
         return scored[:limit]
