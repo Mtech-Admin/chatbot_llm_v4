@@ -104,10 +104,10 @@ class PolicyAgent(BaseAgent):
                 best_faq_score,
             )
 
-            # Unified policy behavior:
-            # - Prefer document chunks whenever confidence is reasonable.
-            # - FAQ remains supplementary/fallback, not the default winner over docs.
-            doc_floor = max(0.18, settings.POLICY_RAG_DOC_CONFIDENCE_THRESHOLD - 0.08)
+            # Use doc path when best chunk score clears the configured threshold.
+            # Default threshold is 0.20 — low enough for semantic-adjacent topics,
+            # high enough to reject total misses.
+            doc_floor = max(0.15, settings.POLICY_RAG_DOC_CONFIDENCE_THRESHOLD)
             if doc_matches and best_doc_score >= doc_floor:
                 state.response_message = await self._build_grounded_policy_answer(state, doc_matches)
                 sources = [

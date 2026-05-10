@@ -75,7 +75,7 @@ class Settings(BaseSettings):
     LLM_REVIEW_MODEL: str = "Qwen/Qwen3.5-4B"
     ENABLE_RESPONSE_REVIEW: bool = False
     POLICY_RAG_ENABLED: bool = True
-    POLICY_RAG_DOC_CONFIDENCE_THRESHOLD: float = 0.8
+    POLICY_RAG_DOC_CONFIDENCE_THRESHOLD: float = 0.20
     POLICY_RAG_FAQ_CONFIDENCE_THRESHOLD: float = 0.25
     POLICY_RAG_TOP_K: int = 5
 
