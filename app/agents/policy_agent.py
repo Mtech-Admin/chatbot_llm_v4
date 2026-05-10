@@ -99,13 +99,16 @@ class PolicyAgent(BaseAgent):
             if settings.POLICY_RAG_ENABLED and has_doc_index:
                 retrieval_query = self._normalize_policy_query(state.user_message)
                 top_k_final = max(1, settings.POLICY_RAG_TOP_K)
+                # Pin to a specific document when configured (prevents stale docs polluting results).
+                doc_key_filter: str | None = settings.POLICY_RAG_DOCUMENT_KEY.strip() or None
 
                 # Step 1: classify query type and attempt targeted chunk-type retrieval.
                 query_type = self._classify_query_type(retrieval_query)
                 logger.info(
-                    "RAG query classification for employee %s: query_type=%s",
+                    "RAG query classification for employee %s: query_type=%s doc_key=%s",
                     state.employee_id,
                     query_type,
+                    doc_key_filter or "all",
                 )
 
                 targeted_matches: list[PolicyChunkMatch] = []
@@ -116,6 +119,7 @@ class PolicyAgent(BaseAgent):
                         chunk_type=query_type,
                         top_k=top_k_final,
                         fallback_if_few=2,
+                        document_key=doc_key_filter,
                     )
                     logger.info(
                         "RAG targeted retrieval employee=%s type=%s found=%s",
@@ -128,6 +132,7 @@ class PolicyAgent(BaseAgent):
                 raw_doc_matches = policy_store.search_chunks(
                     retrieval_query,
                     top_k=max(top_k_final * 4, 20),
+                    document_key=doc_key_filter,
                 )
 
                 # Step 3: extract rare/specific terms and do a guaranteed DB lookup.
@@ -138,6 +143,7 @@ class PolicyAgent(BaseAgent):
                         retrieval_query,
                         specific_terms,
                         top_k=top_k_final,
+                        document_key=doc_key_filter,
                     )
                     logger.info(
                         "RAG exact-term lookup for employee %s terms=%s found=%s",

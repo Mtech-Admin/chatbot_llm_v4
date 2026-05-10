@@ -78,6 +78,10 @@ class Settings(BaseSettings):
     POLICY_RAG_DOC_CONFIDENCE_THRESHOLD: float = 0.20
     POLICY_RAG_FAQ_CONFIDENCE_THRESHOLD: float = 0.25
     POLICY_RAG_TOP_K: int = 5
+    # Pin RAG searches to a specific document key (leave empty to search all documents).
+    # Set this to the document_key used during ingestion, e.g. "dmrc_hr_compendium_nov23".
+    # This prevents stale DOCX chunks from competing with structured KB chunks.
+    POLICY_RAG_DOCUMENT_KEY: str = ""
 
     # HRMS API Configuration
     HRMS_BASE_URL: str = "http://localhost:3001/api"
