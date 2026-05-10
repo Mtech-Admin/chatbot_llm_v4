@@ -456,7 +456,11 @@ class PolicyKnowledgeStore:
             if key in candidate_by_chunk_id:
                 continue
             emb = chunk_row.embedding
-            vec_list = emb if isinstance(emb, list) else []
+            try:
+                # pgvector returns its own ndarray-like type, not a plain list; always coerce.
+                vec_list = list(emb) if emb is not None else []
+            except Exception:
+                vec_list = []
             vector_score = self._cosine_similarity(query_embedding, vec_list)
             candidate_by_chunk_id[key] = (chunk_row, doc_row, float(vector_score))
 

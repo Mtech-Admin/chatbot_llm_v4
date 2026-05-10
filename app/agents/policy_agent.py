@@ -232,15 +232,21 @@ class PolicyAgent(BaseAgent):
         if not terms:
             return matches[:top_k]
 
-        # Prefer chunks containing at least one meaningful query term in section/content.
-        term_hits: list[PolicyChunkMatch] = []
+        # Score each candidate by how many unique query terms appear in its text,
+        # then by combined_score. This surfaces rare-term chunks (e.g. "paternity")
+        # above generic-term chunks (e.g. "leave") even if the latter rank higher
+        # on vector score alone.
+        scored: list[tuple[int, float, PolicyChunkMatch]] = []
         for m in matches:
             hay = f"{m.section_title or ''} {m.content or ''}".lower()
-            if any(t in hay for t in terms):
-                term_hits.append(m)
+            hit_count = sum(1 for t in terms if t in hay)
+            scored.append((hit_count, m.combined_score, m))
 
-        if term_hits:
-            return term_hits[:top_k]
+        scored.sort(key=lambda x: (x[0], x[1]), reverse=True)
+
+        hits = [m for hits, _, m in scored if hits > 0]
+        if hits:
+            return hits[:top_k]
         return matches[:top_k]
 
     @staticmethod
