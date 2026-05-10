@@ -340,7 +340,12 @@ class PolicyKnowledgeStore:
                 if not content:
                     continue
                 vec = self._embed_doc_text(content)
-                payload_meta = dict(chunk.metadata or {})
+                # Use to_metadata_dict() if available (structured PDF chunks) so that
+                # chunk_type, chapter, rule_number, oo_references etc. are persisted.
+                if hasattr(chunk, "to_metadata_dict"):
+                    payload_meta = chunk.to_metadata_dict()
+                else:
+                    payload_meta = dict(chunk.metadata or {})
                 session.add(
                     PolicyChunk(
                         document_id=document.id,
@@ -399,12 +404,43 @@ class PolicyKnowledgeStore:
         matches.sort(key=lambda x: x.score, reverse=True)
         return matches[:top_k]
 
+    def search_chunks_by_type(
+        self,
+        query: str,
+        chunk_type: str,
+        *,
+        top_k: int = 5,
+        document_key: str | None = None,
+        fallback_if_few: int = 2,
+    ) -> list[PolicyChunkMatch]:
+        """
+        Search chunks filtered to a specific chunk_type stored in metadata JSONB.
+        Falls back to an unfiltered search when fewer than `fallback_if_few` results
+        are returned (e.g. the document has not been ingested with structured metadata).
+        """
+        results = self.search_chunks(
+            query,
+            top_k=top_k,
+            document_key=document_key,
+            chunk_type=chunk_type,
+        )
+        if len(results) < fallback_if_few:
+            logger.debug(
+                "chunk_type=%s returned %s results (< %s), falling back to unfiltered search",
+                chunk_type,
+                len(results),
+                fallback_if_few,
+            )
+            results = self.search_chunks(query, top_k=top_k, document_key=document_key)
+        return results
+
     def search_chunks(
         self,
         query: str,
         *,
         top_k: int = 5,
         document_key: str | None = None,
+        chunk_type: str | None = None,
         vector_weight: float = 0.85,
         keyword_weight: float = 0.15,
     ) -> list[PolicyChunkMatch]:
@@ -490,6 +526,13 @@ class PolicyKnowledgeStore:
             )
 
         ranked.sort(key=lambda m: m.combined_score, reverse=True)
+
+        if chunk_type:
+            ranked = [
+                m for m in ranked
+                if (m.metadata or {}).get("chunk_type") == chunk_type
+            ]
+
         return ranked[:top_k]
 
     def _lexical_chunk_candidates(

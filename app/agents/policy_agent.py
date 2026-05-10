@@ -7,10 +7,64 @@ import re
 
 from app.agents.base import BaseAgent
 from app.config import get_llm_client, get_model_name, settings
+from app.knowledge.ingest import (
+    CHUNK_TYPE_AUTHORITY,
+    CHUNK_TYPE_CHAPTER_SUMMARY,
+    CHUNK_TYPE_OO_INDEX,
+    CHUNK_TYPE_RULE,
+    CHUNK_TYPE_TABLE,
+)
 from app.knowledge.store import PolicyChunkMatch, policy_store
 from app.orchestrator.state import OrchestratorState
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Query-type classification patterns
+# Each entry: (compiled_regex, chunk_type_to_target)
+# Evaluated in order — first match wins.
+# ---------------------------------------------------------------------------
+_QUERY_TYPE_RULES: list[tuple[re.Pattern[str], str]] = [
+    # Rate / amount / allowance tables
+    (
+        re.compile(
+            r"\b(how\s+much|rate|amount|per\s+day|per\s+month|ceiling|limit|"
+            r"da\s+rate|daily\s+allowance|slab|rupee|rs\.?|inr|tariff|"
+            r"quantum|entitlement|entitled\s+to)\b",
+            re.IGNORECASE,
+        ),
+        CHUNK_TYPE_TABLE,
+    ),
+    # Approval / sanction authority
+    (
+        re.compile(
+            r"\b(who\s+(?:can\s+)?(?:approve|sanction|grant|authoris|authorize)|"
+            r"approval\s+authority|sanctioning\s+authority|competent\s+authority|"
+            r"who\s+is\s+(?:the\s+)?authority|power\s+to\s+(?:grant|sanction|approve)|"
+            r"delegat(?:ion|ed)\s+of\s+power)\b",
+            re.IGNORECASE,
+        ),
+        CHUNK_TYPE_AUTHORITY,
+    ),
+    # O.O. / Office Order lookups
+    (
+        re.compile(
+            r"(?:O\.O\.|office\s+order|OO\s+no\.?|PP/\d|order\s+no\.?\s*PP)",
+            re.IGNORECASE,
+        ),
+        CHUNK_TYPE_OO_INDEX,
+    ),
+    # Overview / chapter summary
+    (
+        re.compile(
+            r"\b(what\s+is|overview|introduce|introduction|explain\s+chapter|"
+            r"summarize|summary|about\s+chapter|tell\s+me\s+about\s+chapter|"
+            r"what\s+does\s+chapter)\b",
+            re.IGNORECASE,
+        ),
+        CHUNK_TYPE_CHAPTER_SUMMARY,
+    ),
+]
 
 POLICY_AGENT_PROMPT = """You answer HR policy questions using the internal policy document knowledge base.
 
@@ -46,13 +100,37 @@ class PolicyAgent(BaseAgent):
                 retrieval_query = self._normalize_policy_query(state.user_message)
                 top_k_final = max(1, settings.POLICY_RAG_TOP_K)
 
-                # Step 1: hybrid vector+lexical search (broad candidates).
+                # Step 1: classify query type and attempt targeted chunk-type retrieval.
+                query_type = self._classify_query_type(retrieval_query)
+                logger.info(
+                    "RAG query classification for employee %s: query_type=%s",
+                    state.employee_id,
+                    query_type,
+                )
+
+                targeted_matches: list[PolicyChunkMatch] = []
+                if query_type != CHUNK_TYPE_RULE:
+                    # Targeted retrieval for non-default query types
+                    targeted_matches = policy_store.search_chunks_by_type(
+                        retrieval_query,
+                        chunk_type=query_type,
+                        top_k=top_k_final,
+                        fallback_if_few=2,
+                    )
+                    logger.info(
+                        "RAG targeted retrieval employee=%s type=%s found=%s",
+                        state.employee_id,
+                        query_type,
+                        len(targeted_matches),
+                    )
+
+                # Step 2: hybrid vector+lexical broad search (always run for completeness).
                 raw_doc_matches = policy_store.search_chunks(
                     retrieval_query,
                     top_k=max(top_k_final * 4, 20),
                 )
 
-                # Step 2: extract rare/specific terms and do a guaranteed DB lookup.
+                # Step 3: extract rare/specific terms and do a guaranteed DB lookup.
                 specific_terms = self._specific_query_terms(retrieval_query)
                 exact_matches: list[PolicyChunkMatch] = []
                 if specific_terms:
@@ -68,9 +146,14 @@ class PolicyAgent(BaseAgent):
                         len(exact_matches),
                     )
 
-                # Step 3: merge — exact-term hits occupy first slots, hybrid fills rest.
-                seen_chunk_ids: set[int] = set()
+                # Step 4: merge — targeted hits first, then exact-term, then hybrid.
+                seen_chunk_ids: set[tuple[str, int]] = set()
                 merged: list[PolicyChunkMatch] = []
+                for m in targeted_matches:
+                    key = (m.source_file, m.chunk_index)
+                    if key not in seen_chunk_ids:
+                        seen_chunk_ids.add(key)
+                        merged.append(m)
                 for m in exact_matches:
                     key = (m.source_file, m.chunk_index)
                     if key not in seen_chunk_ids:
@@ -119,6 +202,9 @@ class PolicyAgent(BaseAgent):
                         "chunk_index": m.chunk_index,
                         "section_title": m.section_title,
                         "page_number": m.page_number,
+                        "chunk_type": (m.metadata or {}).get("chunk_type"),
+                        "chapter": (m.metadata or {}).get("chapter"),
+                        "rule_number": (m.metadata or {}).get("rule_number"),
                         "vector_score": round(m.vector_score, 4),
                         "keyword_score": round(m.keyword_score, 4),
                         "combined_score": round(m.combined_score, 4),
@@ -252,6 +338,19 @@ class PolicyAgent(BaseAgent):
             flags=re.IGNORECASE,
         ).strip()
         return text or query
+
+    @staticmethod
+    def _classify_query_type(query: str) -> str:
+        """
+        Classify the query into a chunk_type using fast regex heuristics.
+
+        Returns one of the CHUNK_TYPE_* constants from app.knowledge.ingest.
+        The default return value is CHUNK_TYPE_RULE (general rule/clause lookup).
+        """
+        for pattern, chunk_type in _QUERY_TYPE_RULES:
+            if pattern.search(query):
+                return chunk_type
+        return CHUNK_TYPE_RULE
 
     def _select_relevant_doc_matches(
         self,
@@ -417,8 +516,12 @@ class PolicyAgent(BaseAgent):
         for idx, m in enumerate(matches[:3], start=1):
             section = m.section_title or "Policy section"
             page_label = f" | page={m.page_number}" if m.page_number else ""
+            meta = m.metadata or {}
+            chapter_label = f" | chapter={meta['chapter']}" if meta.get("chapter") else ""
+            rule_label = f" | rule={meta['rule_number']}" if meta.get("rule_number") else ""
+            type_label = f" | type={meta['chunk_type']}" if meta.get("chunk_type") else ""
             context_blocks.append(
-                f"[{idx}] {section}{page_label}\n"
+                f"[{idx}] {section}{page_label}{chapter_label}{rule_label}{type_label}\n"
                 f"source={m.source_file} chunk={m.chunk_index} score={m.combined_score:.3f}\n"
                 f"{m.content}"
             )
