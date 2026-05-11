@@ -1033,6 +1033,67 @@ def read_policy_kb_json_chunks(file_path: Path) -> list[PolicyDocChunk]:
     return chunks
 
 
+def read_dmrc_hr_rag_chunks_json(file_path: Path) -> list[PolicyDocChunk]:
+    """
+    Parse `dmrc_hr_chunks.json` — pre-split RAG chunks (rule, table, indexes, etc.).
+
+    Chunk `chunk_type` values match the HR Compendium README (e.g. ``rule``,
+    ``leave_types_index``), not the legacy PDF/KB labels (``rule_chunk``).
+    """
+    if not file_path.exists():
+        raise FileNotFoundError(f"RAG chunks JSON not found: {file_path}")
+
+    with file_path.open("r", encoding="utf-8") as fh:
+        data: dict[str, Any] = json.load(fh)
+
+    raw_chunks = data.get("chunks") or []
+    out: list[PolicyDocChunk] = []
+
+    for idx, item in enumerate(raw_chunks):
+        content = str(item.get("content", "")).strip()
+        if not content:
+            continue
+        meta = dict(item.get("metadata") or {})
+        chunk_id = item.get("chunk_id")
+        if chunk_id:
+            meta["chunk_id"] = str(chunk_id)
+        ctype = str(item.get("chunk_type", "rule")).strip() or "rule"
+        rule_id = meta.get("rule_id")
+        if rule_id:
+            rule_id = str(rule_id)
+        page_range = meta.get("page_range")
+        page_num: int | None = None
+        if isinstance(page_range, str) and page_range.strip():
+            page_num = _parse_page_start(page_range)
+
+        chapter = item.get("chapter")
+        chapter = str(chapter).strip() if chapter not in (None, "") else None
+
+        out.append(
+            PolicyDocChunk(
+                chunk_index=idx,
+                content=content,
+                chunk_type=ctype,
+                chapter=chapter,
+                chapter_title=item.get("chapter_title"),
+                rule_number=rule_id or None,
+                rule_title=None,
+                applies_to=list(meta.get("applies_to") or []),
+                oo_references=list(meta.get("office_orders") or []),
+                section_title=item.get("title"),
+                page_number=page_num,
+                metadata=meta,
+            )
+        )
+
+    for new_idx, chunk in enumerate(out):
+        chunk.chunk_index = new_idx
+
+    logger.info("RAG chunks JSON ingestion: %s total chunks from %s", len(out), file_path)
+    _log_chunk_type_summary(out)
+    return out
+
+
 # ---------------------------------------------------------------------------
 # JSON KB helper functions
 # ---------------------------------------------------------------------------

@@ -1,42 +1,75 @@
 """
-Policy FAQ Agent - Retrieves answers from internal policy Q&A knowledge base.
+Policy FAQ Agent — DMRC HR Compendium RAG with query routing (README flow).
+
+Retrieval: classify intent → pin index chunks when useful → hybrid vector+lexical
+search (sentence-transformers / hash fallback in store) → rerank by preferred
+chunk types → optional exact-term pass → LLM with citations.
 """
+
+from __future__ import annotations
 
 import logging
 import re
 
 from app.agents.base import BaseAgent
 from app.config import get_llm_client, get_model_name, settings
-from app.knowledge.ingest import (
-    CHUNK_TYPE_AUTHORITY,
-    CHUNK_TYPE_CHAPTER_SUMMARY,
-    CHUNK_TYPE_FAQ,
-    CHUNK_TYPE_OO_INDEX,
-    CHUNK_TYPE_RULE,
-    CHUNK_TYPE_TABLE,
-)
+from app.knowledge.ingest import CHUNK_TYPE_FAQ
 from app.knowledge.store import PolicyChunkMatch, policy_store
 from app.orchestrator.state import OrchestratorState
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Query-type classification patterns
-# Each entry: (compiled_regex, chunk_type_to_target)
-# Evaluated in order — first match wins.
-# ---------------------------------------------------------------------------
-_QUERY_TYPE_RULES: list[tuple[re.Pattern[str], str]] = [
-    # Rate / amount / allowance tables
+# Intent labels align with files/README.md — "Query Routing Logic"
+ROUTING_INTENT_CITATION = "citation"
+ROUTING_INTENT_LISTING = "listing"
+ROUTING_INTENT_COMPLEX = "complex"
+ROUTING_INTENT_AUTHORITY = "authority"
+ROUTING_INTENT_RATE = "rate"
+ROUTING_INTENT_OVERVIEW = "overview"
+ROUTING_INTENT_SPECIFIC = "specific"
+
+QUERY_ROUTING: dict[str, list[str]] = {
+    ROUTING_INTENT_LISTING: [
+        "leave_types_index",
+        "financial_limits_index",
+        "chapter_summary",
+        "document_summary",
+    ],
+    ROUTING_INTENT_SPECIFIC: ["rule", "table", "chapter_authority", "cross_reference"],
+    ROUTING_INTENT_AUTHORITY: ["authority_index", "chapter_authority", "rule"],
+    ROUTING_INTENT_RATE: ["table", "financial_limits_index", "rule"],
+    ROUTING_INTENT_COMPLEX: ["cross_reference", "rule", "chapter_summary"],
+    ROUTING_INTENT_CITATION: ["oo_index", "rule"],
+    ROUTING_INTENT_OVERVIEW: ["chapter_summary", "document_summary"],
+}
+
+_ROUTING_INTENT_RULES: list[tuple[re.Pattern[str], str]] = [
     (
         re.compile(
-            r"\b(how\s+much|rate|amount|per\s+day|per\s+month|ceiling|limit|"
-            r"da\s+rate|daily\s+allowance|slab|rupee|rs\.?|inr|tariff|"
-            r"quantum|entitlement|entitled\s+to)\b",
+            r"(?:O\.O\.|office\s+order|OO\s+no\.?|PP/\d|PP-\d|order\s+no\.?\s*PP|"
+            r"circular\s+no)",
             re.IGNORECASE,
         ),
-        CHUNK_TYPE_TABLE,
+        ROUTING_INTENT_CITATION,
     ),
-    # Approval / sanction authority
+    (
+        re.compile(
+            r"\b("
+            r"how\s+many\s+types|how\s+many\s+kinds|types\s+of|kinds\s+of|"
+            r"list\s+(?:all\s+)?(?:the\s+)?(?:types|kinds|leave|advances?)|"
+            r"what\s+are\s+(?:all\s+)?(?:the\s+)?(?:types|kinds)|enumerate"
+            r")\b",
+            re.IGNORECASE,
+        ),
+        ROUTING_INTENT_LISTING,
+    ),
+    (
+        re.compile(
+            r"\b(compare|difference\s+between|vs\.?|versus|either\s+or|\band\b.+\band\b)\b",
+            re.IGNORECASE,
+        ),
+        ROUTING_INTENT_COMPLEX,
+    ),
     (
         re.compile(
             r"\b(who\s+(?:can\s+)?(?:approve|sanction|grant|authoris|authorize)|"
@@ -45,34 +78,40 @@ _QUERY_TYPE_RULES: list[tuple[re.Pattern[str], str]] = [
             r"delegat(?:ion|ed)\s+of\s+power)\b",
             re.IGNORECASE,
         ),
-        CHUNK_TYPE_AUTHORITY,
+        ROUTING_INTENT_AUTHORITY,
     ),
-    # O.O. / Office Order lookups
     (
         re.compile(
-            r"(?:O\.O\.|office\s+order|OO\s+no\.?|PP/\d|order\s+no\.?\s*PP)",
+            r"\b(how\s+much|rate|amount|per\s+day|per\s+month|ceiling|limit|"
+            r"da\s+rate|daily\s+allowance|slab|rupee|rs\.?|inr|tariff|"
+            r"quantum|entitlement|entitled\s+to)\b",
             re.IGNORECASE,
         ),
-        CHUNK_TYPE_OO_INDEX,
+        ROUTING_INTENT_RATE,
     ),
-    # Overview / chapter summary
     (
         re.compile(
-            r"\b(what\s+is|overview|introduce|introduction|explain\s+chapter|"
+            r"\b(what\s+is\s+chapter|overview|introduce|introduction|explain\s+chapter|"
             r"summarize|summary|about\s+chapter|tell\s+me\s+about\s+chapter|"
-            r"what\s+does\s+chapter)\b",
+            r"what\s+does\s+chapter|chapters?\s+in\s+(?:the\s+)?(?:document|compendium)|"
+            r"what\s+does\s+(?:the\s+)?(?:hr\s+)?compendium)"
+            r"\b",
             re.IGNORECASE,
         ),
-        CHUNK_TYPE_CHAPTER_SUMMARY,
+        ROUTING_INTENT_OVERVIEW,
     ),
 ]
 
-POLICY_AGENT_PROMPT = """You answer HR policy questions using the internal policy document knowledge base.
+POLICY_AGENT_PROMPT = """You are an HR Policy Assistant for Delhi Metro Rail Corporation (DMRC).
+Answer using ONLY the DMRC HR Compendium excerpts in the user message (November 2023 edition).
+Rules:
+1. If the answer is in the context, state it accurately and cite rule id / chapter / page range when present in the excerpt metadata lines.
+2. If you are unsure or the information is not in the context, say it is not covered in the provided sections and suggest contacting HR.
+3. For listing questions (e.g. types of leave), give a complete numbered list when the context lists items.
+4. For eligibility, mention conditions or exceptions shown in the context.
+5. For amounts and limits, note if the context says figures are subject to revision.
+6. End with a Reference line when possible, e.g. Reference: Rule F.3.10, Chapter F, pages 165-186 (from context)."""
 
-Grounding rules:
-- Use only retrieved policy evidence when answering policy questions.
-- If policy evidence is weak/unclear, say you are not confident and provide a concise fallback guidance.
-- Do not invent policy clauses or section references."""
 
 class PolicyAgent(BaseAgent):
     def __init__(self):
@@ -102,44 +141,32 @@ class PolicyAgent(BaseAgent):
 
             retrieval_query = self._normalize_policy_query(state.user_message)
             top_k_final = max(1, settings.POLICY_RAG_TOP_K)
-            # When POLICY_RAG_DOCUMENT_KEY is set, pin to that document only.
-            # Leave None to search across all documents including faq_kb.
             doc_key_filter: str | None = settings.POLICY_RAG_DOCUMENT_KEY.strip() or None
 
-            # Step 1: classify query type for targeted retrieval.
-            query_type = self._classify_query_type(retrieval_query)
+            routing_intent = self._classify_routing_intent(retrieval_query)
+            preferred_types = QUERY_ROUTING.get(routing_intent, QUERY_ROUTING[ROUTING_INTENT_SPECIFIC])
             logger.info(
-                "RAG query classification for employee %s: query_type=%s doc_key=%s",
+                "Policy RAG routing employee=%s intent=%s preferred_types=%s doc_key=%s",
                 state.employee_id,
-                query_type,
+                routing_intent,
+                preferred_types,
                 doc_key_filter or "all",
             )
 
-            # Step 2: targeted retrieval for non-default (non-rule) query types.
-            targeted_matches: list[PolicyChunkMatch] = []
-            if query_type not in (CHUNK_TYPE_RULE, CHUNK_TYPE_FAQ):
-                targeted_matches = policy_store.search_chunks_by_type(
-                    retrieval_query,
-                    chunk_type=query_type,
-                    top_k=top_k_final,
-                    fallback_if_few=2,
-                    document_key=doc_key_filter,
-                )
-                logger.info(
-                    "RAG targeted retrieval employee=%s type=%s found=%s",
-                    state.employee_id,
-                    query_type,
-                    len(targeted_matches),
-                )
-
-            # Step 3: unified hybrid vector+lexical search (FAQ + doc chunks together).
-            broad_matches = policy_store.search_chunks(
+            pool_k = max(50, top_k_final * 10)
+            pinned = self._pinned_index_matches(
+                routing_intent,
                 retrieval_query,
-                top_k=max(top_k_final * 4, 20),
                 document_key=doc_key_filter,
             )
+            broad_matches = policy_store.search_chunks(
+                retrieval_query,
+                top_k=pool_k,
+                document_key=doc_key_filter,
+            )
+            merged = self._dedupe_chunk_matches([*pinned, *broad_matches])
+            reranked = self._rerank_by_preferred_types(merged, preferred_types)
 
-            # Step 4: exact-term guaranteed DB lookup for rare/specific terms.
             specific_terms = self._specific_query_terms(retrieval_query)
             exact_matches: list[PolicyChunkMatch] = []
             if specific_terms:
@@ -150,24 +177,24 @@ class PolicyAgent(BaseAgent):
                     document_key=doc_key_filter,
                 )
                 logger.info(
-                    "RAG exact-term lookup for employee %s terms=%s found=%s",
+                    "RAG exact-term lookup employee=%s terms=%s found=%s",
                     state.employee_id,
                     specific_terms,
                     len(exact_matches),
                 )
 
-            # Step 5: merge — targeted first, then exact-term, then broad.
-            seen_chunk_ids: set[tuple[str, int]] = set()
-            merged: list[PolicyChunkMatch] = []
-            for m in (*targeted_matches, *exact_matches, *broad_matches):
-                key = (m.source_file, m.chunk_index)
-                if key not in seen_chunk_ids:
-                    seen_chunk_ids.add(key)
-                    merged.append(m)
+            seen: set[str] = set()
+            ordered: list[PolicyChunkMatch] = []
+            for m in (*pinned, *exact_matches, *reranked):
+                key = self._chunk_dedupe_key(m)
+                if key in seen:
+                    continue
+                seen.add(key)
+                ordered.append(m)
 
             all_matches = self._select_relevant_doc_matches(
                 query=retrieval_query,
-                matches=merged,
+                matches=ordered,
                 top_k=top_k_final,
             )
             self._log_doc_retrieval(state.employee_id, retrieval_query, all_matches)
@@ -189,14 +216,6 @@ class PolicyAgent(BaseAgent):
             top = all_matches[0]
             top_chunk_type = (top.metadata or {}).get("chunk_type", "")
 
-            # For FAQ entries: only return the stored answer directly when the
-            # stored FAQ question is a close match to what the user actually asked.
-            # A high question-overlap score (≥ 0.72) means the user asked exactly
-            # that question.  A lower score means the query is broader or different
-            # (e.g. user asks "Tell me about medical reimbursement" but the FAQ
-            # question is "Documents for medical reimbursement?") — in that case
-            # fall through to the LLM so all retrieved chunks are combined into a
-            # comprehensive answer.
             if top_chunk_type == CHUNK_TYPE_FAQ:
                 faq_question = (top.metadata or {}).get("question", top.section_title or "")
                 q_similarity = self._question_similarity(retrieval_query, faq_question)
@@ -216,6 +235,7 @@ class PolicyAgent(BaseAgent):
                             "document_key": top.document_key,
                             "section_title": top.section_title,
                             "chunk_index": top.chunk_index,
+                            "chunk_id": (top.metadata or {}).get("chunk_id"),
                             "vector_score": round(top.vector_score, 4),
                             "keyword_score": round(top.keyword_score, 4),
                             "combined_score": round(top.combined_score, 4),
@@ -226,21 +246,8 @@ class PolicyAgent(BaseAgent):
                         }
                     ]
                     state.routing_agent = "policy_agent"
-                    logger.info(
-                        "Policy agent used FAQ direct answer for employee %s score=%.4f q_sim=%.4f",
-                        state.employee_id,
-                        best_score,
-                        q_similarity,
-                    )
                     return state
-                # Broad query — fall through to LLM grounding below.
-                logger.info(
-                    "Policy agent: FAQ question similarity %.4f < 0.72 — routing to LLM for employee %s",
-                    q_similarity,
-                    state.employee_id,
-                )
 
-            # Policy document chunks (and broad FAQ queries) — ground through LLM.
             state.response_message = await self._build_grounded_policy_answer(state, all_matches)
             state.sources = [
                 {
@@ -249,22 +256,26 @@ class PolicyAgent(BaseAgent):
                     "document_title": m.document_title,
                     "source_file": m.source_file,
                     "chunk_index": m.chunk_index,
+                    "chunk_id": (m.metadata or {}).get("chunk_id"),
                     "section_title": m.section_title,
                     "page_number": m.page_number,
                     "chunk_type": (m.metadata or {}).get("chunk_type"),
                     "chapter": (m.metadata or {}).get("chapter"),
-                    "rule_number": (m.metadata or {}).get("rule_number"),
+                    "rule_number": (m.metadata or {}).get("rule_id")
+                    or (m.metadata or {}).get("rule_number"),
+                    "page_range": (m.metadata or {}).get("page_range"),
                     "vector_score": round(m.vector_score, 4),
                     "keyword_score": round(m.keyword_score, 4),
                     "combined_score": round(m.combined_score, 4),
                 }
-                for m in all_matches[:3]
+                for m in all_matches[:5]
             ] + [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
             state.routing_agent = "policy_agent"
             logger.info(
-                "Policy agent used LLM grounding for employee %s score=%.4f",
+                "Policy agent used LLM grounding for employee %s score=%.4f intent=%s",
                 state.employee_id,
                 best_score,
+                routing_intent,
             )
             return state
 
@@ -277,8 +288,92 @@ class PolicyAgent(BaseAgent):
             return state
 
     @staticmethod
+    def _classify_routing_intent(query: str) -> str:
+        for pattern, intent in _ROUTING_INTENT_RULES:
+            if pattern.search(query):
+                return intent
+        return ROUTING_INTENT_SPECIFIC
+
+    @staticmethod
+    def _chunk_dedupe_key(m: PolicyChunkMatch) -> str:
+        meta = m.metadata or {}
+        cid = meta.get("chunk_id")
+        if cid:
+            return f"id:{cid}"
+        return f"{m.document_key}:{m.chunk_index}"
+
+    @staticmethod
+    def _dedupe_chunk_matches(matches: list[PolicyChunkMatch]) -> list[PolicyChunkMatch]:
+        seen: set[str] = set()
+        out: list[PolicyChunkMatch] = []
+        for m in matches:
+            key = PolicyAgent._chunk_dedupe_key(m)
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(m)
+        return out
+
+    @staticmethod
+    def _rerank_by_preferred_types(
+        matches: list[PolicyChunkMatch],
+        preferred_types: list[str],
+    ) -> list[PolicyChunkMatch]:
+        order = {t: i for i, t in enumerate(preferred_types)}
+
+        def sort_key(m: PolicyChunkMatch) -> tuple[int, float]:
+            ct = (m.metadata or {}).get("chunk_type") or ""
+            tier = order.get(ct, 1_000)
+            return tier, -m.combined_score
+
+        return sorted(matches, key=sort_key)
+
+    def _pinned_index_matches(
+        self,
+        intent: str,
+        query: str,
+        *,
+        document_key: str | None,
+    ) -> list[PolicyChunkMatch]:
+        """Fetch high-value index chunks for intents where vector search can miss a single mega-chunk."""
+        q = query.lower()
+        out: list[PolicyChunkMatch] = []
+
+        def grab(chunk_type: str, k: int) -> None:
+            out.extend(
+                policy_store.search_chunks(
+                    query,
+                    top_k=k,
+                    document_key=document_key,
+                    chunk_type=chunk_type,
+                )
+            )
+
+        if intent == ROUTING_INTENT_CITATION:
+            grab("oo_index", 4)
+        elif intent == ROUTING_INTENT_AUTHORITY:
+            grab("authority_index", 4)
+        elif intent == ROUTING_INTENT_OVERVIEW:
+            grab("document_summary", 2)
+        elif intent == ROUTING_INTENT_LISTING:
+            if re.search(
+                r"\b(leave|leaves|casual|earned|eol|maternity|paternity|scl|hpl|hpl/|ccl|quarantine|wriil)\b",
+                q,
+            ):
+                grab("leave_types_index", 3)
+            if re.search(
+                r"\b(hba|advance|advances|mpa|motor|wheeler|lakh|crore|financial|"
+                r"ceiling|encashment|ctg)\b",
+                q,
+            ):
+                grab("financial_limits_index", 3)
+        elif intent == ROUTING_INTENT_RATE:
+            grab("financial_limits_index", 3)
+
+        return self._dedupe_chunk_matches(out)
+
+    @staticmethod
     def _extract_faq_answer(content: str) -> str:
-        """Extract the answer text from a faq_entry chunk ('Question: ...\\nAnswer: ...')."""
         m = re.search(r"(?i)^Answer:\s*(.+)", content, re.MULTILINE | re.DOTALL)
         if m:
             return m.group(1).strip()
@@ -286,23 +381,19 @@ class PolicyAgent(BaseAgent):
 
     @staticmethod
     def _question_similarity(user_query: str, faq_question: str) -> float:
-        """
-        Token-Jaccard similarity between the user query and a FAQ question.
-        Returns a value in [0, 1].  A score ≥ 0.72 means the two questions share
-        enough tokens to be considered the same specific question.
-        A lower score means the user's query is broader or covers a different angle.
-        """
         stop = {
             "a", "an", "the", "is", "are", "was", "were", "be", "been",
             "what", "when", "where", "which", "who", "how", "why",
             "me", "my", "i", "tell", "give", "please", "about", "for",
             "in", "on", "of", "to", "and", "or", "do", "does", "can",
         }
+
         def _tokens(text: str) -> set[str]:
             return {
                 t for t in re.findall(r"[a-zA-Z0-9]+", text.lower())
                 if len(t) >= 3 and t not in stop
             }
+
         q = _tokens(user_query)
         f = _tokens(faq_question)
         if not q or not f:
@@ -331,13 +422,15 @@ class PolicyAgent(BaseAgent):
         )
         for idx, match in enumerate(matches[:limit], start=1):
             preview = re.sub(r"\s+", " ", (match.content or "")).strip()[:260]
+            cid = (match.metadata or {}).get("chunk_id", "")
             logger.info(
                 (
-                    "RAG chunk[%s] employee=%s doc=%s chunk=%s section=%r "
+                    "RAG chunk[%s] employee=%s chunk_id=%s doc=%s chunk=%s section=%r "
                     "vector=%.4f keyword=%.4f combined=%.4f preview=%r"
                 ),
                 idx,
                 employee_id,
+                cid,
                 match.source_file,
                 match.chunk_index,
                 match.section_title,
@@ -351,7 +444,6 @@ class PolicyAgent(BaseAgent):
         text = (query or "").strip()
         if not text:
             return text
-        # Remove common greeting prefixes that dilute retrieval (e.g. "Hello. Tell me ...").
         text = re.sub(
             r"^(?:\s*(?:hi|hello|hey|good\s+morning|good\s+afternoon|good\s+evening|namaste)[\s\.,!;:-]*)+",
             "",
@@ -359,19 +451,6 @@ class PolicyAgent(BaseAgent):
             flags=re.IGNORECASE,
         ).strip()
         return text or query
-
-    @staticmethod
-    def _classify_query_type(query: str) -> str:
-        """
-        Classify the query into a chunk_type using fast regex heuristics.
-
-        Returns one of the CHUNK_TYPE_* constants from app.knowledge.ingest.
-        The default return value is CHUNK_TYPE_RULE (general rule/clause lookup).
-        """
-        for pattern, chunk_type in _QUERY_TYPE_RULES:
-            if pattern.search(query):
-                return chunk_type
-        return CHUNK_TYPE_RULE
 
     def _select_relevant_doc_matches(
         self,
@@ -386,10 +465,6 @@ class PolicyAgent(BaseAgent):
         if not terms:
             return matches[:top_k]
 
-        # Score each candidate by how many unique query terms appear in its text,
-        # then by combined_score. This surfaces rare-term chunks (e.g. "paternity")
-        # above generic-term chunks (e.g. "leave") even if the latter rank higher
-        # on vector score alone.
         scored: list[tuple[int, float, PolicyChunkMatch]] = []
         for m in matches:
             hay = f"{m.section_title or ''} {m.content or ''}".lower()
@@ -405,12 +480,6 @@ class PolicyAgent(BaseAgent):
 
     @staticmethod
     def _specific_query_terms(query: str) -> list[str]:
-        """
-        Extract rare/discriminating terms from the query by stripping both generic
-        stopwords AND common HR domain words that appear in nearly every chunk.
-        Whatever remains (e.g. 'paternity', 'maternity', 'ltc', 'vpf', 'noc') is
-        used for a guaranteed direct DB lookup.
-        """
         hr_common = {
             "leave",
             "employee",
@@ -534,27 +603,33 @@ class PolicyAgent(BaseAgent):
         matches: list[PolicyChunkMatch],
     ) -> str:
         context_blocks = []
-        for idx, m in enumerate(matches[:3], start=1):
+        for idx, m in enumerate(matches[:5], start=1):
             section = m.section_title or "Policy section"
-            page_label = f" | page={m.page_number}" if m.page_number else ""
             meta = m.metadata or {}
-            chapter_label = f" | chapter={meta['chapter']}" if meta.get("chapter") else ""
-            rule_label = f" | rule={meta['rule_number']}" if meta.get("rule_number") else ""
-            type_label = f" | type={meta['chunk_type']}" if meta.get("chunk_type") else ""
+            ref_parts = []
+            if meta.get("rule_id") or meta.get("rule_number"):
+                ref_parts.append(f"rule={meta.get('rule_id') or meta.get('rule_number')}")
+            if meta.get("chapter"):
+                ref_parts.append(f"chapter={meta['chapter']}")
+            if meta.get("page_range"):
+                ref_parts.append(f"pages={meta['page_range']}")
+            elif m.page_number is not None:
+                ref_parts.append(f"page={m.page_number}")
+            if meta.get("chunk_id"):
+                ref_parts.append(f"chunk_id={meta['chunk_id']}")
+            meta_line = (" | ".join(ref_parts)) if ref_parts else ""
+            chunk_type = meta.get("chunk_type", "")
             context_blocks.append(
-                f"[{idx}] {section}{page_label}{chapter_label}{rule_label}{type_label}\n"
-                f"source={m.source_file} chunk={m.chunk_index} score={m.combined_score:.3f}\n"
-                f"{m.content}"
+                f"[{idx}] {section}"
+                + (f" | {meta_line}" if meta_line else "")
+                + (f" | type={chunk_type}" if chunk_type else "")
+                + f"\n{m.content}"
             )
         evidence = "\n\n".join(context_blocks)
 
         prompt = (
-            "Answer the user question using only the retrieved policy excerpts below.\n"
-            "Rules:\n"
-            "- Keep it concise and actionable.\n"
-            "- If evidence is partial, mention the uncertainty explicitly.\n"
-            "- End with a short 'Source:' line citing excerpt numbers used (example: Source: [1], [2]).\n"
-            "- Do not mention internal systems, embeddings, or retrieval.\n\n"
+            "Answer the user question using only the policy excerpts below.\n"
+            "Follow the system rules on citations and uncertainty.\n\n"
             f"User question: {state.user_message}\n\n"
             f"Policy excerpts:\n{evidence}"
         )
@@ -564,7 +639,7 @@ class PolicyAgent(BaseAgent):
             model = get_model_name()
             response = await client.chat.completions.create(
                 model=model,
-                max_tokens=420,
+                max_tokens=620,
                 messages=[
                     {"role": "system", "content": self._build_context_prompt(state)},
                     {"role": "user", "content": prompt},
@@ -583,7 +658,7 @@ class PolicyAgent(BaseAgent):
         return (
             f"Based on the policy document ({section}), here is the closest guidance:\n"
             f"{excerpt}{suffix}\n\n"
-            "Source: [1]"
+            "Reference: see excerpt [1] above."
         )
 
     @staticmethod

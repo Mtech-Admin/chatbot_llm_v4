@@ -505,6 +505,7 @@ class PolicyKnowledgeStore:
         top_k: int = 5,
         document_key: str | None = None,
         chunk_type: str | None = None,
+        chunk_types: list[str] | None = None,
         vector_weight: float = 0.85,
         keyword_weight: float = 0.15,
     ) -> list[PolicyChunkMatch]:
@@ -595,6 +596,12 @@ class PolicyKnowledgeStore:
             ranked = [
                 m for m in ranked
                 if (m.metadata or {}).get("chunk_type") == chunk_type
+            ]
+        elif chunk_types:
+            allowed = set(chunk_types)
+            ranked = [
+                m for m in ranked
+                if (m.metadata or {}).get("chunk_type") in allowed
             ]
 
         return ranked[:top_k]

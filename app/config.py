@@ -79,8 +79,8 @@ class Settings(BaseSettings):
     POLICY_RAG_FAQ_CONFIDENCE_THRESHOLD: float = 0.25
     POLICY_RAG_TOP_K: int = 5
     # Pin RAG searches to a specific document key (leave empty to search all documents).
-    # Set this to the document_key used during ingestion, e.g. "dmrc_hr_compendium_nov23".
-    # This prevents stale DOCX chunks from competing with structured KB chunks.
+    # Use the key passed to scripts/ingest_dmrc_hr_chunks.py or ingest_policy_kb.py, e.g.
+    # "dmrc_hr_compendium_nov23" for files/dmrc_hr_chunks.json.
     POLICY_RAG_DOCUMENT_KEY: str = ""
 
     # HRMS API Configuration

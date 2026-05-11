@@ -1,0 +1,3857 @@
+{
+  "metadata": {
+    "document": "DMRC HR Compendium - Updated November 2023",
+    "organization": "Delhi Metro Rail Corporation Ltd. (DMRC)",
+    "total_pages": 356,
+    "chapters": 13,
+    "generated": "2025",
+    "usage": "RAG chatbot knowledge base. Each chapter has: summary_chunk (listing queries), rules (specific queries), tables (calculation queries), authority_index (approval queries), office_order_index (citation queries), cross_references (multi-chapter queries)."
+  },
+  "chapters": {
+    "A": {
+      "chapter_id": "A",
+      "chapter_title": "General Conditions of Service Rules",
+      "page_range": "1-48",
+      "summary": "Governs fundamental employment conditions: classification, appointment, probation, transfer, resignation, retirement, superannuation for all DMRC employees.",
+      "key_topics": [
+        "Employee Classification",
+        "Appointment",
+        "Probation",
+        "Performance Appraisal",
+        "Assets & Liabilities",
+        "Transfer",
+        "Resignation",
+        "VRS",
+        "Superannuation",
+        "Training"
+      ],
+      "summary_chunk": "Chapter A — General Conditions of Service: (1) Employee Classification: Non-Executive (Unskilled Rs.16000-50000 to Sr.Supervisor-I Rs.50000-160000); Executive (AM Rs.50000-160000 to MD Rs.200000-370000); 18 grades total. (2) Appointment: 6 modes — Direct Recruitment, Deputation, Absorption, Post-Retirement Contractual, Lateral Induction, Compassionate; min age 18, max 28. (3) Probation: 2 years for Non-Executive/AM/Manager; 1 year for DGM and above. (4) Surety Bond: 3 years for all direct recruits; training cost recoverable on early exit. (5) Resignation: minimum 90-day notice. (6) Assets & Liabilities: Annual submission by 31st March; prior permission for transactions >2 months gross salary. (7) APAR: 5 grades — Outstanding, Very Good, Good, Average, Below Average; 2 consecutive Below Average = adverse action. (8) Training: DMRA conducts induction training; report within 30 days of return. (9) Higher Studies: After 3 years service (2 years for DGM+); correspondence/part-time only; NOC from HR. (10) Transfer: Anywhere in DMRC; max 6 days joining time. (11) Holidays: 2 Restricted Holidays/year + 3 compulsory National Holidays. (12) VRS: After 20 years service or age 50; 3-month notice. (13) Service Review: At age 50 and 55; compulsory retirement possible with 3-month notice. (14) Superannuation: Age 60, last day of birth month. (15) Lien on deputation: Maximum 3 years.",
+      "rules": [
+        {
+          "rule_id": "A.1",
+          "rule_title": "Classification of Employees",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Non-Executive grades: Unskilled 16000-50000, Semi-skilled 20000-60000, Skilled Maintainer 25000-80000, Maintainers & Assistants 35000-110000, Supervisor-II 37000-115000, Supervisor-I 40000-125000, Sr.Supervisor-II 46000-145000, Sr.Supervisor-I 50000-160000. Executive grades: AM 50000-160000, Manager 60000-180000, DGM 70000-200000, Sr.DGM 80000-220000, JGM 90000-240000, AGM 100000-260000, GM/Sr.GM/CGM 120000-280000, ED 150000-300000, Director 180000-340000, MD 200000-370000. GM/CGM entitled to special pay Rs.2500/month.",
+          "key_points": [
+            "18 grades total",
+            "Two categories: Non-Executive and Executive",
+            "GM/CGM special pay Rs.2500/month",
+            "Board-level officers may have different appointment terms"
+          ],
+          "office_orders": [],
+          "approval_authority": "Board of Directors",
+          "amounts_or_limits": "Rs.16000-50000 to Rs.200000-370000"
+        },
+        {
+          "rule_id": "A.2",
+          "rule_title": "Appointment",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "6 modes: Direct Recruitment, Deputation, Absorption, Post-Retirement Contractual, Lateral Induction, Compassionate. Age: min 18, max 28 (entry-level). Medical fitness from DMRC-nominated hospital mandatory (valid 6 months). Surety Bond 3 years; training cost recoverable on early exit. Min notice for resignation: 90 days.",
+          "key_points": [
+            "6 intake modes",
+            "Age: min 18, max 28 for direct recruit",
+            "Medical fitness mandatory",
+            "Probation: 2 yrs (Non-Exec/AM/Mgr), 1 yr (DGM+)",
+            "Surety bond: 3 years",
+            "Min notice: 90 days"
+          ],
+          "office_orders": [],
+          "approval_authority": "Managing Director",
+          "amounts_or_limits": "Min age 18; Max age 28; Probation 1-2 years; Notice 90 days"
+        },
+        {
+          "rule_id": "A.5",
+          "rule_title": "Performance Appraisal (APAR)",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Annual APAR mandatory (April–March). Grades: Outstanding, Very Good, Good, Average, Below Average. Two consecutive Below Average ratings = adverse action. Three-tier: Self-appraisal → Reporting Officer → Reviewing Officer.",
+          "key_points": [
+            "APAR mandatory annually",
+            "5 rating grades",
+            "2 consecutive Below Average = adverse action",
+            "3-tier appraisal process"
+          ],
+          "office_orders": [],
+          "approval_authority": "Reviewing Officer / HOD",
+          "amounts_or_limits": ""
+        },
+        {
+          "rule_id": "A.6",
+          "rule_title": "Assets and Liabilities",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Annual statement of assets (immovable property, shares, cash, insurance etc.) submitted by 31st March. Non-submission = misconduct. Prior permission required for transactions exceeding 2 months gross salary.",
+          "key_points": [
+            "Deadline: 31st March annually",
+            "Non-submission = misconduct",
+            "Prior permission for transactions > 2 months gross salary"
+          ],
+          "office_orders": [],
+          "approval_authority": "Competent Authority",
+          "amounts_or_limits": "Threshold: 2 months gross salary"
+        },
+        {
+          "rule_id": "A.8",
+          "rule_title": "Holidays",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "2 Restricted Holidays per year from declared list. 3 compulsory National Holidays: Republic Day (26 Jan), Independence Day (15 Aug), Gandhi Jayanti (2 Oct). Annual holiday list notified by HR.",
+          "key_points": [
+            "2 Restricted Holidays per year",
+            "3 compulsory National Holidays",
+            "List notified annually by HR"
+          ],
+          "office_orders": [],
+          "approval_authority": "HR Department",
+          "amounts_or_limits": "2 Restricted Holidays per year"
+        },
+        {
+          "rule_id": "A.9",
+          "rule_title": "Transfer",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Transfer is administrative exigency; employees liable for transfer anywhere in DMRC. Must comply within joining time (max 6 days). Transfer expenses reimbursed as per TA/DA rules.",
+          "key_points": [
+            "Transfer anywhere in DMRC jurisdiction",
+            "Max 6 days joining time",
+            "Expenses reimbursed per TA/DA rules"
+          ],
+          "office_orders": [],
+          "approval_authority": "Competent Authority / Functional Director",
+          "amounts_or_limits": "Max 6 days joining time"
+        },
+        {
+          "rule_id": "A.14",
+          "rule_title": "Resignation",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Minimum 90-day notice. Payment in lieu of notice possible. Surety bond amount and training cost recoverable if resignation within 3 years of joining. Withdrawal permitted before acceptance.",
+          "key_points": [
+            "Min 90-day notice",
+            "Surety bond + training cost recoverable within 3 years",
+            "Withdrawal permitted before acceptance"
+          ],
+          "office_orders": [],
+          "approval_authority": "Competent Authority",
+          "amounts_or_limits": "90-day minimum notice"
+        },
+        {
+          "rule_id": "A.19",
+          "rule_title": "Service Review at Age 50/55",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Service reviewed at age 50 and 55 by a Committee. Unsatisfactory performance may lead to compulsory retirement in public interest with 3-month notice or pay in lieu. No stigma — not a disciplinary proceeding.",
+          "key_points": [
+            "Review at age 50 and 55",
+            "3-month notice for compulsory retirement",
+            "No stigma attached"
+          ],
+          "office_orders": [],
+          "approval_authority": "Review Committee / Board",
+          "amounts_or_limits": "3-month notice"
+        },
+        {
+          "rule_id": "A.20",
+          "rule_title": "Voluntary Retirement",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "VRS after 20 years qualifying service or age 50. 3-month notice or pay in lieu. Pension/gratuity payable on VRS.",
+          "key_points": [
+            "Eligible: 20 years service or age 50",
+            "3-month notice (or pay in lieu)",
+            "Pension/gratuity payable"
+          ],
+          "office_orders": [],
+          "approval_authority": "Competent Authority",
+          "amounts_or_limits": "20 years service or age 50; 3-month notice"
+        },
+        {
+          "rule_id": "A.22",
+          "rule_title": "Superannuation",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Retirement at age 60, last day of the month in which employee turns 60. No extension beyond 60 except for specialized posts with Board approval. NOC and departmental clearance mandatory.",
+          "key_points": [
+            "Age 60; last day of birth month",
+            "No extension without Board approval",
+            "NOC and clearance mandatory"
+          ],
+          "office_orders": [],
+          "approval_authority": "Board of Directors (for extension)",
+          "amounts_or_limits": "Age 60"
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "A.T1",
+          "table_title": "Employee Categories and IDA Pay Scales (w.e.f. 01.01.2017)",
+          "description": "All DMRC grades with pay scales",
+          "data": [
+            {
+              "category": "Non-Executive",
+              "grade": "Unskilled",
+              "pay_scale_rs": "16000-50000"
+            },
+            {
+              "category": "Non-Executive",
+              "grade": "Semi-skilled",
+              "pay_scale_rs": "20000-60000"
+            },
+            {
+              "category": "Non-Executive",
+              "grade": "Skilled Maintainer",
+              "pay_scale_rs": "25000-80000"
+            },
+            {
+              "category": "Non-Executive",
+              "grade": "Maintainers and Assistants",
+              "pay_scale_rs": "35000-110000"
+            },
+            {
+              "category": "Non-Executive",
+              "grade": "Supervisor-II",
+              "pay_scale_rs": "37000-115000"
+            },
+            {
+              "category": "Non-Executive",
+              "grade": "Supervisor-I",
+              "pay_scale_rs": "40000-125000"
+            },
+            {
+              "category": "Non-Executive",
+              "grade": "Sr. Supervisors-II",
+              "pay_scale_rs": "46000-145000"
+            },
+            {
+              "category": "Non-Executive",
+              "grade": "Sr. Supervisor-I",
+              "pay_scale_rs": "50000-160000"
+            },
+            {
+              "category": "Executive",
+              "grade": "Assistant Manager (AM)",
+              "pay_scale_rs": "50000-160000"
+            },
+            {
+              "category": "Executive",
+              "grade": "Manager",
+              "pay_scale_rs": "60000-180000"
+            },
+            {
+              "category": "Executive",
+              "grade": "Dy. General Manager (DGM)",
+              "pay_scale_rs": "70000-200000"
+            },
+            {
+              "category": "Executive",
+              "grade": "Sr. DGM",
+              "pay_scale_rs": "80000-220000"
+            },
+            {
+              "category": "Executive",
+              "grade": "Jt. General Manager (JGM)",
+              "pay_scale_rs": "90000-240000"
+            },
+            {
+              "category": "Executive",
+              "grade": "Addl. GM / Sr. AGM",
+              "pay_scale_rs": "100000-260000"
+            },
+            {
+              "category": "Executive",
+              "grade": "GM / Sr. GM / CGM",
+              "pay_scale_rs": "120000-280000"
+            },
+            {
+              "category": "Executive",
+              "grade": "Executive Director (ED)",
+              "pay_scale_rs": "150000-300000"
+            },
+            {
+              "category": "Executive",
+              "grade": "Director",
+              "pay_scale_rs": "180000-340000"
+            },
+            {
+              "category": "Executive",
+              "grade": "Managing Director (MD)",
+              "pay_scale_rs": "200000-370000"
+            }
+          ]
+        }
+      ],
+      "authority_index": [
+        {
+          "action": "Resignation acceptance",
+          "authority": "Competent Authority",
+          "rule_ref": "A.14"
+        },
+        {
+          "action": "VRS approval",
+          "authority": "Competent Authority",
+          "rule_ref": "A.20"
+        },
+        {
+          "action": "Superannuation extension",
+          "authority": "Board of Directors",
+          "rule_ref": "A.22"
+        },
+        {
+          "action": "Service review / compulsory retirement",
+          "authority": "Review Committee / Board",
+          "rule_ref": "A.19"
+        },
+        {
+          "action": "Rule interpretation / relaxation",
+          "authority": "Managing Director",
+          "rule_ref": "A.24"
+        },
+        {
+          "action": "Transfer orders",
+          "authority": "Competent Authority / Functional Director",
+          "rule_ref": "A.9"
+        }
+      ],
+      "office_order_index": [],
+      "cross_references": [
+        {
+          "from_rule": "A.9",
+          "to_chapter": "D",
+          "to_rule": "D.8",
+          "relationship": "Transfer expenses and joining time governed by TA/DA rules"
+        },
+        {
+          "from_rule": "A.20",
+          "to_chapter": "F",
+          "to_rule": "F.4.2",
+          "relationship": "Leave encashment on VRS governed by Leave Rules"
+        },
+        {
+          "from_rule": "A.22",
+          "to_chapter": "F",
+          "to_rule": "F.4.2",
+          "relationship": "Leave encashment on superannuation — up to 300 days EL+HPL"
+        }
+      ]
+    },
+    "B": {
+      "chapter_id": "B",
+      "chapter_title": "Conduct, Discipline and Appeal Rules",
+      "page_range": "49-85",
+      "summary": "Governs code of conduct, misconduct, suspension, subsistence allowance, penalties, disciplinary proceedings and appeals for all regular DMRC employees.",
+      "key_topics": [
+        "General Conduct",
+        "Misconduct",
+        "Suspension",
+        "Subsistence Allowance",
+        "Penalties",
+        "Disciplinary Authority",
+        "Inquiry",
+        "Appeals",
+        "Sexual Harassment",
+        "Ethics"
+      ],
+      "summary_chunk": "Chapter B — Conduct, Discipline and Appeal Rules: (1) Applicability: All regular employees; excludes casual, contract, PRCE, consultant. (2) General Conduct: Absolute integrity, devotion to duty, no acts unbecoming of public servant; zero tolerance for sexual harassment. (3) Misconduct (24 acts): theft/fraud (5.1), bribery (5.2), disproportionate assets (5.3), false information (5.4), willful insubordination (5.6), absence >4 days without explanation (5.7), habitual late attendance (5.8), sleeping on duty (5.16), criminal offense (5.17), sexual harassment (5.22), non-disclosure of foreign visits within 2 weeks (5.23), subletting staff quarters (5.24). (4) Suspension: With subsistence allowance — 50% pay first 90 days, 75% beyond 90 days; review committee mandatory before extension. (5) Penalties: Minor — censure, withholding increment/promotion, recovery of loss; Major — reduction in pay, compulsory retirement, removal, dismissal. (6) Disciplinary Proceedings: Charge sheet → inquiry officer → inquiry report → action. (7) Appeals: To Appellate Authority within 45 days.",
+      "rules": [
+        {
+          "rule_id": "B.5",
+          "rule_title": "Misconduct",
+          "applies_to": [
+            "all regular employees"
+          ],
+          "content": "24 specific acts of misconduct including: theft/fraud, bribery, disproportionate assets, false information at appointment, willful insubordination, absence without leave >4 consecutive days, habitual late attendance, neglect of work, sleeping on duty, criminal offense involving moral turpitude, sexual harassment at workplace, non-disclosure of private foreign visits within 2 weeks, subletting staff quarters.",
+          "key_points": [
+            "Absence >4 consecutive days without explanation = misconduct",
+            "Non-disclosure of foreign visits within 2 weeks = misconduct",
+            "Subletting quarters = misconduct",
+            "Sexual harassment = misconduct",
+            "24 specific acts listed"
+          ],
+          "office_orders": [],
+          "approval_authority": "Disciplinary Authority",
+          "amounts_or_limits": "Absence threshold: 4 consecutive days"
+        },
+        {
+          "rule_id": "B.37",
+          "rule_title": "Suspension",
+          "applies_to": [
+            "all regular employees"
+          ],
+          "content": "Employee may be placed under suspension when disciplinary proceedings contemplated, case of moral turpitude under investigation, or continued presence prejudicial to inquiry. Review committee mandatory before extension beyond 90 days.",
+          "key_points": [
+            "Pending disciplinary proceedings",
+            "Review mandatory before 90-day extension",
+            "Suspension reviewed every 90 days"
+          ],
+          "office_orders": [],
+          "approval_authority": "Competent Authority",
+          "amounts_or_limits": "Review before 90-day extension"
+        },
+        {
+          "rule_id": "B.38",
+          "rule_title": "Subsistence Allowance",
+          "applies_to": [
+            "suspended employees"
+          ],
+          "content": "During suspension: first 90 days — 50% of pay + DA; beyond 90 days (if not employee's fault for delay) — 75% of pay + DA; if suspension set aside — full pay (notional).",
+          "key_points": [
+            "First 90 days: 50% pay + DA",
+            "Beyond 90 days: 75% pay + DA",
+            "Exonerated: full pay"
+          ],
+          "office_orders": [],
+          "approval_authority": "Disciplinary Authority",
+          "amounts_or_limits": "50% (first 90d) / 75% (beyond 90d)"
+        },
+        {
+          "rule_id": "B.40",
+          "rule_title": "Penalties",
+          "applies_to": [
+            "all regular employees"
+          ],
+          "content": "Minor Penalties: (i) Censure; (ii) Withholding increment with cumulative effect; (iii) Withholding promotion; (iv) Recovery of pecuniary loss. Major Penalties: (v) Reduction to lower pay stage; (vi) Reduction to lower post; (vii) Compulsory retirement; (viii) Removal (eligible for re-employment); (ix) Dismissal (not eligible for re-employment).",
+          "key_points": [
+            "4 minor penalties",
+            "5 major penalties",
+            "Dismissal = barred from re-employment",
+            "Removal = not barred from re-employment"
+          ],
+          "office_orders": [],
+          "approval_authority": "Disciplinary Authority (Schedule A)",
+          "amounts_or_limits": ""
+        },
+        {
+          "rule_id": "B.50",
+          "rule_title": "Appeals",
+          "applies_to": [
+            "all regular employees"
+          ],
+          "content": "Employee can appeal against penalty order to Appellate Authority (per Schedule A) within 45 days. Appellate authority may confirm, modify, or set aside the penalty.",
+          "key_points": [
+            "45-day appeal window",
+            "Appellate authority as per Schedule A",
+            "Can confirm, modify or set aside"
+          ],
+          "office_orders": [],
+          "approval_authority": "Appellate Authority (Schedule A)",
+          "amounts_or_limits": "45 days to appeal"
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "B.T1",
+          "table_title": "Penalties — Minor and Major",
+          "description": "Complete penalty list under DMRC Conduct Rules",
+          "data": [
+            {
+              "type": "Minor",
+              "penalty": "Censure"
+            },
+            {
+              "type": "Minor",
+              "penalty": "Withholding of increment (cumulative effect)"
+            },
+            {
+              "type": "Minor",
+              "penalty": "Withholding of promotion"
+            },
+            {
+              "type": "Minor",
+              "penalty": "Recovery from pay of pecuniary loss caused"
+            },
+            {
+              "type": "Major",
+              "penalty": "Reduction to lower stage in pay scale"
+            },
+            {
+              "type": "Major",
+              "penalty": "Reduction to lower post/grade"
+            },
+            {
+              "type": "Major",
+              "penalty": "Compulsory retirement"
+            },
+            {
+              "type": "Major",
+              "penalty": "Removal from service (eligible for re-employment)"
+            },
+            {
+              "type": "Major",
+              "penalty": "Dismissal from service (not eligible for re-employment)"
+            }
+          ]
+        },
+        {
+          "table_id": "B.T2",
+          "table_title": "Subsistence Allowance During Suspension",
+          "description": "Allowance payable to suspended employee",
+          "data": [
+            {
+              "period": "First 90 days",
+              "rate": "50% of pay + DA"
+            },
+            {
+              "period": "Beyond 90 days (if delay not attributable to employee)",
+              "rate": "75% of pay + DA"
+            },
+            {
+              "period": "If suspension set aside / exonerated",
+              "rate": "Full pay (notional)"
+            }
+          ]
+        }
+      ],
+      "authority_index": [
+        {
+          "action": "Initiate disciplinary proceedings",
+          "authority": "Competent Authority / Disciplinary Authority",
+          "rule_ref": "B.41"
+        },
+        {
+          "action": "Impose minor penalties",
+          "authority": "As per Schedule A",
+          "rule_ref": "B.44"
+        },
+        {
+          "action": "Impose major penalties",
+          "authority": "As per Schedule A",
+          "rule_ref": "B.42"
+        },
+        {
+          "action": "Place under suspension",
+          "authority": "Competent Authority",
+          "rule_ref": "B.37"
+        },
+        {
+          "action": "Hear appeals",
+          "authority": "Appellate Authority (Schedule A)",
+          "rule_ref": "B.50"
+        }
+      ],
+      "office_order_index": [],
+      "cross_references": [
+        {
+          "from_rule": "B.5.24",
+          "to_chapter": "K",
+          "to_rule": "K.12",
+          "relationship": "Subletting of quarters is misconduct — also addressed in Housing Allotment Rules"
+        },
+        {
+          "from_rule": "B.37",
+          "to_chapter": "C",
+          "to_rule": "C.28",
+          "relationship": "Subsistence allowance paid from pay & allowances during suspension"
+        },
+        {
+          "from_rule": "B.40",
+          "to_chapter": "A",
+          "to_rule": "A.21",
+          "relationship": "Termination on disciplinary grounds references Chapter A"
+        }
+      ]
+    },
+    "C": {
+      "chapter_id": "C",
+      "chapter_title": "Pay and Allowances Rules",
+      "page_range": "86-119",
+      "summary": "Covers pay scales, DA, perks, HRA, transport facility, night duty, hard duty/KM allowance, leased accommodation, mobile/laptop, foreign pay, PRCE fee and all other allowances.",
+      "key_topics": [
+        "Pay Scales",
+        "Dearness Allowance",
+        "Perks",
+        "HRA",
+        "Transport",
+        "Night Duty Allowance",
+        "Kilometrage Allowance",
+        "Leased Accommodation",
+        "Mobile/Laptop",
+        "Foreign Pay",
+        "Birthday Gift"
+      ],
+      "summary_chunk": "Chapter C — Pay and Allowances: (1) Pay Scales (IDA, w.e.f. 01.01.2017): 18 grades from Unskilled Rs.16000-50000 to MD Rs.200000-370000. (2) Dearness Allowance: IDA pattern, revised quarterly on AICPI. (3) Perks: Cafeteria approach; maximum ceiling 31.5% of basic pay. (4) HRA: X-class cities 27%, Y-class 18%, Z-class 9% of basic pay; not payable if DMRC quarters occupied. (5) Transport: Vehicle to eligible grades; transport allowance to others. (6) Night Duty Allowance (NDA): O&M non-executives on roster duty; max 18 nights/month. (7) Hard Duty/Kilometrage Allowance: O&M field staff based on km covered; revised 01.12.2019. (8) Consolidated Daily Allowance: Project employees. (9) TADK Reimbursement: Eligible executive grades. (10) Leased Accommodation: Grade-wise lease ceilings. (11) Mobile/Laptop: Eligible grades. (12) Honorarium for D&AR enquiry. (13) Briefcase purchase: Executive entitlement. (14) Conveyance/refreshment for working beyond hours/holidays. (15) Shifting Allowance on transfer. (16) Higher Qualification Incentive. (17) Foreign Pay & Allowances. (18) PRCE consolidated fee. (19) Special Allowance: DMRA staff, Vigilance. (20) Birthday Gift. (21) Subsistence Allowance during suspension.",
+      "rules": [
+        {
+          "rule_id": "C.1",
+          "rule_title": "Pay Scales (IDA)",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "IDA pay scales w.e.f. 01.01.2017. Range: Unskilled Rs.16000-50000 to MD Rs.200000-370000. Sr. AGM designation and Rs.2500/month special allowance after 3 years at AGM level with satisfactory APAR.",
+          "key_points": [
+            "IDA pattern w.e.f. 01.01.2017",
+            "18 grades",
+            "Sr.AGM: Rs.2500/month after 3 years at AGM"
+          ],
+          "office_orders": [
+            "O.O. No. PP/2927/2019 dated 03.12.2019"
+          ],
+          "approval_authority": "Board",
+          "amounts_or_limits": "Rs.16000-50000 to Rs.200000-370000"
+        },
+        {
+          "rule_id": "C.3",
+          "rule_title": "Perks",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Cafeteria approach — employee selects components within ceiling. Maximum ceiling: 31.5% of basic pay.",
+          "key_points": [
+            "Cafeteria approach",
+            "Max ceiling: 31.5% of basic pay"
+          ],
+          "office_orders": [
+            "O.O. No. PP/1486/2014 dated 24.09.2014",
+            "O.O. No. PP/2534/2018 dated 09.01.2018"
+          ],
+          "approval_authority": "HR Department",
+          "amounts_or_limits": "Max 31.5% of basic pay"
+        },
+        {
+          "rule_id": "C.4",
+          "rule_title": "House Rent Allowance (HRA)",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "HRA rates: X-class 27%, Y-class 18%, Z-class 9% of basic pay. Not payable if DMRC staff quarters are occupied.",
+          "key_points": [
+            "X-class: 27% of basic pay",
+            "Y-class: 18% of basic pay",
+            "Z-class: 9% of basic pay",
+            "Not payable if in DMRC quarters"
+          ],
+          "office_orders": [
+            "O.O. No. PP/2072/2015 dated 15.03.2022",
+            "O.O. No. PP/2647/2018 dated 27.09.2018"
+          ],
+          "approval_authority": "Finance Department",
+          "amounts_or_limits": "27% / 18% / 9% of basic pay"
+        },
+        {
+          "rule_id": "C.7",
+          "rule_title": "Night Duty Allowance",
+          "applies_to": [
+            "O&M non-executive employees"
+          ],
+          "content": "NDA for O&M non-executives performing roster duty with night shifts. Maximum 18 nights per month.",
+          "key_points": [
+            "O&M non-executives only",
+            "Max 18 nights per month",
+            "Based on reporting timing"
+          ],
+          "office_orders": [
+            "O.O. No. PP-2925/2019 dated 03.12.2019"
+          ],
+          "approval_authority": "O&M HOD",
+          "amounts_or_limits": "Max 18 nights per month"
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "C.T1",
+          "table_title": "HRA Rates by City Classification",
+          "description": "HRA entitlement by city type",
+          "data": [
+            {
+              "city_class": "X",
+              "hra_percentage": "27% of basic pay"
+            },
+            {
+              "city_class": "Y",
+              "hra_percentage": "18% of basic pay"
+            },
+            {
+              "city_class": "Z",
+              "hra_percentage": "9% of basic pay"
+            }
+          ]
+        }
+      ],
+      "authority_index": [
+        {
+          "action": "HRA payment",
+          "authority": "Finance Department",
+          "rule_ref": "C.4"
+        },
+        {
+          "action": "NDA approval",
+          "authority": "O&M HOD",
+          "rule_ref": "C.7"
+        }
+      ],
+      "office_order_index": [
+        {
+          "oo_number": "O.O. No. PP/2927/2019",
+          "date": "03.12.2019",
+          "subject": "Pay scale / Sr.AGM special allowance",
+          "rule_ref": "C.1"
+        },
+        {
+          "oo_number": "O.O. No. PP/1486/2014",
+          "date": "24.09.2014",
+          "subject": "Perks cafeteria revision",
+          "rule_ref": "C.3"
+        },
+        {
+          "oo_number": "O.O. No. PP/2072/2015",
+          "date": "15.03.2022",
+          "subject": "HRA rates",
+          "rule_ref": "C.4"
+        },
+        {
+          "oo_number": "O.O. No. PP-2925/2019",
+          "date": "03.12.2019",
+          "subject": "NDA and KM allowance rates",
+          "rule_ref": "C.7"
+        }
+      ],
+      "cross_references": [
+        {
+          "from_rule": "C.4",
+          "to_chapter": "K",
+          "to_rule": "K.12",
+          "relationship": "HRA not payable while in DMRC staff quarters"
+        },
+        {
+          "from_rule": "C.2",
+          "to_chapter": "F",
+          "to_rule": "F.3.3",
+          "relationship": "DA included in earned leave salary"
+        }
+      ]
+    },
+    "D": {
+      "chapter_id": "D",
+      "chapter_title": "Travelling Allowance / Daily Allowance (TA/DA) Rules",
+      "page_range": "120-134",
+      "summary": "Governs reimbursement of travel, hotel stay, daily allowance and transfer-related expenses for DMRC employees on official tours and transfers.",
+      "key_topics": [
+        "Travel Entitlement",
+        "Daily Allowance",
+        "Hotel Charges",
+        "Composite Transfer Grant",
+        "Personal Effects Transport",
+        "Local Journey",
+        "TA Advance",
+        "Mileage"
+      ],
+      "summary_chunk": "Chapter D — TA/DA Rules: (1) Applicability: All regular employees, probationers, re-employed, deputationists; not casual/contract unless specifically extended by MD. (2) Travel Entitlement: MD/TMM — Air (domestic highest/intl. first class); ED/CGM — Air (domestic highest/intl. business); HODs Rs.120000-280000 — Air Y-class/intl. business/AC-1 Rail; Rs.70000-200000 — Air Economy/1st AC; Rs.50000-160000 Exec — Air Economy/2nd AC; Rs.35000-110000 — First Class/Rajdhani 3rd AC; Rs.25000-80000 — First Class/AC 3-Tier; Below Rs.25000-80000 — 2nd Sleeper. (3) Daily Allowance (A1 cities): MD/TMM Rs.1400/day; ED/CGM/SGM/GM Rs.1200/day; DGM-AGM Rs.1000/day; Manager/AM Rs.900/day; Rs.25000-80000 to highest non-exec Rs.800/day; Below Rs.25000-80000 Rs.500/day. Proportional: ≤6 hrs = 30%; 6-12 hrs = 70%; >12 hrs = 100%. Halt beyond 30 days = 50% DA; beyond 90 days = 50% with HOD approval. Meals: free breakfast = -25% DA; all 3 meals = -50% DA. Composite TA (own arrangement) = 50% more than normal TA. (4) Hotel Charges (X-class, excl. taxes): MD actual; ED/CGM Rs.10000; GM Rs.9000; DGM-AGM Rs.6800; Manager/AM Rs.4500; Rs.25000-80000+ Rs.2300; Below Rs.25000-80000 Rs.1700. Y/Z class: proportionally lower. (5) Composite Transfer Grant (CTG): 80% of last month basic pay for transfer >20km; 1/3rd for <20km/same city. Address proof required. (6) Transportation of personal effects: MD/Directors — 8000 kg @Rs.50/km; Rs.37000-115000+ — 6000 kg @Rs.50/km; Rs.35000-80000 and below — 1500 kg @Rs.15/km. (7) TA advance: up to 90% of estimated expenditure; settle within 30 days; 10% p.a. interest on delay. (8) Local journey: Rs.120000-280000+ AC Taxi; Rs.50000-160000 Exec Taxi; Rs.25000-80000 Three-Wheeler; Below Bus.",
+      "rules": [
+        {
+          "rule_id": "D.6",
+          "rule_title": "Mode of Travel Entitlement on Tour",
+          "applies_to": [
+            "all regular employees"
+          ],
+          "content": "Travel entitlement by grade: MD/TMM: Air Domestic Highest, Intl. First Class. ED/CGM: Air Domestic Highest, Intl. Business. HODs (Rs.120000-280000): Air Y-class/Intl. Business, Rail AC-1. Rs.70000-200000 to <Rs.120000: Air Economy, Rail 1st AC. Rs.50000-160000 Exec: Air Economy, Rail 2nd AC. Rs.35000-110000: Rail First Class/Rajdhani 3rd AC, AC Bus. Rs.25000-80000: Rail First Class/AC 3-Tier, AC Bus. Below Rs.25000-80000: Rail 2nd Sleeper, Ordinary Bus. GM with basic Rs.175000+ entitled to Business Class air.",
+          "key_points": [
+            "8 grade-wise travel categories",
+            "Air travel from Rs.50000-160000 Exec and above",
+            "GM with basic Rs.175000+: Business Class",
+            "TA advance up to 90%; settle within 30 days"
+          ],
+          "office_orders": [
+            "O.O. No. PP-2925/2019 dated 03.12.2019"
+          ],
+          "approval_authority": "Controlling Officer",
+          "amounts_or_limits": ""
+        },
+        {
+          "rule_id": "D.7",
+          "rule_title": "Daily Allowance Rates",
+          "applies_to": [
+            "all regular employees"
+          ],
+          "content": "DA for A1 cities: MD/TMM Rs.1400/day; ED/CGM/SGM/GM Rs.1200/day; DGM/Sr.DGM/JGM/AGM Rs.1000/day; Manager/AM Rs.900/day; Rs.25000-80000 to highest non-exec Rs.800/day; Below Rs.25000-80000 Rs.500/day. Proportional: ≤6hrs=30%; 6-12hrs=70%; >12hrs=100%. First 30 days: full DA. 30-90 days: 50%. Beyond 90 days: 50% (HOD approval). Composite TA (own arrangement) = 50% more than normal DA.",
+          "key_points": [
+            "MD: Rs.1400/day; Lowest: Rs.500/day",
+            "Hours-based: 30%/70%/100%",
+            "Beyond 30 days continuous: 50% DA",
+            "Free breakfast: -25%; All meals: -50%"
+          ],
+          "office_orders": [
+            "O.O. No. PP-2925/2019 dated 03.12.2019",
+            "O.O. No. PP-1801/2014 dated 02.07.2014"
+          ],
+          "approval_authority": "Controlling Officer",
+          "amounts_or_limits": "Rs.500-1400/day"
+        },
+        {
+          "rule_id": "D.7.3",
+          "rule_title": "Hotel Charges",
+          "applies_to": [
+            "all regular employees"
+          ],
+          "content": "Hotel charges (X-class cities, exclusive of taxes): MD actual; ED/CGM Rs.10000; GM Rs.9000; DGM/Sr.DGM/JGM/AGM Rs.6800; Manager/AM Rs.4500; Rs.25000-80000+ Rs.2300; Below Rs.25000-80000 Rs.1700. Y&Z class: ED/CGM Rs.8000; GM Rs.7200; DGM-AGM Rs.5500; Manager/AM Rs.3600; Rs.25000-80000+ Rs.1700; Below Rs.25000-80000 Rs.1400.",
+          "key_points": [
+            "X-class higher ceilings; Y/Z class lower",
+            "Exclusive of taxes",
+            "MD: actual expenses"
+          ],
+          "office_orders": [
+            "O.O. No. PP-2925/2019 dated 03.12.2019",
+            "O.O. No. PP-3254/2023 dated 03.03.2023"
+          ],
+          "approval_authority": "HOD",
+          "amounts_or_limits": "Rs.1400 to Rs.10000 (X-class)"
+        },
+        {
+          "rule_id": "D.8",
+          "rule_title": "Transfer Entitlement",
+          "applies_to": [
+            "all employees on transfer"
+          ],
+          "content": "CTG: 80% of last month basic pay (transfer >20km); 1/3rd of CTG (transfer <20km or same city/NCR) with address proof. Transportation of personal effects: MD/Directors: 8000kg/4-wheeler wagon @Rs.50/km; Rs.37000-115000+: 6000kg @Rs.50/km; Rs.35000-80000 and below: 1500kg @Rs.15/km.",
+          "key_points": [
+            "CTG: 80% of last basic pay (>20km)",
+            "CTG: 1/3rd for <20km/same city",
+            "Address proof mandatory for CTG",
+            "Personal effects transport: Rs.15-50/km"
+          ],
+          "office_orders": [
+            "O.O. No. PP/2715/2019 dated 07.01.2019"
+          ],
+          "approval_authority": "Controlling Officer / Director",
+          "amounts_or_limits": "CTG: 80% of last basic pay; Transport: Rs.15-50/km"
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "D.T1",
+          "table_title": "Daily Allowance Rates (A1 Cities)",
+          "description": "DA entitlement per day on official tour",
+          "data": [
+            {
+              "grade": "MD/TMM",
+              "da_per_day_rs": "1400"
+            },
+            {
+              "grade": "ED/CGM/SGM/GM",
+              "da_per_day_rs": "1200"
+            },
+            {
+              "grade": "DGM/Sr.DGM/JGM/AGM",
+              "da_per_day_rs": "1000"
+            },
+            {
+              "grade": "Manager/AM",
+              "da_per_day_rs": "900"
+            },
+            {
+              "grade": "Rs.25000-80000 to highest non-executive",
+              "da_per_day_rs": "800"
+            },
+            {
+              "grade": "Below Rs.25000-80000",
+              "da_per_day_rs": "500"
+            }
+          ]
+        },
+        {
+          "table_id": "D.T2",
+          "table_title": "Hotel Charges Ceiling (Excl. Taxes)",
+          "description": "Max hotel reimbursement by grade and city class",
+          "data": [
+            {
+              "grade": "MD/TMM",
+              "x_class_rs": "Actual",
+              "y_z_class_rs": "Actual"
+            },
+            {
+              "grade": "ED/CGM",
+              "x_class_rs": "10000",
+              "y_z_class_rs": "8000"
+            },
+            {
+              "grade": "GM",
+              "x_class_rs": "9000",
+              "y_z_class_rs": "7200"
+            },
+            {
+              "grade": "DGM/Sr.DGM/JGM/AGM",
+              "x_class_rs": "6800",
+              "y_z_class_rs": "5500"
+            },
+            {
+              "grade": "Manager/AM",
+              "x_class_rs": "4500",
+              "y_z_class_rs": "3600"
+            },
+            {
+              "grade": "Rs.25000-80000 to highest non-exec",
+              "x_class_rs": "2300",
+              "y_z_class_rs": "1700"
+            },
+            {
+              "grade": "Below Rs.25000-80000",
+              "x_class_rs": "1700",
+              "y_z_class_rs": "1400"
+            }
+          ]
+        },
+        {
+          "table_id": "D.T3",
+          "table_title": "Travel Entitlement by Grade",
+          "description": "Mode of travel entitled on official tour",
+          "data": [
+            {
+              "grade": "MD/TMM",
+              "domestic": "Air Highest",
+              "international": "First Class",
+              "rail": "Highest class"
+            },
+            {
+              "grade": "ED/CGM",
+              "domestic": "Air Highest",
+              "international": "Business/Club",
+              "rail": "Highest class"
+            },
+            {
+              "grade": "HOD (Rs.120000-280000)",
+              "domestic": "Air Y-class",
+              "international": "Business",
+              "rail": "AC-1"
+            },
+            {
+              "grade": "Rs.70000-200000 to <120000",
+              "domestic": "Air Economy",
+              "international": "",
+              "rail": "1st AC (Rajdhani: 2nd AC)"
+            },
+            {
+              "grade": "Rs.50000-160000 (Exec)",
+              "domestic": "Air Economy",
+              "international": "",
+              "rail": "2nd AC (Rajdhani: 3rd AC)"
+            },
+            {
+              "grade": "Rs.35000-110000",
+              "domestic": "Not entitled",
+              "international": "",
+              "rail": "First Class / Rajdhani 3rd AC"
+            },
+            {
+              "grade": "Rs.25000-80000",
+              "domestic": "Not entitled",
+              "international": "",
+              "rail": "First Class / AC 3-Tier"
+            },
+            {
+              "grade": "Below Rs.25000-80000",
+              "domestic": "Not entitled",
+              "international": "",
+              "rail": "2nd Sleeper"
+            }
+          ]
+        }
+      ],
+      "authority_index": [
+        {
+          "action": "Authorize official tour",
+          "authority": "Controlling Officer",
+          "rule_ref": "D.5"
+        },
+        {
+          "action": "Allow higher class of travel",
+          "authority": "Director concerned",
+          "rule_ref": "D.6.2"
+        },
+        {
+          "action": "Approve TA advance",
+          "authority": "Controlling Officer",
+          "rule_ref": "D.6.4"
+        },
+        {
+          "action": "Hotel stay beyond standard rates",
+          "authority": "HOD (non-exec) / Director (exec)",
+          "rule_ref": "D.7.3"
+        }
+      ],
+      "office_order_index": [
+        {
+          "oo_number": "O.O. No. PP-2925/2019",
+          "date": "03.12.2019",
+          "subject": "Revision of all TA/DA rates",
+          "rule_ref": "D.6,D.7"
+        },
+        {
+          "oo_number": "O.O. No. PP-1801/2014",
+          "date": "02.07.2014",
+          "subject": "Cash incentive for economy class travel by GM+",
+          "rule_ref": "D.7"
+        },
+        {
+          "oo_number": "O.O. No. PP/2715/2019",
+          "date": "07.01.2019",
+          "subject": "Composite Transfer Grant rules",
+          "rule_ref": "D.8"
+        },
+        {
+          "oo_number": "O.O. No. PP-3254/2023",
+          "date": "03.03.2023",
+          "subject": "Hotel charges ceiling revision",
+          "rule_ref": "D.7.3"
+        }
+      ],
+      "cross_references": [
+        {
+          "from_rule": "D.8",
+          "to_chapter": "A",
+          "to_rule": "A.9",
+          "relationship": "Transfer entitlements supplement Chapter A transfer rules"
+        },
+        {
+          "from_rule": "D.6",
+          "to_chapter": "M",
+          "to_rule": "M.4",
+          "relationship": "LTC travel entitlement mirrors TA/DA tour entitlement by grade"
+        }
+      ]
+    },
+    "E": {
+      "chapter_id": "E",
+      "chapter_title": "Medical Attendance Rules",
+      "page_range": "135-164",
+      "summary": "Governs medical reimbursement, empanelled hospitals, OPD/IPD entitlements, cashless treatment, family coverage and prolonged illness rules for DMRC employees.",
+      "key_topics": [
+        "Family Definition",
+        "Empanelled Hospitals",
+        "OPD Reimbursement",
+        "IPD Room Entitlement",
+        "Cashless Treatment",
+        "Prolonged Treatment",
+        "Medical Advance",
+        "Claim Deadline"
+      ],
+      "summary_chunk": "Chapter E — Medical Attendance Rules: (1) Applicability: All regular employees and specified family (spouse, children <25/employed; unmarried unemployed daughter; dependent parents income <15% basic or Rs.9000+DR). (2) Empanelled Hospitals: DMRC-empanelled hospitals in Delhi/NCR for cashless; government hospitals also accepted. (3) IPD Room Entitlement: MD/Directors — Suite/Deluxe (Nursing Home/NH rates); ED/HoDs — Deluxe (NH rates); Sr.AGM/AGM/JGM/Sr.DGM — Single Room (SNH rates); DGM/Manager/AM/Sr.Supervisor — Single Room (SNH rates); Supervisors — Two/Three bedded (SP rates); Non-Supervisors — Economy/General Ward (SP rates). (4) Cashless Treatment: At empanelled hospitals; certificate within 7 days of discharge. (5) Prolonged Treatment: HOD approval (non-exec); Director approval (exec); medicine bills max 2 months at a time. (6) Family declaration: Required at time of joining. (7) Medical claim deadline: Within 6 months of incurring expense. (8) Pre/Post hospitalization: 30 days before and 60 days after hospitalization reimbursed.",
+      "rules": [
+        {
+          "rule_id": "E.family",
+          "rule_title": "Family Definition (Medical)",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Family for medical: Spouse; Son (below 25 or till married/employed, whichever earlier); Unmarried daughter (not employed, dependent); Parents residing with employee whose combined income does not exceed 15% of basic pay or Rs.9000 plus DR, whichever more.",
+          "key_points": [
+            "Spouse: always covered",
+            "Son: below 25 or till employed/married",
+            "Unmarried daughter: till employed",
+            "Parents: income < 15% basic or Rs.9000+DR"
+          ],
+          "office_orders": [],
+          "approval_authority": "HR Department",
+          "amounts_or_limits": "Parent income threshold: 15% of basic or Rs.9000+DR"
+        },
+        {
+          "rule_id": "E.ipd",
+          "rule_title": "IPD Room Entitlement",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Room entitlement during hospitalization: MD/Directors: Suite/Deluxe (NH); ED/HoDs: Deluxe (NH); Sr.AGM/AGM/JGM/Sr.DGM: Single Room (SNH); DGM/Manager/AM/Sr.Supervisor: Single Room (SNH); Supervisors: Two/three bedded (SP); Non-Supervisors: Economy/General Ward (SP).",
+          "key_points": [
+            "6 grade-wise room categories",
+            "MD/Directors: Nursing Home (highest)",
+            "Non-Supervisors: Economy/General Ward"
+          ],
+          "office_orders": [
+            "O.O No. HR/O&M/196/2023 dated 17.05.2023"
+          ],
+          "approval_authority": "HR Department",
+          "amounts_or_limits": ""
+        },
+        {
+          "rule_id": "E.cashless",
+          "rule_title": "Cashless Treatment",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Cashless at DMRC-empanelled hospitals. Certificate (Annexure E) within 7 days of availing facility: total bill, employee payment, DMRC advance, net reimbursable. Medical claims must be submitted within 6 months.",
+          "key_points": [
+            "Cashless at empanelled hospitals",
+            "Certificate within 7 days of discharge",
+            "Claims within 6 months"
+          ],
+          "office_orders": [],
+          "approval_authority": "HR / Finance",
+          "amounts_or_limits": "Certificate: 7 days; Claims: 6 months"
+        },
+        {
+          "rule_id": "E.prolonged",
+          "rule_title": "Prolonged Treatment",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Prior approval required: HOD for non-executives; Director for executives. Medicine bills reimbursed for max 2 months at a time. Employee must submit declaration and doctor's prescription.",
+          "key_points": [
+            "Prior approval mandatory",
+            "HOD (non-exec) / Director (exec)",
+            "Medicine bills: max 2 months at a time"
+          ],
+          "office_orders": [],
+          "approval_authority": "HOD (non-exec) / Director (exec)",
+          "amounts_or_limits": "Medicine bills: max 2 months at once"
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "E.T1",
+          "table_title": "IPD Room Entitlement by Grade",
+          "description": "Hospital room category and reimbursement basis during indoor treatment",
+          "data": [
+            {
+              "grade": "MD/Directors",
+              "room_type": "Suite/Deluxe",
+              "reimbursement_basis": "NH (Nursing Home) rates"
+            },
+            {
+              "grade": "ED/HoDs",
+              "room_type": "Deluxe Room",
+              "reimbursement_basis": "NH rates"
+            },
+            {
+              "grade": "Sr.AGM/AGM/JGM/Sr.DGM",
+              "room_type": "Single Room",
+              "reimbursement_basis": "SNH (Semi-Nursing Home) rates"
+            },
+            {
+              "grade": "DGM/Manager/AM/Sr.Supervisor",
+              "room_type": "Single Room",
+              "reimbursement_basis": "SNH rates"
+            },
+            {
+              "grade": "Supervisor",
+              "room_type": "Two/Three bedded",
+              "reimbursement_basis": "SP (Semi-Private) rates"
+            },
+            {
+              "grade": "Non-Supervisor",
+              "room_type": "Economy/General Ward",
+              "reimbursement_basis": "SP rates"
+            }
+          ]
+        }
+      ],
+      "authority_index": [
+        {
+          "action": "Approve prolonged treatment (non-exec)",
+          "authority": "HOD",
+          "rule_ref": "E.prolonged"
+        },
+        {
+          "action": "Approve prolonged treatment (exec)",
+          "authority": "Director",
+          "rule_ref": "E.prolonged"
+        },
+        {
+          "action": "Medical claim verification",
+          "authority": "HR Department",
+          "rule_ref": "E.cashless"
+        },
+        {
+          "action": "Cashless treatment authorization",
+          "authority": "Empanelled Hospital / HR",
+          "rule_ref": "E.cashless"
+        }
+      ],
+      "office_order_index": [
+        {
+          "oo_number": "O.O No. HR/O&M/196/2023",
+          "date": "17.05.2023",
+          "subject": "IPD room entitlement revision",
+          "rule_ref": "E.ipd"
+        }
+      ],
+      "cross_references": [
+        {
+          "from_rule": "E.family",
+          "to_chapter": "M",
+          "to_rule": "M.3.2",
+          "relationship": "Same family definition applies for LTC"
+        },
+        {
+          "from_rule": "E.family",
+          "to_chapter": "L",
+          "to_rule": "L.2.2",
+          "relationship": "Same family definition for Staff Welfare Fund"
+        },
+        {
+          "from_rule": "E.prolonged",
+          "to_chapter": "F",
+          "to_rule": "F.3.7",
+          "relationship": "EOL often follows prolonged illness; approval authorities align"
+        }
+      ]
+    },
+    "F": {
+      "chapter_id": "F",
+      "chapter_title": "Leave Rules",
+      "page_range": "165-186",
+      "summary": "Governs all 13 types of leave available to DMRC employees: casual, special casual, earned, half pay, leave not due, commuted, extraordinary, WRIIL, quarantine, maternity, paternity, child care, study leave, and leave encashment.",
+      "key_topics": [
+        "Casual Leave",
+        "Special Casual Leave",
+        "Earned Leave",
+        "Half Pay Leave",
+        "Leave Not Due",
+        "Commuted Leave",
+        "Extra Ordinary Leave",
+        "WRIIL",
+        "Quarantine Leave",
+        "Maternity Leave",
+        "Paternity Leave",
+        "Child Care Leave",
+        "Study Leave",
+        "Leave Encashment",
+        "Compensatory Rest",
+        "Ex-India Leave"
+      ],
+      "summary_chunk": "Chapter F — Leave Rules: DMRC provides 13 types of leave: (1) Casual Leave (CL): 8 days/yr (5-day office) or 12 days/yr (6-day O&M/field); cannot carry over; not combinable with EL/HPL; pro-rata on joining/separation. (2) Special Casual Leave (SCL): Up to 30 days/yr; for sports, blood donation (max 4/yr), sterilization, elections, PWD (4 extra days + 10 for seminars), staff council, scouts, bandh/curfew. (3) Earned Leave (EL): 30 days/yr; 15 on 1 Jan + 15 on 1 Jul; Encashable (max 150 days) + Non-Encashable; total max 300 days; max at one time 120 days (180 outside India); encashable once/yr after 2 years service; leave salary = full pay including DA and perks. (4) Half Pay Leave (HPL): 20 days/yr; no accumulation limit; max at one time 24 months; salary = 50% pay. (5) Leave Not Due (LND): Medical grounds; after 1 year service; max 360 days career (180 days at once); charged against future HPL; refund if resigned/dismissed before clearing. (6) Commuted Leave: On medical grounds or approved study; charged 2x HPL; paid at EL rate; max 90 days for study (= 180 HPL). (7) Extra Ordinary Leave (EOL): No other leave due; after 6 years service; max 2 years career (6 months per 5 years); no pay; no EL/HPL/increment; deemed resignation after EOL expiry; no private employment. (8) WRIIL: Job-related illness/injury; full pay during hospitalization + 6 months; half pay next 12 months; no EL/HPL credited. (9) Quarantine Leave: Infectious disease in household; max 21 days (30 exceptional); full salary; combinable. (10) Maternity Leave: 182 days (26 weeks) for ≤2 children; 12 weeks for >2 children; 45 days miscarriage; 180 days child adoption (child <1 year, <2 children); full pay; not charged to leave account. (11) Paternity Leave: 15 days; <2 children; within 15 days before or 6 months after delivery; full pay; not charged. (12) Child Care Leave (CCL): Confirmed female employees; 2 years service min; 730 days (2 years) entire career; child <18; max 3 spells/yr (6 for single); min 5 days/spell; full pay; bond required if <5 years service. (13) Study Leave: After 3 years service; MD sanction; max 12 months at once (24 months special); max 24 months career; full pay + HRA (180 days) + CCA (120 days); bond required; counts for seniority/promotion. (14) Leave Encashment: 300 days (EL+HPL) on superannuation/death; 50% non-encashable EL (max 75 days) on resignation; once/year during service after 2 years. (15) Compensatory Rest: O&M non-executives only; max 3 days; within 30 days.",
+      "rules": [
+        {
+          "rule_id": "F.3.1",
+          "rule_title": "Casual Leave (CL)",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "CL for urgent/unforeseen situations. Office (5-day week): 8 days/year. O&M/Field (6-day week): 12 days/year. Half or full days. Cannot carry over. Sundays/holidays in CL spell not charged. Not combinable with EL/HPL. Applied via ESS. Pro-rata on joining/separation.",
+          "key_points": [
+            "Office: 8/yr; O&M/Field: 12/yr",
+            "Cannot carry over to next year",
+            "Not combinable with EL or HPL",
+            "Pro-rata on joining or separation"
+          ],
+          "office_orders": [
+            "O.O. No. PP/43/99 dated 14.12.1999",
+            "O.O. No. PP/1525/2012 dated 14.11.2012"
+          ],
+          "approval_authority": "Controlling Officer",
+          "amounts_or_limits": "8 days/yr (office) or 12 days/yr (O&M)"
+        },
+        {
+          "rule_id": "F.3.2",
+          "rule_title": "Special Casual Leave (SCL)",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "SCL up to 30 days/year total. Purposes: scouts/guides camps, Republic Day events, sports tournaments, Court attendance, technical meetings, sterilization (vasectomy: 5 days; tubectomy female: 10 days; male for wife's tubectomy: 3 days; female for husband's vasectomy: 1 day), bandh/curfew, staff council, PWD employees (4 extra days + 10 days for conferences), blood donation (max 4 times/year, 1 day each), elections. Combinable with EL or CL but not both simultaneously.",
+          "key_points": [
+            "Max 30 days/year",
+            "Blood donation: max 4 times/year",
+            "PWD: 4 extra days + 10 for conferences",
+            "Sterilization: 1-10 days based on type",
+            "Combinable with EL or CL (not both)"
+          ],
+          "office_orders": [
+            "O.O. No. PP/2553/2018 dated 20.03.2018"
+          ],
+          "approval_authority": "HOD",
+          "amounts_or_limits": "Max 30 days/year"
+        },
+        {
+          "rule_id": "F.3.3",
+          "rule_title": "Earned Leave (EL)",
+          "applies_to": [
+            "all regular/temporary employees",
+            "deputationists"
+          ],
+          "content": "30 days/year credited half-yearly (15 on 1 Jan + 15 on 1 Jul). Two accounts: Encashable (max 150 days) and Non-Encashable; overall max 300 days. Max at one time: 120 days (180 outside India). New joinee: 2.5 days/month. Leave salary: full pay including perks and DA. PRCE: 1 special leave per completed month. On superannuation/death: encashment up to 300 days (EL+HPL combined). EL credit reduced by 1/10th of EOL in previous half-year.",
+          "key_points": [
+            "30 days/yr (15 on 1-Jan + 15 on 1-Jul)",
+            "Encashable max 150 days; Total max 300 days",
+            "Max at one time: 120 days (180 outside India)",
+            "Leave salary: full pay including DA and perks",
+            "PRCE: 1 special leave per completed month"
+          ],
+          "office_orders": [
+            "O.O. No. PP/872/2009",
+            "O.O. No. PP/2300/2016",
+            "O.O. No. PP/1788/2014 dated 06.06.2014"
+          ],
+          "approval_authority": "Controlling Officer / HOD",
+          "amounts_or_limits": "30 days/yr; Max 300 days accumulated"
+        },
+        {
+          "rule_id": "F.3.4",
+          "rule_title": "Half Pay Leave (HPL)",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "20 days/year (10 on 1 Jan + 10 on 1 Jul). No accumulation limit. Max at one time: 24 months. Leave salary: 50% of pay + DA.",
+          "key_points": [
+            "20 days/yr",
+            "No accumulation limit",
+            "Max at one time: 24 months",
+            "Leave salary: 50% of pay"
+          ],
+          "office_orders": [],
+          "approval_authority": "Controlling Officer / HOD",
+          "amounts_or_limits": "20 days/yr; max 24 months at once"
+        },
+        {
+          "rule_id": "F.3.5",
+          "rule_title": "Leave Not Due (LND)",
+          "applies_to": [
+            "regular employees after 1 year service"
+          ],
+          "content": "LND on medical grounds only; no other leave (except CL) available. After 1 year service. Max 360 days career (max 180 days at once). Charged against future HPL. Leave salary same as HPL (50%). If resigned/dismissed/died before earning requisite HPL: refund required. No medical cert needed for LND after Maternity Leave, for adoptive mother, or after CCL.",
+          "key_points": [
+            "Medical grounds only (usually)",
+            "After 1 year service",
+            "Max 360 days career; max 180 days at once",
+            "Charged against future HPL",
+            "No medical cert after maternity/adoption/CCL"
+          ],
+          "office_orders": [],
+          "approval_authority": "Competent Authority",
+          "amounts_or_limits": "Max 360 days career; max 180 days at once"
+        },
+        {
+          "rule_id": "F.3.6",
+          "rule_title": "Commuted Leave",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Commuted leave on medical grounds or approved course of study in Corporation's interest. Charged at double HPL but paid at full EL salary rate. Max for study course: 90 days (= 180 HPL days). Female on adoption: 60 days without medical cert. No medical cert in continuation of maternity leave.",
+          "key_points": [
+            "Charged 2x HPL; paid at EL salary",
+            "Medical grounds or approved study",
+            "Max for study: 90 days (=180 HPL)",
+            "Female adoption: 60 days without medical cert"
+          ],
+          "office_orders": [],
+          "approval_authority": "Competent Authority / HOD",
+          "amounts_or_limits": "Max 90 days for study"
+        },
+        {
+          "rule_id": "F.3.7",
+          "rule_title": "Extra Ordinary Leave (EOL)",
+          "applies_to": [
+            "regular employees after 6 years service"
+          ],
+          "content": "EOL only when no other leave due or employee applies specifically. After 6 years qualifying service. Max 2 years in entire career; proportionate: 6 months per 5 years service. Sanctioning authority: HOD (non-supervisor, 1st time; extensions to Director); Directors (supervisor/exec up to Manager); MD (Dy.HOD and above). No pay, no EL/HPL/increment earned, not counted for qualifying service. Deemed resignation if absent after EOL expiry. No private employment during EOL. All cases routed through HR.",
+          "key_points": [
+            "After 6 years service",
+            "Max 2 years career (6 months per 5 years service)",
+            "No pay; no leave earning; no increment",
+            "Deemed resignation after EOL expiry",
+            "No private employment during EOL",
+            "All cases through HR"
+          ],
+          "office_orders": [
+            "O.O. No. PP/1917/2015 dated 06.02.2015"
+          ],
+          "approval_authority": "HOD (non-supervisor) / Director (supervisor/exec up to Manager) / MD (Dy.HOD+)",
+          "amounts_or_limits": "Max 2 years career; 6 months per 5 years service"
+        },
+        {
+          "rule_id": "F.3.8",
+          "rule_title": "Work Related Illness and Injury Leave (WRIIL)",
+          "applies_to": [
+            "all employees — permanent and temporary"
+          ],
+          "content": "WRIIL for illness/injury attributable to or aggravated by official duties. Provisions: (a) Full pay during entire hospitalization; (b) Full pay for 6 months post-hospitalization; (c) Half pay for next 12 months (commutable to full pay with HPL debit); (d) No EL/HPL credited during WRIIL. Approval: HOD (non-exec), Director (exec). Applied via ESS with Incident Report (Annexure V).",
+          "key_points": [
+            "Full pay during hospitalization",
+            "Full pay 6 months post-hospital",
+            "Half pay next 12 months",
+            "No EL/HPL credited during WRIIL",
+            "Incident Report mandatory (Annexure V)"
+          ],
+          "office_orders": [
+            "O.O. No. PP/3227/2022 dated 03.11.2022",
+            "O.O. No. HR/O&M/361/2022 dated 15.12.2022"
+          ],
+          "approval_authority": "HOD (non-exec) / Director (exec)",
+          "amounts_or_limits": "Full pay: hospital + 6 months; Half pay: 12 months beyond"
+        },
+        {
+          "rule_id": "F.3.9",
+          "rule_title": "Quarantine Leave",
+          "applies_to": [
+            "all employees"
+          ],
+          "content": "Quarantine leave when infectious disease (cholera, plague, diphtheria, typhus, meningitis, conjunctivitis etc.) is present in employee's family/household. Employee himself suffering: other leaves apply, not quarantine. Max 21 days (up to 30 days exceptional with AMA/Public Health Officer certificate). Salary not affected. Combinable with other leaves.",
+          "key_points": [
+            "For infectious disease in HOUSEHOLD — not employee personally",
+            "Max 21 days ordinary; 30 days exceptional",
+            "Full salary unaffected",
+            "Combinable with other leaves"
+          ],
+          "office_orders": [],
+          "approval_authority": "Controlling Officer",
+          "amounts_or_limits": "Max 21 days (30 exceptional)"
+        },
+        {
+          "rule_id": "F.3.10",
+          "rule_title": "Maternity Leave",
+          "applies_to": [
+            "female regular employees",
+            "deputationists",
+            "long-term contractual on regular pay scale"
+          ],
+          "content": "(a) Up to 2 children: 182 days (26 weeks); max 8 weeks before expected delivery. (b) More than 2 surviving children: 12 weeks; max 6 weeks before delivery. Miscarriage/abortion (any number of children): 45 days with medical cert. Child adoption: 180 days for child <1 year (employee with <2 children). Any leave except CL combinable without medical cert. Full pay; not charged to leave account.",
+          "key_points": [
+            "182 days (26 weeks) for ≤2 children",
+            "12 weeks for >2 children",
+            "45 days for miscarriage/abortion",
+            "180 days child adoption (child <1 yr, <2 children)",
+            "Full pay; not charged to leave account"
+          ],
+          "office_orders": [
+            "O.O. No. HR/O&M-140/2022 dated 25.04.2022",
+            "O.O. No. PP/820/2008",
+            "O.O. No. PP/1955/2015 dated 26.03.2015"
+          ],
+          "approval_authority": "Competent Authority / HOD",
+          "amounts_or_limits": "182 days (≤2 children); 12 weeks (>2 children); 45 days (miscarriage)"
+        },
+        {
+          "rule_id": "F.3.11",
+          "rule_title": "Paternity Leave",
+          "applies_to": [
+            "male employees with fewer than 2 surviving children"
+          ],
+          "content": "15 days during confinement/childbirth. Condition: less than 2 surviving children. Full salary; not charged to leave account. Combinable with any leave except CL. Availed within 15 days before or 6 months after delivery. Also 15 days on valid adoption of child below 1 year within 6 months of adoption.",
+          "key_points": [
+            "15 days; for employees with <2 children",
+            "Within 15 days before or 6 months after delivery",
+            "Full pay; not charged to account",
+            "Also 15 days on adoption (child <1 yr)"
+          ],
+          "office_orders": [
+            "O.O. No. PP/807/2008 dated 15.09.2008",
+            "O.O. No. PP/1955/2015 dated 26.03.2015"
+          ],
+          "approval_authority": "Controlling Officer / HOD",
+          "amounts_or_limits": "15 days"
+        },
+        {
+          "rule_id": "F.3.12",
+          "rule_title": "Child Care Leave (CCL)",
+          "applies_to": [
+            "confirmed regular female employees with min 2 years service"
+          ],
+          "content": "Max 730 days (2 years) entire career. For children below 18 (or disabled child any age with min 40% disability). Max 3 spells/year (6 for single employees); min 5 days/spell. Full pay; no cafeteria perks. Not charged to leave account. Bond required if <5 years service (serve DMRC for 3 years after return). Not available to contract/PRCE/consultant. LTC can be availed during CCL.",
+          "key_points": [
+            "Confirmed female employees; min 2 years service",
+            "730 days (2 years) career",
+            "Child <18 (any age if disabled 40%+)",
+            "Max 3 spells/yr (6 for single); min 5 days/spell",
+            "Bond required if <5 years service",
+            "Not for contract/PRCE/consultant"
+          ],
+          "office_orders": [
+            "O.O. No. PP/820/2008",
+            "O.O. No. PP/847/2008",
+            "O.O. No. PP/1009/2009",
+            "O.O. No. PP/1326/2011",
+            "O.O. PP/1987/2015 dated 22.05.2015"
+          ],
+          "approval_authority": "Competent Authority / HOD",
+          "amounts_or_limits": "Max 730 days career; min 5 days per spell"
+        },
+        {
+          "rule_id": "F.3.13",
+          "rule_title": "Study Leave",
+          "applies_to": [
+            "regular employees with 3+ years service",
+            "absorbed deputationists"
+          ],
+          "content": "For scientific, technical or managerial studies in Corporation's interest. After 3 years service. MD is sanctioning authority. Max 12 months at one time (24 months in special circumstances); max 24 months in entire career. Not granted if retiring within 3 years of return. Leave salary: full pay + DA + HRA (first 180 days) + CCA (first 120 days). Bond required. On resignation within 3 years of return: refund of leave salary + fees + interest. Counts for promotion, seniority, increment, PF.",
+          "key_points": [
+            "After 3 years service",
+            "MD approval mandatory",
+            "Max 12 months at once (24 months max career)",
+            "Leave salary: full pay + DA + HRA (180d) + CCA (120d)",
+            "Bond mandatory; refund if resign within 3 years of return",
+            "Counts for seniority/promotion/increment"
+          ],
+          "office_orders": [
+            "O.O. No. PP/3139/2021 dated 26.10.2021"
+          ],
+          "approval_authority": "Managing Director",
+          "amounts_or_limits": "Max 12 months at once; 24 months in career"
+        },
+        {
+          "rule_id": "F.4",
+          "rule_title": "Leave Encashment",
+          "applies_to": [
+            "all regular employees"
+          ],
+          "content": "(a) Full EL+HPL up to 300 days on superannuation, premature retirement (non-disciplinary), death. (b) During service: encashable leave account only, once/year, after 2 years service; no upper per-transaction limit (subject to max 150 days encashable). (c) On resignation/quitting: 50% of non-encashable EL, max 75 days. (d) Disciplinary dismissal/removal: no encashment. (e) PRCE/contract: not eligible. Encashment amount: basic + special pay + DA (HRA/CCA not included).",
+          "key_points": [
+            "Superannuation/death: full 300 days (EL+HPL)",
+            "During service: once/year from encashable account; after 2 yrs service",
+            "Resignation: 50% non-encashable EL; max 75 days",
+            "Disciplinary dismissal: no encashment",
+            "PRCE/contract: not eligible",
+            "Amount: basic + DA (no HRA/CCA)"
+          ],
+          "office_orders": [
+            "O.O. No. PP/798/2008 dated 28.08.2008"
+          ],
+          "approval_authority": "HR Department / Finance",
+          "amounts_or_limits": "Max 300 days on superannuation; max 75 days on resignation"
+        },
+        {
+          "rule_id": "F.8",
+          "rule_title": "Compensatory Rest",
+          "applies_to": [
+            "O&M non-executive employees only"
+          ],
+          "content": "Granted when O&M non-executive works on weekly rest day in emergency. Max 3 days at one time. Must be availed within 30 days. Can be prefixed/suffixed to leave, CL, Sundays, holidays.",
+          "key_points": [
+            "O&M non-executives only",
+            "Max 3 days at one time",
+            "Must be availed within 30 days",
+            "Can prefix/suffix to leave or holidays"
+          ],
+          "office_orders": [
+            "O.O. No. O&M/R&T-556 of 2004 dated 20.12.2004"
+          ],
+          "approval_authority": "O&M HOD",
+          "amounts_or_limits": "Max 3 days; within 30 days"
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "F.T1",
+          "table_title": "All 13 Leave Types — Quick Reference",
+          "description": "Complete leave type summary for chatbot listing and counting queries",
+          "data": [
+            {
+              "#": "1",
+              "leave_type": "Casual Leave (CL)",
+              "days_entitlement": "8/yr (office) or 12/yr (O&M)",
+              "pay_during_leave": "Full pay",
+              "max_accumulation": "None (lapses year-end)",
+              "charged_to": "CL account",
+              "who_eligible": "All employees"
+            },
+            {
+              "#": "2",
+              "leave_type": "Special Casual Leave (SCL)",
+              "days_entitlement": "Up to 30/yr",
+              "pay_during_leave": "Full pay",
+              "max_accumulation": "None",
+              "charged_to": "Not charged",
+              "who_eligible": "All (specific purposes)"
+            },
+            {
+              "#": "3",
+              "leave_type": "Earned Leave (EL)",
+              "days_entitlement": "30/yr (15+15)",
+              "pay_during_leave": "Full pay",
+              "max_accumulation": "300 days total",
+              "charged_to": "EL account",
+              "who_eligible": "All regular/temp/deputation"
+            },
+            {
+              "#": "4",
+              "leave_type": "Half Pay Leave (HPL)",
+              "days_entitlement": "20/yr (10+10)",
+              "pay_during_leave": "50% of pay",
+              "max_accumulation": "No limit",
+              "charged_to": "HPL account",
+              "who_eligible": "All employees"
+            },
+            {
+              "#": "5",
+              "leave_type": "Leave Not Due (LND)",
+              "days_entitlement": "Max 360 days career; 180 at once",
+              "pay_during_leave": "50% of pay",
+              "max_accumulation": "360 days career",
+              "charged_to": "Against future HPL",
+              "who_eligible": "Regular; after 1 year; medical grounds"
+            },
+            {
+              "#": "6",
+              "leave_type": "Commuted Leave",
+              "days_entitlement": "Max 90 days for study",
+              "pay_during_leave": "Full pay (EL rate)",
+              "max_accumulation": "N/A",
+              "charged_to": "2x HPL account",
+              "who_eligible": "All; medical or approved study"
+            },
+            {
+              "#": "7",
+              "leave_type": "Extra Ordinary Leave (EOL)",
+              "days_entitlement": "Max 2 years career (6 mths per 5 yrs)",
+              "pay_during_leave": "No pay",
+              "max_accumulation": "2 years career",
+              "charged_to": "Not charged",
+              "who_eligible": "Regular; after 6 years service"
+            },
+            {
+              "#": "8",
+              "leave_type": "WRIIL",
+              "days_entitlement": "Full pay: hospital+6 mths; Half pay: 12 mths",
+              "pay_during_leave": "Full/Half pay",
+              "max_accumulation": "N/A",
+              "charged_to": "Special account",
+              "who_eligible": "All (permanent and temporary)"
+            },
+            {
+              "#": "9",
+              "leave_type": "Quarantine Leave",
+              "days_entitlement": "Max 21 days (30 exceptional)",
+              "pay_during_leave": "Full pay",
+              "max_accumulation": "N/A",
+              "charged_to": "Not charged",
+              "who_eligible": "All (household infectious disease)"
+            },
+            {
+              "#": "10",
+              "leave_type": "Maternity Leave",
+              "days_entitlement": "182 days (≤2 children); 12 weeks (>2)",
+              "pay_during_leave": "Full pay",
+              "max_accumulation": "N/A",
+              "charged_to": "Not charged",
+              "who_eligible": "Female regular/deputation/long-term contract"
+            },
+            {
+              "#": "11",
+              "leave_type": "Paternity Leave",
+              "days_entitlement": "15 days",
+              "pay_during_leave": "Full pay",
+              "max_accumulation": "N/A",
+              "charged_to": "Not charged",
+              "who_eligible": "Male; less than 2 children"
+            },
+            {
+              "#": "12",
+              "leave_type": "Child Care Leave (CCL)",
+              "days_entitlement": "730 days (2 years) career; max 3 spells/yr",
+              "pay_during_leave": "Full pay",
+              "max_accumulation": "730 days career",
+              "charged_to": "Not charged",
+              "who_eligible": "Confirmed female; 2+ years service; child <18"
+            },
+            {
+              "#": "13",
+              "leave_type": "Study Leave",
+              "days_entitlement": "Max 12 mths at once; 24 mths career",
+              "pay_during_leave": "Full pay + HRA/CCA",
+              "max_accumulation": "24 months career",
+              "charged_to": "Special account",
+              "who_eligible": "Regular; after 3 years service; MD sanction"
+            }
+          ]
+        }
+      ],
+      "authority_index": [
+        {
+          "action": "Sanction CL / SCL",
+          "authority": "Controlling Officer / HOD",
+          "rule_ref": "F.3.1, F.3.2"
+        },
+        {
+          "action": "Sanction EL / HPL / LND / Commuted Leave",
+          "authority": "Competent Authority (as per SOP)",
+          "rule_ref": "F.5.2"
+        },
+        {
+          "action": "Sanction EOL (non-supervisor, 1st time)",
+          "authority": "HOD",
+          "rule_ref": "F.3.7"
+        },
+        {
+          "action": "Sanction EOL (supervisor/exec up to Manager)",
+          "authority": "Director",
+          "rule_ref": "F.3.7"
+        },
+        {
+          "action": "Sanction EOL (Dy.HOD and above)",
+          "authority": "Managing Director",
+          "rule_ref": "F.3.7"
+        },
+        {
+          "action": "Sanction Study Leave",
+          "authority": "Managing Director",
+          "rule_ref": "F.3.13.7"
+        },
+        {
+          "action": "Approve WRIIL (non-exec)",
+          "authority": "HOD",
+          "rule_ref": "F.3.8"
+        },
+        {
+          "action": "Approve WRIIL (exec)",
+          "authority": "Director",
+          "rule_ref": "F.3.8"
+        },
+        {
+          "action": "Sanction Maternity / Paternity / CCL",
+          "authority": "Competent Authority / HOD",
+          "rule_ref": "F.3.10, F.3.11, F.3.12"
+        },
+        {
+          "action": "Leave encashment during service",
+          "authority": "HR Department / Finance",
+          "rule_ref": "F.4.3"
+        },
+        {
+          "action": "Ex-India leave (Non-exec/AM/Manager ≤10 days)",
+          "authority": "HOD",
+          "rule_ref": "F.5.12"
+        },
+        {
+          "action": "Ex-India leave (AM/Manager >10 days; Dy.HOD/HOD any duration)",
+          "authority": "Director",
+          "rule_ref": "F.5.12"
+        },
+        {
+          "action": "Recall from leave",
+          "authority": "Corporation / HOD",
+          "rule_ref": "F.6"
+        },
+        {
+          "action": "Rule interpretation/relaxation",
+          "authority": "Managing Director",
+          "rule_ref": "F.10"
+        }
+      ],
+      "office_order_index": [
+        {
+          "oo_number": "O.O. No. PP/43/99",
+          "date": "14.12.1999",
+          "subject": "Casual Leave pro-rata on separation",
+          "rule_ref": "F.3.1"
+        },
+        {
+          "oo_number": "O.O. No. PP/1525/2012",
+          "date": "14.11.2012",
+          "subject": "Casual Leave rules",
+          "rule_ref": "F.3.1"
+        },
+        {
+          "oo_number": "O.O. No. PP/1359/2011",
+          "date": "20.12.2011",
+          "subject": "Consultant CL card maintenance",
+          "rule_ref": "F.3.1.3"
+        },
+        {
+          "oo_number": "O.O. No. PP/2553/2018",
+          "date": "20.03.2018",
+          "subject": "SCL for Persons with Disabilities",
+          "rule_ref": "F.3.2"
+        },
+        {
+          "oo_number": "O.O. No. PP/872/2009",
+          "date": "29.01.2009",
+          "subject": "PRCE employees special leave",
+          "rule_ref": "F.3.3"
+        },
+        {
+          "oo_number": "O.O. No. PP/2300/2016",
+          "date": "15.11.2016",
+          "subject": "PRCE leave continuation to consultant tenure",
+          "rule_ref": "F.3.3"
+        },
+        {
+          "oo_number": "O.O. No. PP/1788/2014",
+          "date": "06.06.2014",
+          "subject": "EL salary calculation (perks included)",
+          "rule_ref": "F.3.3.10"
+        },
+        {
+          "oo_number": "O.O. No. PP/1917/2015",
+          "date": "06.02.2015",
+          "subject": "EOL rules and deemed resignation",
+          "rule_ref": "F.3.7"
+        },
+        {
+          "oo_number": "O.O. No. PP/3227/2022",
+          "date": "03.11.2022",
+          "subject": "WRIIL rules introduction",
+          "rule_ref": "F.3.8"
+        },
+        {
+          "oo_number": "O.O. No. HR/O&M/361/2022",
+          "date": "15.12.2022",
+          "subject": "WRIIL SOP",
+          "rule_ref": "F.3.8"
+        },
+        {
+          "oo_number": "O.O. No. HR/O&M-140/2022",
+          "date": "25.04.2022",
+          "subject": "Maternity leave for employees with >2 children",
+          "rule_ref": "F.3.10"
+        },
+        {
+          "oo_number": "O.O. No. PP/820/2008",
+          "date": "13.10.2008",
+          "subject": "Maternity / Adoption / CCL rules",
+          "rule_ref": "F.3.10, F.3.12"
+        },
+        {
+          "oo_number": "O.O. No. PP/807/2008",
+          "date": "15.09.2008",
+          "subject": "Paternity leave rules",
+          "rule_ref": "F.3.11"
+        },
+        {
+          "oo_number": "O.O. No. PP/1955/2015",
+          "date": "26.03.2015",
+          "subject": "Maternity and paternity leave revision",
+          "rule_ref": "F.3.10, F.3.11"
+        },
+        {
+          "oo_number": "O.O. No. PP/798/2008",
+          "date": "28.08.2008",
+          "subject": "Leave encashment rules; PRCE not eligible",
+          "rule_ref": "F.4.10"
+        },
+        {
+          "oo_number": "O.O. No. PP/874/2009",
+          "date": "04.02.2009",
+          "subject": "Ex-India leave procedure",
+          "rule_ref": "F.5.12"
+        },
+        {
+          "oo_number": "O.O. No. PP/2843/2019",
+          "date": "27.06.2019",
+          "subject": "Ex-India leave SOP revision",
+          "rule_ref": "F.5.12"
+        },
+        {
+          "oo_number": "O.O. No. PP/3139/2021",
+          "date": "26.10.2021",
+          "subject": "Study leave eligibility revision (3 years service)",
+          "rule_ref": "F.3.13"
+        },
+        {
+          "oo_number": "O.O. No. PP/1189/2010",
+          "date": "14.12.2010",
+          "subject": "Transfer of EL/HPL to other Govt. organisations",
+          "rule_ref": "F.9"
+        }
+      ],
+      "cross_references": [
+        {
+          "from_rule": "F.3.7",
+          "to_chapter": "B",
+          "to_rule": "B.5.7",
+          "relationship": "Absence >4 days without explanation = misconduct; EOL must be sanctioned before proceeding"
+        },
+        {
+          "from_rule": "F.4",
+          "to_chapter": "A",
+          "to_rule": "A.20",
+          "relationship": "Leave encashment on VRS governed by F.4"
+        },
+        {
+          "from_rule": "F.3.12",
+          "to_chapter": "M",
+          "to_rule": "M.4",
+          "relationship": "LTC can be availed during CCL"
+        },
+        {
+          "from_rule": "F.3.13",
+          "to_chapter": "C",
+          "to_rule": "C.4",
+          "relationship": "HRA admissible for first 180 days of study leave; CCA for first 120 days"
+        },
+        {
+          "from_rule": "F.8",
+          "to_chapter": "A",
+          "to_rule": "A.7",
+          "relationship": "Compensatory rest for O&M non-executives working on weekly off"
+        }
+      ]
+    },
+    "G": {
+      "chapter_id": "G",
+      "chapter_title": "House Building Advance (HBA) Rules",
+      "page_range": "187-276",
+      "summary": "Governs advance to regular confirmed DMRC employees for construction, purchase or enlargement of a house, including eligibility, advance limits, interest rates, repayment and security.",
+      "key_topics": [
+        "HBA Eligibility",
+        "HBA Amount Limit",
+        "Cost Ceiling",
+        "Interest Rates",
+        "Repayment",
+        "Disbursement",
+        "Mortgage/Security",
+        "Loan Swapping",
+        "Insurance"
+      ],
+      "summary_chunk": "Chapter G — House Building Advance (HBA): (1) Title: DMRC 'Own Your Own House' Advance Rules. (2) Eligibility: Regular confirmed employees only; excludes deputationists, ad-hoc, temporary, re-employed, contract, daily-wage. (3) Purpose: New construction, purchase of new house/flat, enlargement of existing house (after 5 years of possession; only Delhi/NCR). (4) Cost Ceiling: 139 times basic pay, maximum Rs.1 Crore (excluding land); relaxable up to 25% on merits. (5) HBA Amount: New house/flat — 60 times basic pay or Rs.40 lakh, whichever less. Enlargement — 60 times basic pay or Rs.20 lakh (minus amount already availed), whichever less; only after 5 years; not if superannuating in 36 months; interest @9%. (6) Take-home: Minimum 50% of basic pay + DA must remain after all deductions. (7) Interest Rates: ≤Rs.12 lakh: 5% p.a.; Rs.12-25 lakh: 7.5% p.a.; >Rs.25 lakh: 9% p.a. (simple interest). (8) Repayment: Principal in max 240 monthly installments; must complete before superannuation; house mortgaged to DMRC. (9) Enlargement disbursement: 3 installments (25%+50%+25%). (10) Loan Swapping: Existing home loans from banks can be migrated to HBA once during service. (11) Insurance: Property must be insured throughout loan period. (12) Penalty: Rs.500/month for delay in submitting original title deed.",
+      "rules": [
+        {
+          "rule_id": "G.1",
+          "rule_title": "Eligibility",
+          "applies_to": [
+            "regular confirmed employees"
+          ],
+          "content": "HBA only to regular confirmed DMRC employees. Excludes deputationists, ad-hoc, temporary, re-employed, contract, daily-wage. Employee must not have availed govt. house scheme before; must not own house at work station.",
+          "key_points": [
+            "Regular confirmed only",
+            "Excludes deputation, contract, temporary, PRCE",
+            "Cannot have prior govt. housing benefit"
+          ],
+          "office_orders": [],
+          "approval_authority": "Sanctioning Authority",
+          "amounts_or_limits": ""
+        },
+        {
+          "rule_id": "G.7",
+          "rule_title": "Cost Ceiling",
+          "applies_to": [
+            "all HBA applicants"
+          ],
+          "content": "Ceiling (excluding land): 139 times basic pay, maximum Rs.1 Crore. Relaxable up to 25% on merits. If still exceeds after relaxation, employee must reduce scope.",
+          "key_points": [
+            "Ceiling: 139x basic pay; max Rs.1 Crore",
+            "25% relaxation possible",
+            "Excludes cost of land"
+          ],
+          "office_orders": [
+            "O.O. No. PP/2752/2019 dated 30.01.2019"
+          ],
+          "approval_authority": "Sanctioning Authority",
+          "amounts_or_limits": "139x basic pay; max Rs.1 Crore"
+        },
+        {
+          "rule_id": "G.8",
+          "rule_title": "Amount of Advance",
+          "applies_to": [
+            "all HBA applicants"
+          ],
+          "content": "New house/flat: min of (60x basic pay, Rs.40 lakh, cost, repaying capacity). Enlargement: min of (60x basic pay, Rs.20 lakh, cost of enlargement, repaying capacity) minus amount already availed; only after 5 years of possession; only Delhi/NCR; not if superannuating in 36 months; interest @9%.",
+          "key_points": [
+            "New house: 60x basic or Rs.40 lakh (lower)",
+            "Enlargement: 60x basic or Rs.20 lakh (lower)",
+            "5 years possession before enlargement",
+            "Delhi/NCR only for enlargement",
+            "Not if superannuating in 36 months"
+          ],
+          "office_orders": [
+            "O.O. No. PP/2752/2019 dated 30.01.2019",
+            "O.O. No. PP/1520/2012 dated 22.10.2012"
+          ],
+          "approval_authority": "Director (Finance) / Sanctioning Authority",
+          "amounts_or_limits": "New: max Rs.40 lakh; Enlargement: max Rs.20 lakh"
+        },
+        {
+          "rule_id": "G.9",
+          "rule_title": "Interest Rates",
+          "applies_to": [
+            "all HBA borrowers"
+          ],
+          "content": "Simple interest from date of first disbursement. Slabs: ≤Rs.12 lakh: 5% p.a.; Rs.12-25 lakh: 7.5% p.a.; >Rs.25 lakh: 9% p.a. Enlargement HBA: 9% p.a. Take-home minimum: 50% of basic pay + DA after all deductions.",
+          "key_points": [
+            "≤Rs.12L: 5% p.a.",
+            "Rs.12-25L: 7.5% p.a.",
+            ">Rs.25L: 9% p.a.",
+            "Simple interest",
+            "Take-home min: 50% of basic+DA"
+          ],
+          "office_orders": [],
+          "approval_authority": "Finance Department",
+          "amounts_or_limits": "5% / 7.5% / 9% p.a. (slab-based)"
+        },
+        {
+          "rule_id": "G.16",
+          "rule_title": "Repayment",
+          "applies_to": [
+            "all HBA borrowers"
+          ],
+          "content": "Principal repaid in max 240 monthly installments. Recovery from salary. Must complete before superannuation. House mortgaged to DMRC until full repayment. Cannot sell/transfer without DMRC permission.",
+          "key_points": [
+            "Max 240 installments",
+            "Must complete before superannuation",
+            "House mortgaged to DMRC throughout",
+            "No sale without DMRC permission"
+          ],
+          "office_orders": [],
+          "approval_authority": "Finance Department",
+          "amounts_or_limits": "Max 240 installments"
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "G.T1",
+          "table_title": "HBA Interest Rate Slabs",
+          "description": "Interest rates by advance amount",
+          "data": [
+            {
+              "advance_amount": "Up to Rs.12 lakh",
+              "interest_rate": "5% per annum (simple)"
+            },
+            {
+              "advance_amount": "Rs.12 lakh to Rs.25 lakh",
+              "interest_rate": "7.5% per annum (simple)"
+            },
+            {
+              "advance_amount": "Above Rs.25 lakh",
+              "interest_rate": "9% per annum (simple)"
+            },
+            {
+              "advance_amount": "HBA for Enlargement (any amount)",
+              "interest_rate": "9% per annum (simple)"
+            }
+          ]
+        },
+        {
+          "table_id": "G.T2",
+          "table_title": "HBA Key Financial Limits",
+          "description": "Amount limits and cost ceilings",
+          "data": [
+            {
+              "purpose": "New house / flat",
+              "advance_limit": "Rs.40 lakh or 60x basic pay (lower)",
+              "cost_ceiling": "139x basic pay; max Rs.1 Crore"
+            },
+            {
+              "purpose": "Enlargement of existing house",
+              "advance_limit": "Rs.20 lakh or 60x basic pay (lower)",
+              "cost_ceiling": "139x basic pay; max Rs.1 Crore"
+            }
+          ]
+        }
+      ],
+      "authority_index": [
+        {
+          "action": "Sanction HBA (executives)",
+          "authority": "Director (Finance)",
+          "rule_ref": "G.HBA.sanction"
+        },
+        {
+          "action": "Relax cost ceiling up to 25%",
+          "authority": "Sanctioning Authority",
+          "rule_ref": "G.7"
+        },
+        {
+          "action": "Permission to sell mortgaged property",
+          "authority": "DMRC / Finance",
+          "rule_ref": "G.16"
+        }
+      ],
+      "office_order_index": [
+        {
+          "oo_number": "O.O. No. PP/2752/2019",
+          "date": "30.01.2019",
+          "subject": "HBA amount and cost ceiling revision",
+          "rule_ref": "G.7, G.8"
+        },
+        {
+          "oo_number": "O.O. No. PP/1520/2012",
+          "date": "22.10.2012",
+          "subject": "HBA rules revision",
+          "rule_ref": "G.8"
+        },
+        {
+          "oo_number": "O.O. No. PP/1048/2010",
+          "date": "18.02.2010",
+          "subject": "HBA limits",
+          "rule_ref": "G.8"
+        }
+      ],
+      "cross_references": [
+        {
+          "from_rule": "G.1",
+          "to_chapter": "A",
+          "to_rule": "A.3",
+          "relationship": "Only confirmed employees eligible; confirmation process in Chapter A"
+        },
+        {
+          "from_rule": "G.16",
+          "to_chapter": "B",
+          "to_rule": "B.16",
+          "relationship": "Acquiring immovable property requires prior permission under Conduct Rules"
+        }
+      ]
+    },
+    "H": {
+      "chapter_id": "H",
+      "chapter_title": "Recruitment Rules",
+      "page_range": "277-288",
+      "summary": "Defines the framework for DMRC recruitment — post categorization, modes, direct recruitment, campus recruitment, PRCE, absorption, contract regularization and compassionate appointment.",
+      "key_topics": [
+        "Recruitment Modes",
+        "Direct Recruitment",
+        "Campus Recruitment",
+        "PRCE",
+        "Absorption",
+        "Contract Regularization",
+        "Compassionate Appointment",
+        "Probation",
+        "Character Verification"
+      ],
+      "summary_chunk": "Chapter H — Recruitment Rules (DMRC Recruitment Rules 2021): (1) Posts: Executive (AM and above up to ED); Non-Executive (Unskilled to Sr. Section Engineer/Station Manager level). (2) Recruitment Modes: Direct Recruitment, Deputation, Absorption, PRCE, Lateral Induction, Compassionate Appointment. (3) Direct Recruitment: Written test/interview; age min 18, max 28 (entry-level); SC/ST/OBC/PWD/ESM relaxation as per GoI; character verification mandatory; medical fitness mandatory; DMRA induction training mandatory; 3-year surety bond. (4) Campus Recruitment: From premier institutions for executive-level posts. (5) PRCE: For retired employees on fixed-term contract; consolidated fee; not eligible for most service benefits (no EL, HBA, Vehicle Advance, MPA, CCL). (6) Absorption: Deputationists with tripartite consent (DMRC + parent dept + employee) and vacancy availability. (7) Contract Regularization: As per DMRC policy after fulfilling conditions. (8) Compassionate Appointment: For dependent of deceased/incapacitated employee; Screening Committee; min age 18. (9) Probation: 2 years (Non-Exec/AM/Manager); 1 year (DGM+).",
+      "rules": [
+        {
+          "rule_id": "H.5",
+          "rule_title": "Direct Recruitment",
+          "applies_to": [
+            "new recruits"
+          ],
+          "content": "Open market recruitment via written test/interview. Age: min 18, max 28 for entry-level (SC/ST/OBC/PWD/ESM relaxation per Govt. guidelines). Medical fitness, character verification mandatory. 3-year surety bond. DMRA induction training mandatory.",
+          "key_points": [
+            "Written test + interview",
+            "Age 18-28 (with reservations relaxation)",
+            "Medical + character verification mandatory",
+            "3-year surety bond",
+            "DMRA training mandatory"
+          ],
+          "office_orders": [],
+          "approval_authority": "Competent Authority / MD",
+          "amounts_or_limits": "Age 18-28"
+        },
+        {
+          "rule_id": "H.10",
+          "rule_title": "Post-Retirement Contractual Employment (PRCE)",
+          "applies_to": [
+            "retired employees"
+          ],
+          "content": "PRCE on fixed-term contract; consolidated fee. Not eligible for EL, HBA, Vehicle Advance, MPA, CCL or most regular service benefits. Medical fitness required at engagement. Subject to organizational need and performance.",
+          "key_points": [
+            "Fixed-term; consolidated fee",
+            "Not eligible for EL, HBA, Vehicle Advance, MPA, CCL",
+            "Medical fitness required",
+            "Subject to organizational need"
+          ],
+          "office_orders": [],
+          "approval_authority": "MD / Competent Authority",
+          "amounts_or_limits": ""
+        },
+        {
+          "rule_id": "H.14",
+          "rule_title": "Compassionate Appointment",
+          "applies_to": [
+            "dependents of deceased/incapacitated DMRC employees"
+          ],
+          "content": "For dependent (spouse or child) of DMRC employee who dies in harness or is permanently incapacitated medically. Subject to vacancy availability and Screening Committee recommendation. Min age 18; upper age may be relaxed. Governed by Govt. of India guidelines on reservation.",
+          "key_points": [
+            "Dependent of deceased/incapacitated employee",
+            "Screening Committee approval required",
+            "Subject to vacancy availability",
+            "Min age 18"
+          ],
+          "office_orders": [],
+          "approval_authority": "Screening Committee → MD",
+          "amounts_or_limits": "Min age 18"
+        }
+      ],
+      "tables": [],
+      "authority_index": [
+        {
+          "action": "Direct recruitment",
+          "authority": "Competent Authority / MD",
+          "rule_ref": "H.5"
+        },
+        {
+          "action": "Compassionate appointment",
+          "authority": "Screening Committee → MD",
+          "rule_ref": "H.14"
+        },
+        {
+          "action": "PRCE engagement",
+          "authority": "MD / Competent Authority",
+          "rule_ref": "H.10"
+        },
+        {
+          "action": "Contract regularization",
+          "authority": "Screening Committee → Competent Authority",
+          "rule_ref": "H.12"
+        }
+      ],
+      "office_order_index": [],
+      "cross_references": [
+        {
+          "from_rule": "H.8",
+          "to_chapter": "A",
+          "to_rule": "A.2.8",
+          "relationship": "Probation period rules detailed in Chapter A"
+        },
+        {
+          "from_rule": "H.10",
+          "to_chapter": "F",
+          "to_rule": "F.3.3",
+          "relationship": "PRCE employees: 1 special leave/month; not regular EL"
+        },
+        {
+          "from_rule": "H.10",
+          "to_chapter": "G",
+          "to_rule": "G.1",
+          "relationship": "PRCE employees not eligible for HBA"
+        }
+      ]
+    },
+    "I": {
+      "chapter_id": "I",
+      "chapter_title": "Vehicle Advance Rules",
+      "page_range": "289-299",
+      "summary": "Governs advance to confirmed DMRC employees for purchase of new motor car or two-wheeler for official use, including eligibility, limits, sanctioning authority and prior intimation requirements.",
+      "key_topics": [
+        "Vehicle Advance Eligibility",
+        "Motor Car Advance",
+        "Two-Wheeler Advance",
+        "Sanctioning Authority",
+        "Prior Intimation",
+        "Interest",
+        "Repayment"
+      ],
+      "summary_chunk": "Chapter I — Vehicle Advance Rules (DMRC 'Own Your Own Vehicle' Advance Rules): (1) Objective: Advance for purchase of NEW vehicles only (no used vehicles); for official use. (2) Eligibility: Regular confirmed employees; 2.5 years service; minimum 3 years remaining before superannuation; excludes deputation/temporary/ad-hoc/re-employed/contract; contract service @70% after regularization. (3) Motor Car Advance: Supervisors and below (≤Rs.37000-115000): Rs.1.5 lakh or 25 months basic pay; vehicle ceiling Rs.6.75 lakh. Sr. Supervisors (Rs.40000-125000 to Rs.50000-160000 non-exec): Rs.3.5 lakh or 25 months basic pay; ceiling Rs.9 lakh. Executives (Rs.50000-160000+): Rs.5 lakh or 25 months basic pay; ceiling Rs.15 lakh. (4) Two-Wheeler Advance: All grades — Rs.1.5 lakh or 10 months basic pay; ceiling Rs.1.5 lakh. (5) Sanctioning Authority: Director(F) for executives; ED/HR for non-executives in Project/Corporate; GM/O&M/HR for non-executives in O&M. (6) Prior Intimation: Mandatory before purchase via ESS (movable property under Conduct Rules); no post-facto approval. (7) Documents required: 6-month bank statement, quotation, loan papers, source of funds. (8) Bonds: Mortgage Form Rs.50, Agreement Rs.50, Insurance Rs.50, Surety Bonds (2 x Rs.100).",
+      "rules": [
+        {
+          "rule_id": "I.2",
+          "rule_title": "Eligibility",
+          "applies_to": [
+            "regular confirmed employees"
+          ],
+          "content": "Regular confirmed employees with 2.5 years service and min 3 years remaining before superannuation. New vehicles only. Contract service @70% after regularization. Excludes deputation, temporary, ad-hoc, re-employed, contract.",
+          "key_points": [
+            "2.5 years service + 3 years remaining",
+            "New vehicles only",
+            "Contract @70% after regularization"
+          ],
+          "office_orders": [
+            "O.O. No. PP/1499/2012",
+            "O.O. No. PP/1987/2015",
+            "O.O. No. PP/1782/2014"
+          ],
+          "approval_authority": "Sanctioning Authority",
+          "amounts_or_limits": "Min 2.5 years; 3 years remaining"
+        },
+        {
+          "rule_id": "I.motor_car",
+          "rule_title": "Motor Car Advance Limits",
+          "applies_to": [
+            "eligible employees"
+          ],
+          "content": "Supervisors/below (≤Rs.37000-115000): Rs.1.5 lakh or 25 months basic (ceiling vehicle Rs.6.75L). Sr. Supervisors (Rs.40000-125000 to Rs.50000-160000 non-exec): Rs.3.5 lakh or 25 months basic (ceiling Rs.9L). Executives (Rs.50000-160000+): Rs.5 lakh or 25 months basic (ceiling Rs.15L).",
+          "key_points": [
+            "Supervisor: Rs.1.5L / Rs.6.75L ceiling",
+            "Sr. Supervisor: Rs.3.5L / Rs.9L ceiling",
+            "Executive: Rs.5L / Rs.15L ceiling",
+            "25 months basic pay alternate limit"
+          ],
+          "office_orders": [
+            "O.O. No. PP/3341/2023 dated 06.09.2023"
+          ],
+          "approval_authority": "Director(F) / ED/HR / GM/O&M/HR",
+          "amounts_or_limits": "Rs.1.5L to Rs.5L advance; Rs.6.75L to Rs.15L vehicle ceiling"
+        },
+        {
+          "rule_id": "I.two_wheeler",
+          "rule_title": "Two-Wheeler Advance",
+          "applies_to": [
+            "all grades"
+          ],
+          "content": "All grades: Rs.1.5 lakh or 10 months basic pay, whichever less. Vehicle cost ceiling: Rs.1.5 lakh.",
+          "key_points": [
+            "Same for all grades",
+            "Rs.1.5 lakh or 10 months basic pay",
+            "Vehicle ceiling: Rs.1.5 lakh"
+          ],
+          "office_orders": [
+            "O.O. No. PP/2349/2017 dated 03.04.2017"
+          ],
+          "approval_authority": "Director(F) / ED/HR / GM/O&M/HR",
+          "amounts_or_limits": "Rs.1.5 lakh or 10 months basic pay"
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "I.T1",
+          "table_title": "Vehicle Advance Limits by Grade",
+          "description": "Advance amount and vehicle cost ceiling for motor car and two-wheeler",
+          "data": [
+            {
+              "vehicle_type": "Motor Car",
+              "grade": "Supervisors and below (≤Rs.37000-115000)",
+              "advance_limit": "Rs.1.5 lakh or 25 months basic (lower)",
+              "vehicle_cost_ceiling": "Rs.6.75 lakh"
+            },
+            {
+              "vehicle_type": "Motor Car",
+              "grade": "Sr. Supervisors (Rs.40000-125000 to Rs.50000-160000 non-exec)",
+              "advance_limit": "Rs.3.5 lakh or 25 months basic (lower)",
+              "vehicle_cost_ceiling": "Rs.9 lakh"
+            },
+            {
+              "vehicle_type": "Motor Car",
+              "grade": "Executives (Rs.50000-160000 and above)",
+              "advance_limit": "Rs.5 lakh or 25 months basic (lower)",
+              "vehicle_cost_ceiling": "Rs.15 lakh"
+            },
+            {
+              "vehicle_type": "Two-Wheeler",
+              "grade": "All grades",
+              "advance_limit": "Rs.1.5 lakh or 10 months basic (lower)",
+              "vehicle_cost_ceiling": "Rs.1.5 lakh"
+            }
+          ]
+        }
+      ],
+      "authority_index": [
+        {
+          "action": "Vehicle advance for executives",
+          "authority": "Director (Finance)",
+          "rule_ref": "I.4"
+        },
+        {
+          "action": "Vehicle advance for non-executives (Project/Corporate)",
+          "authority": "ED/HR",
+          "rule_ref": "I.4"
+        },
+        {
+          "action": "Vehicle advance for non-executives (O&M)",
+          "authority": "GM/O&M/HR",
+          "rule_ref": "I.4"
+        },
+        {
+          "action": "Prior intimation — movable property (non-exec/AM/Manager)",
+          "authority": "HOD",
+          "rule_ref": "I.3"
+        },
+        {
+          "action": "Prior intimation — movable property (Dy.HOD/HOD)",
+          "authority": "Director",
+          "rule_ref": "I.3"
+        }
+      ],
+      "office_order_index": [
+        {
+          "oo_number": "O.O. No. PP/3341/2023",
+          "date": "06.09.2023",
+          "subject": "Motor car advance limits revision",
+          "rule_ref": "I.motor_car"
+        },
+        {
+          "oo_number": "O.O. No. PP/2349/2017",
+          "date": "03.04.2017",
+          "subject": "Two-wheeler advance limits",
+          "rule_ref": "I.two_wheeler"
+        },
+        {
+          "oo_number": "O.O. No. PP/1499/2012",
+          "date": "26.06.2012",
+          "subject": "No vehicle advance for used vehicles",
+          "rule_ref": "I.2"
+        }
+      ],
+      "cross_references": [
+        {
+          "from_rule": "I.2",
+          "to_chapter": "B",
+          "to_rule": "B.16",
+          "relationship": "Vehicle purchase requires prior intimation under Conduct Rules (movable property)"
+        },
+        {
+          "from_rule": "I.2",
+          "to_chapter": "A",
+          "to_rule": "A.3",
+          "relationship": "Only confirmed employees eligible"
+        }
+      ]
+    },
+    "J": {
+      "chapter_id": "J",
+      "chapter_title": "Multi-Purpose Advance (MPA) Rules",
+      "page_range": "300-310",
+      "summary": "Governs monetary advance to confirmed DMRC employees for emergent financial needs like marriage, education, house furnishing, and domestic contingencies.",
+      "key_topics": [
+        "MPA Eligibility",
+        "MPA Amount",
+        "Interest Rate",
+        "Repayment",
+        "Surety Bonds",
+        "Sanctioning Authority",
+        "Frequency Limit"
+      ],
+      "summary_chunk": "Chapter J — Multi-Purpose Advance (MPA): (1) Objective: For emergent financial needs — marriage/social functions, education, house furnishing, electronics, domestic contingencies. (2) Eligibility: Confirmed employees with 2.5 years service and more than 3 years remaining before superannuation; excludes temporary, ad-hoc, daily-rated, re-employed, contract; contract service @70% after regularization. Fresh cases prioritized. (3) Amount: Maximum Rs.2,00,000 or 5 times basic pay, whichever is less. (4) Frequency: Max 3 occasions in entire career; next MPA only after 2 years from complete repayment of previous MPA. (5) Interest: 7.5% simple interest; principal recovered in max 30 installments; interest in max 5 installments after that; total recovery cap: 50% of pay. (6) Surety: 1 surety for MPA ≤Rs.50,000; 2 sureties for >Rs.50,000; surety must be confirmed equivalent/higher grade with 3 years remaining. (7) Sanctioning Authority: HOD/HR for Project/Corporate; HOD/HR/O&M for O&M division. (8) Documents: Surety bonds (non-judicial stamp paper Rs.20 each), ESS application printout.",
+      "rules": [
+        {
+          "rule_id": "J.2",
+          "rule_title": "MPA Eligibility and Frequency",
+          "applies_to": [
+            "confirmed employees"
+          ],
+          "content": "Confirmed with 2.5 years service and >3 years remaining. Excludes temporary/ad-hoc/daily-rated/re-employed/contract. Contract @70% after regularization. Max 3 occasions career. 2-year gap between MPAs. Fresh cases prioritized.",
+          "key_points": [
+            "Confirmed; 2.5 years service; 3 years remaining",
+            "Max 3 occasions career",
+            "2-year gap after full repayment",
+            "Fresh cases get priority"
+          ],
+          "office_orders": [
+            "O.O. No. PP/538/2006",
+            "O.O. No. PP/1520/2012",
+            "O.O. No. PP/1782/2014"
+          ],
+          "approval_authority": "HOD/HR",
+          "amounts_or_limits": "2.5 years service; max 3 times career"
+        },
+        {
+          "rule_id": "J.3",
+          "rule_title": "MPA Amount",
+          "applies_to": [
+            "eligible employees"
+          ],
+          "content": "Maximum Rs.2,00,000 or 5 times basic pay, whichever is less.",
+          "key_points": [
+            "Max Rs.2 lakh or 5x basic pay (lower of two)"
+          ],
+          "office_orders": [
+            "O.O. No. PP/2776/2018 dated 22.02.2019"
+          ],
+          "approval_authority": "HOD/HR",
+          "amounts_or_limits": "Max Rs.2,00,000 or 5x basic pay"
+        },
+        {
+          "rule_id": "J.5",
+          "rule_title": "Interest and Repayment",
+          "applies_to": [
+            "all MPA borrowers"
+          ],
+          "content": "Interest: 7.5% simple. Principal: max 30 monthly installments. Interest: max 5 installments after principal. Total recovery including all deductions: max 50% of pay.",
+          "key_points": [
+            "7.5% simple interest",
+            "Principal: max 30 installments",
+            "Interest: max 5 installments",
+            "Total recovery cap: 50% of pay"
+          ],
+          "office_orders": [
+            "O.O. No. PP/538/2006"
+          ],
+          "approval_authority": "Finance Department",
+          "amounts_or_limits": "7.5% interest; max 35 total installments; 50% pay cap"
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "J.T1",
+          "table_title": "MPA Key Parameters",
+          "description": "Summary of Multi-Purpose Advance terms",
+          "data": [
+            {
+              "parameter": "Maximum Amount",
+              "value": "Rs.2,00,000 or 5x basic pay (whichever less)"
+            },
+            {
+              "parameter": "Eligibility",
+              "value": "Confirmed; 2.5 yrs service; 3 yrs remaining"
+            },
+            {
+              "parameter": "Max Occasions",
+              "value": "3 times in entire career"
+            },
+            {
+              "parameter": "Gap Between MPAs",
+              "value": "2 years after full repayment"
+            },
+            {
+              "parameter": "Interest Rate",
+              "value": "7.5% simple interest"
+            },
+            {
+              "parameter": "Principal Repayment",
+              "value": "Max 30 monthly installments"
+            },
+            {
+              "parameter": "Interest Repayment",
+              "value": "Max 5 installments after principal"
+            },
+            {
+              "parameter": "Surety (≤Rs.50,000)",
+              "value": "1 surety bond"
+            },
+            {
+              "parameter": "Surety (>Rs.50,000)",
+              "value": "2 surety bonds"
+            },
+            {
+              "parameter": "Total Recovery Cap",
+              "value": "50% of pay"
+            }
+          ]
+        }
+      ],
+      "authority_index": [
+        {
+          "action": "Sanction MPA (Project/Corporate)",
+          "authority": "HOD/HR",
+          "rule_ref": "J.4"
+        },
+        {
+          "action": "Sanction MPA (O&M division)",
+          "authority": "HOD/HR/O&M",
+          "rule_ref": "J.4"
+        },
+        {
+          "action": "Rule interpretation",
+          "authority": "Managing Director",
+          "rule_ref": "J.7"
+        }
+      ],
+      "office_order_index": [
+        {
+          "oo_number": "O.O. No. PP/538/2006",
+          "date": "30.10.2006",
+          "subject": "MPA Rules introduction",
+          "rule_ref": "J.1"
+        },
+        {
+          "oo_number": "O.O. No. PP/2776/2018",
+          "date": "22.02.2019",
+          "subject": "MPA amount revised to Rs.2 lakh",
+          "rule_ref": "J.3"
+        },
+        {
+          "oo_number": "O.O. No. PP/1520/2012",
+          "date": "22.10.2012",
+          "subject": "MPA 3-occasion limit and 2-year gap",
+          "rule_ref": "J.2"
+        },
+        {
+          "oo_number": "O.O. No. PP/1572/2013",
+          "date": "06.03.2013",
+          "subject": "Surety bond requirements",
+          "rule_ref": "J.6"
+        },
+        {
+          "oo_number": "O.O. No. PP/1782/2014",
+          "date": "03.06.2014",
+          "subject": "Contract service @70% for MPA eligibility",
+          "rule_ref": "J.2"
+        }
+      ],
+      "cross_references": [
+        {
+          "from_rule": "J.2",
+          "to_chapter": "A",
+          "to_rule": "A.3",
+          "relationship": "Confirmation prerequisite for MPA"
+        },
+        {
+          "from_rule": "J.5",
+          "to_chapter": "C",
+          "to_rule": "C.1",
+          "relationship": "50% pay cap calculated on basic pay per Chapter C"
+        }
+      ]
+    },
+    "K": {
+      "chapter_id": "K",
+      "chapter_title": "Housing Allotment Rules",
+      "page_range": "311-328",
+      "summary": "Governs allotment, retention and management of DMRC staff quarters at 12 locations in Delhi/NCR, including eligibility, accommodation types, priority, license fee, subletting prohibition and essential quota.",
+      "key_topics": [
+        "Housing Locations",
+        "Eligibility",
+        "Types of Accommodation",
+        "Priority List",
+        "License Fee",
+        "HRA vs Quarters",
+        "Subletting Prohibition",
+        "Essential Quota",
+        "Mutual Change",
+        "Retention",
+        "Vacation"
+      ],
+      "summary_chunk": "Chapter K — Housing Allotment Rules: (1) Locations: DMRC staff quarters at 12 locations — Ajronda, Bahadurgarh, Gurgaon, Mukundpur, Mundka, Najafgarh, New Ashok Nagar, Sarita Vihar, Shastri Park, Vinod Nagar, Yamuna Bank and Noida. (2) Eligibility: All regular employees including probationers; excludes casual, re-employed, deputationist, contract. (3) No Right: No employee has right to DMRC accommodation; subject to availability. (4) Occupancy: As licensees — DMRC retains ownership. (5) Types: 7 types — Type-II Transit Flats (1 BHK) for all grades up to Rs.35000-110000 (non-supervisor); higher types for higher grades. (6) HRA: Not payable while in DMRC quarters; employee forgoes HRA. License fee payable monthly. (7) Subletting: Strictly prohibited; = misconduct under Conduct Rules B.5.24; damages (penal rent) charged for unauthorized subletting/occupation. (8) Essential Quota: Quarters allotted to operational staff required near duty point. (9) Priority List: Grade-wise waiting list; quarterly Open-for-All allotment. (10) Retention: Must vacate within 1 month of transfer/superannuation/resignation/removal. (11) Mutual Change: Permitted with Estate Officer approval. (12) Own house: Employees with own house at current station not eligible. (13) Employees on CCL/Study Leave may retain quarters.",
+      "rules": [
+        {
+          "rule_id": "K.1",
+          "rule_title": "Applicability",
+          "applies_to": [
+            "all regular employees including probationers"
+          ],
+          "content": "Rules apply to all DMRC residential accommodation. Employees occupy as licensees (not owners/tenants). No right to accommodation; subject to availability. DMRC retains ownership at all times.",
+          "key_points": [
+            "Licensee — not owner/tenant",
+            "No right to accommodation",
+            "Subject to availability",
+            "Probationers included"
+          ],
+          "office_orders": [],
+          "approval_authority": "Estate Officer",
+          "amounts_or_limits": ""
+        },
+        {
+          "rule_id": "K.12",
+          "rule_title": "HRA, Subletting and Retention",
+          "applies_to": [
+            "all quarter occupants"
+          ],
+          "content": "HRA not payable while in DMRC quarters; employee forgoes HRA. Subletting strictly prohibited = misconduct (B.5.24); damages (penal rent) charged. Must vacate within 1 month of transfer/superannuation/resignation. Unauthorized occupation after deadline: penal rent charged. Employees with own house at current station not eligible for quarters.",
+          "key_points": [
+            "HRA forfeited while in DMRC quarters",
+            "Subletting = misconduct (B.5.24)",
+            "Vacate within 1 month of transfer/superannuation",
+            "Penal rent for unauthorized occupation",
+            "Own house at station = not eligible"
+          ],
+          "office_orders": [],
+          "approval_authority": "Estate Officer / HR",
+          "amounts_or_limits": "Vacate within 1 month"
+        }
+      ],
+      "tables": [],
+      "authority_index": [
+        {
+          "action": "Quarter allotment",
+          "authority": "Estate Officer",
+          "rule_ref": "K.allotment"
+        },
+        {
+          "action": "Essential quota allotment",
+          "authority": "Competent Authority / HOD",
+          "rule_ref": "K.12"
+        },
+        {
+          "action": "Mutual change of quarters",
+          "authority": "Estate Officer",
+          "rule_ref": "K.10"
+        },
+        {
+          "action": "Action for subletting / unauthorized occupation",
+          "authority": "Estate Officer → HR (Disciplinary)",
+          "rule_ref": "K.12"
+        }
+      ],
+      "office_order_index": [],
+      "cross_references": [
+        {
+          "from_rule": "K.12",
+          "to_chapter": "C",
+          "to_rule": "C.4",
+          "relationship": "HRA (27%/18%/9%) not payable while DMRC quarters occupied"
+        },
+        {
+          "from_rule": "K.12",
+          "to_chapter": "B",
+          "to_rule": "B.5.24",
+          "relationship": "Subletting of DMRC quarters = misconduct under Conduct Rules"
+        }
+      ]
+    },
+    "L": {
+      "chapter_id": "L",
+      "chapter_title": "Staff Welfare Fund Rules",
+      "page_range": "329-340",
+      "summary": "Governs the DMRC Staff Welfare Fund — sources, management committee, objectives and welfare activities including marriage grant, child birth gift, education assistance, sickness relief and recreation.",
+      "key_topics": [
+        "Fund Membership",
+        "Fund Sources",
+        "Fund Committee",
+        "Marriage Grant",
+        "Child Birth Gift",
+        "Education Grant",
+        "Disability Grant",
+        "Sickness Relief",
+        "Sports Award",
+        "Recreation",
+        "Funeral Expenses"
+      ],
+      "summary_chunk": "Chapter L — Staff Welfare Fund Rules: (1) Members: Regular and contract employees on regular pay scale; excludes deputationists, PRCE, consultants, daily-wage, apprentices. (2) Family: Same as medical/LTC — spouse, children (son <25/unmarried employed; unmarried unemployed daughter), dependent parents (income <15% basic or Rs.9000+DR). (3) Fund Sources: (a) Monthly member contributions; (b) Voluntary donations; (c) Interest on investments/charity shows; (d) DMRC annual matching contribution (equal to previous year's member contributions, credited in April). (4) Management Committee: Nominated by MD — HOD-level Chairman, Dy.HOD Deputy Chairman, Dy.HOD Member-Secretary, 2 employee representatives (one exec, one non-exec); tenure 2 years. (5) Welfare Activities: (a) General — marriage gift (member + first 2 children), child birth gift (first 2 children), disabled/Divyangjan child grant, one-time grant to family of deceased member (where no compassionate appointment), sports excellence cash award (state/national/intl.), women empowerment grants; (b) Education — 10th/12th qualification grant (one-time), first-time admission grant, Tablet PC for one daughter (non-supervisor grade), professional degree completion cash award for daughters; (c) Recreation — sports, cultural, picnics, clubs, educational tours; (d) Sickness/Distress — terminal disease financial aid, artificial limbs, funeral expenses (member + spouse + children). (6) Fund Allocation: Proposed by Committee, approved by MD. (7) Accounts: Separate; audited annually; signed by 2 members (Chairman + Secretary joint signatures for disbursement).",
+      "rules": [
+        {
+          "rule_id": "L.2",
+          "rule_title": "Membership and Family",
+          "applies_to": [
+            "regular and contract employees on regular pay scale"
+          ],
+          "content": "Members: regular and contract on regular pay scale; excludes deputationist, PRCE, consultant, daily-wage, apprentices. Family: spouse, son (<25/not employed/married), unmarried unemployed daughter, dependent parents (income <15% basic or Rs.9000+DR whichever more).",
+          "key_points": [
+            "Regular + contract on regular pay scale",
+            "Excludes deputation, PRCE, consultant",
+            "Same family definition as medical and LTC rules"
+          ],
+          "office_orders": [],
+          "approval_authority": "Committee",
+          "amounts_or_limits": "Parent income threshold: 15% basic or Rs.9000+DR"
+        },
+        {
+          "rule_id": "L.5",
+          "rule_title": "Fund Sources",
+          "applies_to": [
+            "all members and DMRC"
+          ],
+          "content": "(a) Monthly member contributions; (b) Voluntary donations; (c) Interest, charity shows, fetes; (d) Annual DMRC matching contribution in April equal to members' total monthly contributions of previous year.",
+          "key_points": [
+            "Monthly member contributions",
+            "DMRC matches previous year contributions annually in April",
+            "Voluntary donations accepted"
+          ],
+          "office_orders": [],
+          "approval_authority": "Committee / MD",
+          "amounts_or_limits": "DMRC matches 100% of previous year member contributions"
+        },
+        {
+          "rule_id": "L.6",
+          "rule_title": "Welfare Activities",
+          "applies_to": [
+            "all members and their families"
+          ],
+          "content": "General: marriage gift (member + first 2 children), child birth gift (first 2 children), disabled child grant, one-time grant to deceased member's family (no compassionate appointment cases), sports excellence award (state/national/intl. 1st/2nd/3rd). Education: 10th/12th grant, admission grant, Tablet PC (one daughter, non-supervisor), professional degree completion cash award for daughters. Recreation: clubs, sports, cultural, picnics, educational tours. Sickness: terminal illness aid, artificial limbs, funeral expenses.",
+          "key_points": [
+            "Marriage and child birth gift: first 2 children",
+            "Sports award: state/national/intl. level",
+            "Tablet PC: one daughter, non-supervisor grade",
+            "Funeral expenses: member + spouse + children",
+            "Terminal illness financial assistance"
+          ],
+          "office_orders": [],
+          "approval_authority": "Committee → MD",
+          "amounts_or_limits": ""
+        }
+      ],
+      "tables": [],
+      "authority_index": [
+        {
+          "action": "Approve fund allocation",
+          "authority": "Committee → Managing Director",
+          "rule_ref": "L.7"
+        },
+        {
+          "action": "Disburse from fund",
+          "authority": "Chairman + Secretary (joint signatures)",
+          "rule_ref": "L.9"
+        },
+        {
+          "action": "Nominate Committee members",
+          "authority": "Managing Director",
+          "rule_ref": "L.3"
+        }
+      ],
+      "office_order_index": [],
+      "cross_references": [
+        {
+          "from_rule": "L.2",
+          "to_chapter": "E",
+          "to_rule": "E.family",
+          "relationship": "Same family definition as Medical Attendance Rules"
+        },
+        {
+          "from_rule": "L.6",
+          "to_chapter": "H",
+          "to_rule": "H.14",
+          "relationship": "One-time grant to deceased member's family only where no compassionate appointment given"
+        }
+      ]
+    },
+    "M": {
+      "chapter_id": "M",
+      "chapter_title": "Leave Travel Concession (LTC) Rules",
+      "page_range": "341-352",
+      "summary": "Governs LTC entitlement for DMRC employees including home town LTC, all-India LTC, block years, travel entitlement, incidental charges, LTC advance, and special provisions for NER/J&K/A&N/Ladakh.",
+      "key_topics": [
+        "LTC Types",
+        "Home Town LTC",
+        "All-India LTC",
+        "Block Year",
+        "Travel Entitlement",
+        "Incidental Charges",
+        "LTC Advance",
+        "Special LTC (NER/J&K/A&N/Ladakh)",
+        "Split LTC",
+        "Home Town Declaration",
+        "LTC during CCL"
+      ],
+      "summary_chunk": "Chapter M — Leave Travel Concession (LTC) Rules: (1) Applicability: Regular employees + contractual on regular pay scale with min 1 year service; absorbed deputationists; excludes casual, retired re-employed, short-term contract. (2) LTC Types: (a) Home Town LTC: once per 2-year block; direct/shortest route hometown and back; (b) All-India LTC: once per 4-year block; anywhere in India and back. If All-India LTC not availed in 4-year block: one extra Hometown LTC allowed. Employees with same hometown and headquarters: not eligible for Hometown LTC. (3) Block Years: 4-year blocks — 2014-17, 2018-2022, 2023-2025, etc. Min 6-month gap between LTCs. (4) Home Town: Declared at joining; change allowed once during career (MD/Functional Director). (5) Travel Entitlement: Non-Supervisors (Rs.16000-50000): 2nd Sleeper; Rs.20000-60000 to Rs.35000-110000: 1st Class/AC 3-Tier; Supervisor/lower execs: AC 2-Tier/Rajdhani 3rd AC/Shatabdi CC/AC Bus; Upper execs: 1st AC / Air Economy; GM+: Air Domestic Highest; MD/Directors: Air Highest. (6) Incidental Charges (All-India LTC only): Non-supervisors Rs.3750; Supervisors Rs.5250; Executives below HOD Rs.6000; HOD and above Rs.9000. (7) LTC Advance: Up to 90% of estimated fare; settle within 30 days; 10% p.a. interest on delay. (8) Special LTC (NER/J&K/A&N/Ladakh): Non-executives can travel by Air (Economy) on specific sectors against conversion of one Home Town LTC; extended till 25.09.2024 (DoPT); tickets booked min 21 days advance via authorized agents. (9) Split LTC: Employee and family can travel separately; HOD approval required. (10) LTC during CCL: Permitted.",
+      "rules": [
+        {
+          "rule_id": "M.1",
+          "rule_title": "Applicability",
+          "applies_to": [
+            "regular employees",
+            "contractual on regular pay scale with 1 yr service",
+            "absorbed deputationists"
+          ],
+          "content": "LTC for regular employees and contractual on regular pay scales with min 1 year service. Absorbed deputationists eligible. Excludes casual employees, retired re-employed personnel, short-term contract.",
+          "key_points": [
+            "Min 1 year continuous service",
+            "Regular + contractual on regular pay scale",
+            "Absorbed deputationists included",
+            "Retired re-employed: excluded"
+          ],
+          "office_orders": [
+            "O.O. No. PP/1326/2011 dated 17.10.2011"
+          ],
+          "approval_authority": "Competent Authority",
+          "amounts_or_limits": "Min 1 year service"
+        },
+        {
+          "rule_id": "M.4",
+          "rule_title": "LTC Types and Block Years",
+          "applies_to": [
+            "all eligible employees"
+          ],
+          "content": "Home Town LTC: once per 2-year block (direct/shortest route). All-India LTC: once per 4-year block (anywhere in India). If All-India not availed: extra Home Town LTC allowed in 4-year block. Min 6-month gap between LTCs. Block years: 2014-17, 2018-22, 2023-2025 etc. LTC only when on leave. Employees with same hometown and HQ not eligible for Hometown LTC.",
+          "key_points": [
+            "Hometown: once per 2-year block",
+            "All-India: once per 4-year block",
+            "All-India not availed → extra Hometown LTC",
+            "Min 6-month gap between LTCs",
+            "Must be on leave",
+            "Same hometown + HQ = no Hometown LTC"
+          ],
+          "office_orders": [
+            "O.O. No. PP/1751/2014",
+            "O.O. No. PP/3236/2022",
+            "O.O. No. PP/1533/2012"
+          ],
+          "approval_authority": "HOD / Competent Authority",
+          "amounts_or_limits": "1 Hometown per 2 years; 1 All-India per 4 years"
+        },
+        {
+          "rule_id": "M.4.2.2",
+          "rule_title": "Special LTC — NER/J&K/A&N/Ladakh",
+          "applies_to": [
+            "all eligible employees"
+          ],
+          "content": "Air travel permitted to Non-Executives visiting NER, J&K, A&N, Ladakh against conversion of one Home Town LTC in 4-year block. Extended till 25.09.2024 per DoPT. Executives: entitled class. Non-executives: Economy class Air on specific sectors (Kolkata/Guwahati and NER; Kolkata/Chennai/Vizag and Port Blair; Delhi/Amritsar and J&K/Ladakh). Tickets: min 21 days advance via authorized agents (Balmer Lawrie, Ashok Travels & Tours, IRCTC). Settlement within 30 days; 10% p.a. interest on delay.",
+          "key_points": [
+            "Non-executives can fly Economy to NER/J&K/A&N/Ladakh",
+            "Against 1 Hometown LTC conversion",
+            "Tickets: 21 days advance; authorized agents only",
+            "Settlement: 30 days after return",
+            "Extended till 25.09.2024"
+          ],
+          "office_orders": [
+            "O.O. No. PP/3234/2022 dated 14.12.2022",
+            "O.O. No. PP/3284/2023 dated 01.05.2023"
+          ],
+          "approval_authority": "Competent Authority / HOD",
+          "amounts_or_limits": "Tickets: 21 days advance; Settle within 30 days"
+        },
+        {
+          "rule_id": "M.incidentals",
+          "rule_title": "Incidental Charges for All-India LTC",
+          "applies_to": [
+            "employees availing All-India LTC"
+          ],
+          "content": "Incidental charges applicable only for All-India LTC (not Hometown): Non-supervisors Rs.3750; Supervisors Rs.5250; Executives below HOD Rs.6000; HOD and above Rs.9000. Railway deputationists not entitled.",
+          "key_points": [
+            "Non-supervisors: Rs.3750",
+            "Supervisors: Rs.5250",
+            "Executives below HOD: Rs.6000",
+            "HOD and above: Rs.9000",
+            "Only for All-India LTC; not for Hometown"
+          ],
+          "office_orders": [
+            "O.O. No. PP/1987/2015 dated 22.05.2015"
+          ],
+          "approval_authority": "Finance Department",
+          "amounts_or_limits": "Rs.3750 to Rs.9000"
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "M.T1",
+          "table_title": "LTC Travel Entitlement by Pay Scale",
+          "description": "Class of travel entitled during LTC",
+          "data": [
+            {
+              "pay_scale_ida": "16000-50000",
+              "entitlement": "2nd Sleeper Class"
+            },
+            {
+              "pay_scale_ida": "20000-60000 to 35000-110000",
+              "entitlement": "1st Class / AC 3-Tier (excl. Rajdhani/Shatabdi)"
+            },
+            {
+              "pay_scale_ida": "37000-115000 to 50000-160000 (Non-Exec)",
+              "entitlement": "AC 2-Tier; Rajdhani 3rd AC; Shatabdi Chair Car; AC Bus"
+            },
+            {
+              "pay_scale_ida": "50000-160000 (Exec) to 60000-180000",
+              "entitlement": "AC 2-Tier; Rajdhani 3rd AC; Shatabdi CC; AC Bus"
+            },
+            {
+              "pay_scale_ida": "70000-200000 to 100000-260000",
+              "entitlement": "1st AC; Rajdhani AC 2-Tier; Air Economy (Y-class)"
+            },
+            {
+              "pay_scale_ida": "120000-280000 to 150000-300000",
+              "entitlement": "Air Domestic (Highest class)"
+            },
+            {
+              "pay_scale_ida": "MD and Directors",
+              "entitlement": "Air Domestic (Highest class)"
+            }
+          ]
+        },
+        {
+          "table_id": "M.T2",
+          "table_title": "Incidental Charges for All-India LTC",
+          "description": "One-time incidental charges by employee category",
+          "data": [
+            {
+              "category": "Non-supervisors",
+              "incidental_rs": "3750"
+            },
+            {
+              "category": "Supervisors",
+              "incidental_rs": "5250"
+            },
+            {
+              "category": "Executives below HOD level",
+              "incidental_rs": "6000"
+            },
+            {
+              "category": "Executives HOD and above",
+              "incidental_rs": "9000"
+            }
+          ]
+        }
+      ],
+      "authority_index": [
+        {
+          "action": "Sanction LTC leave",
+          "authority": "Competent Authority (per SOP)",
+          "rule_ref": "M.4"
+        },
+        {
+          "action": "Approve Split LTC",
+          "authority": "HOD",
+          "rule_ref": "M.4.2"
+        },
+        {
+          "action": "Change of Home Town declaration",
+          "authority": "MD / Functional Director",
+          "rule_ref": "M.3.4"
+        },
+        {
+          "action": "LTC advance sanction",
+          "authority": "Finance Department",
+          "rule_ref": "M.advance"
+        }
+      ],
+      "office_order_index": [
+        {
+          "oo_number": "O.O. No. PP/1326/2011",
+          "date": "17.10.2011",
+          "subject": "LTC applicability and rules",
+          "rule_ref": "M.1"
+        },
+        {
+          "oo_number": "O.O. No. PP/1751/2014",
+          "date": "07.03.2014",
+          "subject": "LTC block year + extra Hometown LTC provision",
+          "rule_ref": "M.4"
+        },
+        {
+          "oo_number": "O.O. No. PP/3234/2022",
+          "date": "14.12.2022",
+          "subject": "Special LTC NER/J&K/A&N/Ladakh extension",
+          "rule_ref": "M.4.2.2"
+        },
+        {
+          "oo_number": "O.O. No. PP/3284/2023",
+          "date": "01.05.2023",
+          "subject": "Special LTC reimbursement at LTC-80 rates",
+          "rule_ref": "M.4.2.2"
+        },
+        {
+          "oo_number": "O.O. No. PP/1987/2015",
+          "date": "22.05.2015",
+          "subject": "LTC travel entitlement and incidental charges",
+          "rule_ref": "M.incidentals"
+        },
+        {
+          "oo_number": "O.O. No. PP/3236/2022",
+          "date": "16.12.2022",
+          "subject": "LTC Hometown and HQ same station rules",
+          "rule_ref": "M.4"
+        },
+        {
+          "oo_number": "O.O. No. PP/1533/2012",
+          "date": "06.12.2012",
+          "subject": "NCR cities outside Delhi: Hometown LTC clarification",
+          "rule_ref": "M.4"
+        }
+      ],
+      "cross_references": [
+        {
+          "from_rule": "M.4",
+          "to_chapter": "F",
+          "to_rule": "F.3.12",
+          "relationship": "LTC can be availed while on Child Care Leave (CCL)"
+        },
+        {
+          "from_rule": "M.4",
+          "to_chapter": "D",
+          "to_rule": "D.6",
+          "relationship": "LTC travel entitlement by grade mirrors TA/DA tour entitlement"
+        },
+        {
+          "from_rule": "M.3.2",
+          "to_chapter": "E",
+          "to_rule": "E.family",
+          "relationship": "Same family definition as Medical Attendance Rules"
+        }
+      ]
+    }
+  },
+  "master_authority_index": [
+    {
+      "action": "All rule interpretations and relaxations",
+      "authority": "Managing Director",
+      "chapters": "All (A-M)"
+    },
+    {
+      "action": "Superannuation extension beyond age 60",
+      "authority": "Board of Directors",
+      "chapter": "A"
+    },
+    {
+      "action": "EOL sanction for non-supervisors (1st time)",
+      "authority": "HOD",
+      "chapter": "F"
+    },
+    {
+      "action": "EOL sanction for supervisors/execs up to Manager",
+      "authority": "Director",
+      "chapter": "F"
+    },
+    {
+      "action": "EOL sanction for Dy.HOD and above",
+      "authority": "Managing Director",
+      "chapter": "F"
+    },
+    {
+      "action": "Study Leave sanction",
+      "authority": "Managing Director",
+      "chapter": "F"
+    },
+    {
+      "action": "WRIIL approval (non-exec)",
+      "authority": "HOD",
+      "chapter": "F"
+    },
+    {
+      "action": "WRIIL approval (exec)",
+      "authority": "Director",
+      "chapter": "F"
+    },
+    {
+      "action": "Ex-India leave ≤10 days (Non-exec/AM/Manager)",
+      "authority": "HOD",
+      "chapter": "F"
+    },
+    {
+      "action": "Ex-India leave >10 days (AM/Manager); any duration (Dy.HOD/HOD)",
+      "authority": "Director",
+      "chapter": "F"
+    },
+    {
+      "action": "HBA sanction for executives",
+      "authority": "Director (Finance)",
+      "chapter": "G"
+    },
+    {
+      "action": "HBA cost ceiling relaxation (up to 25%)",
+      "authority": "Sanctioning Authority",
+      "chapter": "G"
+    },
+    {
+      "action": "Vehicle advance for executives",
+      "authority": "Director (Finance)",
+      "chapter": "I"
+    },
+    {
+      "action": "Vehicle advance for non-executives (O&M)",
+      "authority": "GM/O&M/HR",
+      "chapter": "I"
+    },
+    {
+      "action": "Vehicle advance for non-executives (Project/Corporate)",
+      "authority": "ED/HR",
+      "chapter": "I"
+    },
+    {
+      "action": "MPA sanction (Project/Corporate)",
+      "authority": "HOD/HR",
+      "chapter": "J"
+    },
+    {
+      "action": "MPA sanction (O&M)",
+      "authority": "HOD/HR/O&M",
+      "chapter": "J"
+    },
+    {
+      "action": "Quarter allotment",
+      "authority": "Estate Officer",
+      "chapter": "K"
+    },
+    {
+      "action": "Staff Welfare Fund allocation",
+      "authority": "Committee → Managing Director",
+      "chapter": "L"
+    },
+    {
+      "action": "Change of Home Town (LTC)",
+      "authority": "MD / Functional Director",
+      "chapter": "M"
+    },
+    {
+      "action": "Split LTC approval",
+      "authority": "HOD",
+      "chapter": "M"
+    },
+    {
+      "action": "Major penalties (dismissal/removal/compulsory retirement)",
+      "authority": "As per Schedule A, Chapter B",
+      "chapter": "B"
+    },
+    {
+      "action": "Minor penalties (censure/withholding increment etc.)",
+      "authority": "As per Schedule A, Chapter B",
+      "chapter": "B"
+    },
+    {
+      "action": "Prolonged medical treatment (non-exec)",
+      "authority": "HOD",
+      "chapter": "E"
+    },
+    {
+      "action": "Prolonged medical treatment (exec)",
+      "authority": "Director",
+      "chapter": "E"
+    },
+    {
+      "action": "Suspension of employee",
+      "authority": "Competent Authority",
+      "chapter": "B"
+    }
+  ],
+  "master_oo_index": [
+    {
+      "oo_number": "O.O. No. PP/2927/2019",
+      "date": "03.12.2019",
+      "subject": "Pay scale / Sr.AGM special allowance",
+      "rule_ref": "C.1",
+      "chapter": "C"
+    },
+    {
+      "oo_number": "O.O. No. PP/1486/2014",
+      "date": "24.09.2014",
+      "subject": "Perks cafeteria revision",
+      "rule_ref": "C.3",
+      "chapter": "C"
+    },
+    {
+      "oo_number": "O.O. No. PP/2072/2015",
+      "date": "15.03.2022",
+      "subject": "HRA rates",
+      "rule_ref": "C.4",
+      "chapter": "C"
+    },
+    {
+      "oo_number": "O.O. No. PP-2925/2019",
+      "date": "03.12.2019",
+      "subject": "NDA and KM allowance rates",
+      "rule_ref": "C.7",
+      "chapter": "C"
+    },
+    {
+      "oo_number": "O.O. No. PP-2925/2019",
+      "date": "03.12.2019",
+      "subject": "Revision of all TA/DA rates",
+      "rule_ref": "D.6,D.7",
+      "chapter": "D"
+    },
+    {
+      "oo_number": "O.O. No. PP-1801/2014",
+      "date": "02.07.2014",
+      "subject": "Cash incentive for economy class travel by GM+",
+      "rule_ref": "D.7",
+      "chapter": "D"
+    },
+    {
+      "oo_number": "O.O. No. PP/2715/2019",
+      "date": "07.01.2019",
+      "subject": "Composite Transfer Grant rules",
+      "rule_ref": "D.8",
+      "chapter": "D"
+    },
+    {
+      "oo_number": "O.O. No. PP-3254/2023",
+      "date": "03.03.2023",
+      "subject": "Hotel charges ceiling revision",
+      "rule_ref": "D.7.3",
+      "chapter": "D"
+    },
+    {
+      "oo_number": "O.O No. HR/O&M/196/2023",
+      "date": "17.05.2023",
+      "subject": "IPD room entitlement revision",
+      "rule_ref": "E.ipd",
+      "chapter": "E"
+    },
+    {
+      "oo_number": "O.O. No. PP/43/99",
+      "date": "14.12.1999",
+      "subject": "Casual Leave pro-rata on separation",
+      "rule_ref": "F.3.1",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/1525/2012",
+      "date": "14.11.2012",
+      "subject": "Casual Leave rules",
+      "rule_ref": "F.3.1",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/1359/2011",
+      "date": "20.12.2011",
+      "subject": "Consultant CL card maintenance",
+      "rule_ref": "F.3.1.3",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/2553/2018",
+      "date": "20.03.2018",
+      "subject": "SCL for Persons with Disabilities",
+      "rule_ref": "F.3.2",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/872/2009",
+      "date": "29.01.2009",
+      "subject": "PRCE employees special leave",
+      "rule_ref": "F.3.3",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/2300/2016",
+      "date": "15.11.2016",
+      "subject": "PRCE leave continuation to consultant tenure",
+      "rule_ref": "F.3.3",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/1788/2014",
+      "date": "06.06.2014",
+      "subject": "EL salary calculation (perks included)",
+      "rule_ref": "F.3.3.10",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/1917/2015",
+      "date": "06.02.2015",
+      "subject": "EOL rules and deemed resignation",
+      "rule_ref": "F.3.7",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/3227/2022",
+      "date": "03.11.2022",
+      "subject": "WRIIL rules introduction",
+      "rule_ref": "F.3.8",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. HR/O&M/361/2022",
+      "date": "15.12.2022",
+      "subject": "WRIIL SOP",
+      "rule_ref": "F.3.8",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. HR/O&M-140/2022",
+      "date": "25.04.2022",
+      "subject": "Maternity leave for employees with >2 children",
+      "rule_ref": "F.3.10",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/820/2008",
+      "date": "13.10.2008",
+      "subject": "Maternity / Adoption / CCL rules",
+      "rule_ref": "F.3.10, F.3.12",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/807/2008",
+      "date": "15.09.2008",
+      "subject": "Paternity leave rules",
+      "rule_ref": "F.3.11",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/1955/2015",
+      "date": "26.03.2015",
+      "subject": "Maternity and paternity leave revision",
+      "rule_ref": "F.3.10, F.3.11",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/798/2008",
+      "date": "28.08.2008",
+      "subject": "Leave encashment rules; PRCE not eligible",
+      "rule_ref": "F.4.10",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/874/2009",
+      "date": "04.02.2009",
+      "subject": "Ex-India leave procedure",
+      "rule_ref": "F.5.12",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/2843/2019",
+      "date": "27.06.2019",
+      "subject": "Ex-India leave SOP revision",
+      "rule_ref": "F.5.12",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/3139/2021",
+      "date": "26.10.2021",
+      "subject": "Study leave eligibility revision (3 years service)",
+      "rule_ref": "F.3.13",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/1189/2010",
+      "date": "14.12.2010",
+      "subject": "Transfer of EL/HPL to other Govt. organisations",
+      "rule_ref": "F.9",
+      "chapter": "F"
+    },
+    {
+      "oo_number": "O.O. No. PP/2752/2019",
+      "date": "30.01.2019",
+      "subject": "HBA amount and cost ceiling revision",
+      "rule_ref": "G.7, G.8",
+      "chapter": "G"
+    },
+    {
+      "oo_number": "O.O. No. PP/1520/2012",
+      "date": "22.10.2012",
+      "subject": "HBA rules revision",
+      "rule_ref": "G.8",
+      "chapter": "G"
+    },
+    {
+      "oo_number": "O.O. No. PP/1048/2010",
+      "date": "18.02.2010",
+      "subject": "HBA limits",
+      "rule_ref": "G.8",
+      "chapter": "G"
+    },
+    {
+      "oo_number": "O.O. No. PP/3341/2023",
+      "date": "06.09.2023",
+      "subject": "Motor car advance limits revision",
+      "rule_ref": "I.motor_car",
+      "chapter": "I"
+    },
+    {
+      "oo_number": "O.O. No. PP/2349/2017",
+      "date": "03.04.2017",
+      "subject": "Two-wheeler advance limits",
+      "rule_ref": "I.two_wheeler",
+      "chapter": "I"
+    },
+    {
+      "oo_number": "O.O. No. PP/1499/2012",
+      "date": "26.06.2012",
+      "subject": "No vehicle advance for used vehicles",
+      "rule_ref": "I.2",
+      "chapter": "I"
+    },
+    {
+      "oo_number": "O.O. No. PP/538/2006",
+      "date": "30.10.2006",
+      "subject": "MPA Rules introduction",
+      "rule_ref": "J.1",
+      "chapter": "J"
+    },
+    {
+      "oo_number": "O.O. No. PP/2776/2018",
+      "date": "22.02.2019",
+      "subject": "MPA amount revised to Rs.2 lakh",
+      "rule_ref": "J.3",
+      "chapter": "J"
+    },
+    {
+      "oo_number": "O.O. No. PP/1520/2012",
+      "date": "22.10.2012",
+      "subject": "MPA 3-occasion limit and 2-year gap",
+      "rule_ref": "J.2",
+      "chapter": "J"
+    },
+    {
+      "oo_number": "O.O. No. PP/1572/2013",
+      "date": "06.03.2013",
+      "subject": "Surety bond requirements",
+      "rule_ref": "J.6",
+      "chapter": "J"
+    },
+    {
+      "oo_number": "O.O. No. PP/1782/2014",
+      "date": "03.06.2014",
+      "subject": "Contract service @70% for MPA eligibility",
+      "rule_ref": "J.2",
+      "chapter": "J"
+    },
+    {
+      "oo_number": "O.O. No. PP/1326/2011",
+      "date": "17.10.2011",
+      "subject": "LTC applicability and rules",
+      "rule_ref": "M.1",
+      "chapter": "M"
+    },
+    {
+      "oo_number": "O.O. No. PP/1751/2014",
+      "date": "07.03.2014",
+      "subject": "LTC block year + extra Hometown LTC provision",
+      "rule_ref": "M.4",
+      "chapter": "M"
+    },
+    {
+      "oo_number": "O.O. No. PP/3234/2022",
+      "date": "14.12.2022",
+      "subject": "Special LTC NER/J&K/A&N/Ladakh extension",
+      "rule_ref": "M.4.2.2",
+      "chapter": "M"
+    },
+    {
+      "oo_number": "O.O. No. PP/3284/2023",
+      "date": "01.05.2023",
+      "subject": "Special LTC reimbursement at LTC-80 rates",
+      "rule_ref": "M.4.2.2",
+      "chapter": "M"
+    },
+    {
+      "oo_number": "O.O. No. PP/1987/2015",
+      "date": "22.05.2015",
+      "subject": "LTC travel entitlement and incidental charges",
+      "rule_ref": "M.incidentals",
+      "chapter": "M"
+    },
+    {
+      "oo_number": "O.O. No. PP/3236/2022",
+      "date": "16.12.2022",
+      "subject": "LTC Hometown and HQ same station rules",
+      "rule_ref": "M.4",
+      "chapter": "M"
+    },
+    {
+      "oo_number": "O.O. No. PP/1533/2012",
+      "date": "06.12.2012",
+      "subject": "NCR cities outside Delhi: Hometown LTC clarification",
+      "rule_ref": "M.4",
+      "chapter": "M"
+    }
+  ],
+  "master_cross_reference": [
+    {
+      "from_rule": "A.9",
+      "to_chapter": "D",
+      "to_rule": "D.8",
+      "relationship": "Transfer expenses and joining time governed by TA/DA rules",
+      "source_chapter": "A"
+    },
+    {
+      "from_rule": "A.20",
+      "to_chapter": "F",
+      "to_rule": "F.4.2",
+      "relationship": "Leave encashment on VRS governed by Leave Rules",
+      "source_chapter": "A"
+    },
+    {
+      "from_rule": "A.22",
+      "to_chapter": "F",
+      "to_rule": "F.4.2",
+      "relationship": "Leave encashment on superannuation — up to 300 days EL+HPL",
+      "source_chapter": "A"
+    },
+    {
+      "from_rule": "B.5.24",
+      "to_chapter": "K",
+      "to_rule": "K.12",
+      "relationship": "Subletting of quarters is misconduct — also addressed in Housing Allotment Rules",
+      "source_chapter": "B"
+    },
+    {
+      "from_rule": "B.37",
+      "to_chapter": "C",
+      "to_rule": "C.28",
+      "relationship": "Subsistence allowance paid from pay & allowances during suspension",
+      "source_chapter": "B"
+    },
+    {
+      "from_rule": "B.40",
+      "to_chapter": "A",
+      "to_rule": "A.21",
+      "relationship": "Termination on disciplinary grounds references Chapter A",
+      "source_chapter": "B"
+    },
+    {
+      "from_rule": "C.4",
+      "to_chapter": "K",
+      "to_rule": "K.12",
+      "relationship": "HRA not payable while in DMRC staff quarters",
+      "source_chapter": "C"
+    },
+    {
+      "from_rule": "C.2",
+      "to_chapter": "F",
+      "to_rule": "F.3.3",
+      "relationship": "DA included in earned leave salary",
+      "source_chapter": "C"
+    },
+    {
+      "from_rule": "D.8",
+      "to_chapter": "A",
+      "to_rule": "A.9",
+      "relationship": "Transfer entitlements supplement Chapter A transfer rules",
+      "source_chapter": "D"
+    },
+    {
+      "from_rule": "D.6",
+      "to_chapter": "M",
+      "to_rule": "M.4",
+      "relationship": "LTC travel entitlement mirrors TA/DA tour entitlement by grade",
+      "source_chapter": "D"
+    },
+    {
+      "from_rule": "E.family",
+      "to_chapter": "M",
+      "to_rule": "M.3.2",
+      "relationship": "Same family definition applies for LTC",
+      "source_chapter": "E"
+    },
+    {
+      "from_rule": "E.family",
+      "to_chapter": "L",
+      "to_rule": "L.2.2",
+      "relationship": "Same family definition for Staff Welfare Fund",
+      "source_chapter": "E"
+    },
+    {
+      "from_rule": "E.prolonged",
+      "to_chapter": "F",
+      "to_rule": "F.3.7",
+      "relationship": "EOL often follows prolonged illness; approval authorities align",
+      "source_chapter": "E"
+    },
+    {
+      "from_rule": "F.3.7",
+      "to_chapter": "B",
+      "to_rule": "B.5.7",
+      "relationship": "Absence >4 days without explanation = misconduct; EOL must be sanctioned before proceeding",
+      "source_chapter": "F"
+    },
+    {
+      "from_rule": "F.4",
+      "to_chapter": "A",
+      "to_rule": "A.20",
+      "relationship": "Leave encashment on VRS governed by F.4",
+      "source_chapter": "F"
+    },
+    {
+      "from_rule": "F.3.12",
+      "to_chapter": "M",
+      "to_rule": "M.4",
+      "relationship": "LTC can be availed during CCL",
+      "source_chapter": "F"
+    },
+    {
+      "from_rule": "F.3.13",
+      "to_chapter": "C",
+      "to_rule": "C.4",
+      "relationship": "HRA admissible for first 180 days of study leave; CCA for first 120 days",
+      "source_chapter": "F"
+    },
+    {
+      "from_rule": "F.8",
+      "to_chapter": "A",
+      "to_rule": "A.7",
+      "relationship": "Compensatory rest for O&M non-executives working on weekly off",
+      "source_chapter": "F"
+    },
+    {
+      "from_rule": "G.1",
+      "to_chapter": "A",
+      "to_rule": "A.3",
+      "relationship": "Only confirmed employees eligible; confirmation process in Chapter A",
+      "source_chapter": "G"
+    },
+    {
+      "from_rule": "G.16",
+      "to_chapter": "B",
+      "to_rule": "B.16",
+      "relationship": "Acquiring immovable property requires prior permission under Conduct Rules",
+      "source_chapter": "G"
+    },
+    {
+      "from_rule": "H.8",
+      "to_chapter": "A",
+      "to_rule": "A.2.8",
+      "relationship": "Probation period rules detailed in Chapter A",
+      "source_chapter": "H"
+    },
+    {
+      "from_rule": "H.10",
+      "to_chapter": "F",
+      "to_rule": "F.3.3",
+      "relationship": "PRCE employees: 1 special leave/month; not regular EL",
+      "source_chapter": "H"
+    },
+    {
+      "from_rule": "H.10",
+      "to_chapter": "G",
+      "to_rule": "G.1",
+      "relationship": "PRCE employees not eligible for HBA",
+      "source_chapter": "H"
+    },
+    {
+      "from_rule": "I.2",
+      "to_chapter": "B",
+      "to_rule": "B.16",
+      "relationship": "Vehicle purchase requires prior intimation under Conduct Rules (movable property)",
+      "source_chapter": "I"
+    },
+    {
+      "from_rule": "I.2",
+      "to_chapter": "A",
+      "to_rule": "A.3",
+      "relationship": "Only confirmed employees eligible",
+      "source_chapter": "I"
+    },
+    {
+      "from_rule": "J.2",
+      "to_chapter": "A",
+      "to_rule": "A.3",
+      "relationship": "Confirmation prerequisite for MPA",
+      "source_chapter": "J"
+    },
+    {
+      "from_rule": "J.5",
+      "to_chapter": "C",
+      "to_rule": "C.1",
+      "relationship": "50% pay cap calculated on basic pay per Chapter C",
+      "source_chapter": "J"
+    },
+    {
+      "from_rule": "K.12",
+      "to_chapter": "C",
+      "to_rule": "C.4",
+      "relationship": "HRA (27%/18%/9%) not payable while DMRC quarters occupied",
+      "source_chapter": "K"
+    },
+    {
+      "from_rule": "K.12",
+      "to_chapter": "B",
+      "to_rule": "B.5.24",
+      "relationship": "Subletting of DMRC quarters = misconduct under Conduct Rules",
+      "source_chapter": "K"
+    },
+    {
+      "from_rule": "L.2",
+      "to_chapter": "E",
+      "to_rule": "E.family",
+      "relationship": "Same family definition as Medical Attendance Rules",
+      "source_chapter": "L"
+    },
+    {
+      "from_rule": "L.6",
+      "to_chapter": "H",
+      "to_rule": "H.14",
+      "relationship": "One-time grant to deceased member's family only where no compassionate appointment given",
+      "source_chapter": "L"
+    },
+    {
+      "from_rule": "M.4",
+      "to_chapter": "F",
+      "to_rule": "F.3.12",
+      "relationship": "LTC can be availed while on Child Care Leave (CCL)",
+      "source_chapter": "M"
+    },
+    {
+      "from_rule": "M.4",
+      "to_chapter": "D",
+      "to_rule": "D.6",
+      "relationship": "LTC travel entitlement by grade mirrors TA/DA tour entitlement",
+      "source_chapter": "M"
+    },
+    {
+      "from_rule": "M.3.2",
+      "to_chapter": "E",
+      "to_rule": "E.family",
+      "relationship": "Same family definition as Medical Attendance Rules",
+      "source_chapter": "M"
+    }
+  ],
+  "leave_types_index": {
+    "count": 13,
+    "summary_for_chatbot": "DMRC provides 13 types of leave under Chapter F of the HR Compendium: (1) Casual Leave — 8 days/year (5-day office) or 12 days/year (6-day O&M field); (2) Special Casual Leave — up to 30 days/year for specific approved purposes; (3) Earned Leave — 30 days/year, max 300 days accumulated; (4) Half Pay Leave — 20 days/year, salary at 50%; (5) Leave Not Due — medical grounds only, max 360 days career; (6) Commuted Leave — medical or approved study, charged at double HPL; (7) Extra Ordinary Leave — no other leave due, max 2 years career, no pay; (8) WRIIL — job-related illness/injury, full pay during hospitalization and 6 months post; (9) Quarantine Leave — infectious disease in household, max 21 days; (10) Maternity Leave — 182 days for up to 2 children, 12 weeks for more than 2; (11) Paternity Leave — 15 days for male employees with less than 2 children; (12) Child Care Leave — 730 days in career for confirmed female employees; (13) Study Leave — after 3 years service, max 24 months career, MD approval.",
+    "types": [
+      {
+        "number": 1,
+        "name": "Casual Leave (CL)",
+        "days": "8/yr (office) or 12/yr (O&M)",
+        "rule": "F.3.1"
+      },
+      {
+        "number": 2,
+        "name": "Special Casual Leave (SCL)",
+        "days": "Up to 30/yr",
+        "rule": "F.3.2"
+      },
+      {
+        "number": 3,
+        "name": "Earned Leave (EL)",
+        "days": "30/yr; max 300 accumulated",
+        "rule": "F.3.3"
+      },
+      {
+        "number": 4,
+        "name": "Half Pay Leave (HPL)",
+        "days": "20/yr; no accumulation limit",
+        "rule": "F.3.4"
+      },
+      {
+        "number": 5,
+        "name": "Leave Not Due (LND)",
+        "days": "Max 360 days career",
+        "rule": "F.3.5"
+      },
+      {
+        "number": 6,
+        "name": "Commuted Leave",
+        "days": "Max 90 days for study",
+        "rule": "F.3.6"
+      },
+      {
+        "number": 7,
+        "name": "Extra Ordinary Leave (EOL)",
+        "days": "Max 2 years career",
+        "rule": "F.3.7"
+      },
+      {
+        "number": 8,
+        "name": "Work Related Illness and Injury Leave (WRIIL)",
+        "days": "Full pay hospital+6mths; half pay 12mths",
+        "rule": "F.3.8"
+      },
+      {
+        "number": 9,
+        "name": "Quarantine Leave",
+        "days": "Max 21 days (30 exceptional)",
+        "rule": "F.3.9"
+      },
+      {
+        "number": 10,
+        "name": "Maternity Leave",
+        "days": "182 days (≤2 children); 12 weeks (>2)",
+        "rule": "F.3.10"
+      },
+      {
+        "number": 11,
+        "name": "Paternity Leave",
+        "days": "15 days",
+        "rule": "F.3.11"
+      },
+      {
+        "number": 12,
+        "name": "Child Care Leave (CCL)",
+        "days": "730 days (2 years) career",
+        "rule": "F.3.12"
+      },
+      {
+        "number": 13,
+        "name": "Study Leave",
+        "days": "Max 24 months career",
+        "rule": "F.3.13"
+      }
+    ]
+  },
+  "financial_limits_index": [
+    {
+      "benefit": "HBA — New house/flat",
+      "limit": "Rs.40 lakh or 60x basic pay (lower)",
+      "interest": "5%/7.5%/9% (slab)",
+      "chapter": "G"
+    },
+    {
+      "benefit": "HBA — Enlargement",
+      "limit": "Rs.20 lakh or 60x basic pay (lower)",
+      "interest": "9%",
+      "chapter": "G"
+    },
+    {
+      "benefit": "HBA Cost Ceiling",
+      "limit": "139x basic pay; max Rs.1 Crore",
+      "interest": "N/A",
+      "chapter": "G"
+    },
+    {
+      "benefit": "Motor Car Advance — Executive",
+      "limit": "Rs.5 lakh or 25x monthly basic (lower); vehicle ceiling Rs.15L",
+      "interest": "As per rules",
+      "chapter": "I"
+    },
+    {
+      "benefit": "Motor Car Advance — Sr. Supervisor",
+      "limit": "Rs.3.5 lakh or 25x monthly basic (lower); vehicle ceiling Rs.9L",
+      "interest": "As per rules",
+      "chapter": "I"
+    },
+    {
+      "benefit": "Motor Car Advance — Supervisor/below",
+      "limit": "Rs.1.5 lakh or 25x monthly basic (lower); vehicle ceiling Rs.6.75L",
+      "interest": "As per rules",
+      "chapter": "I"
+    },
+    {
+      "benefit": "Two-Wheeler Advance — All grades",
+      "limit": "Rs.1.5 lakh or 10x monthly basic (lower); vehicle ceiling Rs.1.5L",
+      "interest": "As per rules",
+      "chapter": "I"
+    },
+    {
+      "benefit": "Multi-Purpose Advance (MPA)",
+      "limit": "Rs.2 lakh or 5x basic pay (lower)",
+      "interest": "7.5% simple",
+      "chapter": "J"
+    },
+    {
+      "benefit": "EL Encashment on superannuation",
+      "limit": "300 days (EL+HPL combined)",
+      "interest": "N/A",
+      "chapter": "F"
+    },
+    {
+      "benefit": "EL Encashment on resignation",
+      "limit": "50% non-encashable EL; max 75 days",
+      "interest": "N/A",
+      "chapter": "F"
+    },
+    {
+      "benefit": "CTG on transfer (>20km)",
+      "limit": "80% of last month basic pay",
+      "interest": "N/A",
+      "chapter": "D"
+    },
+    {
+      "benefit": "CTG on transfer (<20km/same city)",
+      "limit": "1/3rd of CTG",
+      "interest": "N/A",
+      "chapter": "D"
+    }
+  ]
+}
