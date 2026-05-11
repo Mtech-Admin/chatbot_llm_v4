@@ -38,7 +38,20 @@ function loadEnvFile(filePath) {
 }
 
 const root = __dirname;
-const envFile = process.env.PM2_ENV_FILE || ".env.local";
+
+// Resolve which env file to load.
+// Priority: PM2_ENV_FILE (explicit path) > APP_ENV (local|staging|production) > .env.local
+const APP_ENV = (process.env.APP_ENV || "local").trim().toLowerCase();
+const envFileMap = {
+  local:      ".env.local",
+  staging:    ".env.staging",
+  production: ".env.production",
+};
+const envFile =
+  process.env.PM2_ENV_FILE ||
+  envFileMap[APP_ENV] ||
+  `.env.${APP_ENV}`;
+
 const envFromFile = loadEnvFile(path.join(root, envFile));
 const listenPort = envFromFile.PORT || process.env.PORT || "8001";
 
@@ -63,6 +76,7 @@ module.exports = {
       interpreter: "python3",
       env: {
         PYTHONUNBUFFERED: "1",
+        APP_ENV: APP_ENV,
         ...envFromFile,
       },
       log_date_format: "YYYY-MM-DD HH:mm:ss",
