@@ -189,33 +189,58 @@ class PolicyAgent(BaseAgent):
             top = all_matches[0]
             top_chunk_type = (top.metadata or {}).get("chunk_type", "")
 
-            # FAQ entries carry a direct answer — return it without an LLM call.
+            # For FAQ entries: only return the stored answer directly when the
+            # stored FAQ question is a close match to what the user actually asked.
+            # A high question-overlap score (≥ 0.72) means the user asked exactly
+            # that question.  A lower score means the query is broader or different
+            # (e.g. user asks "Tell me about medical reimbursement" but the FAQ
+            # question is "Documents for medical reimbursement?") — in that case
+            # fall through to the LLM so all retrieved chunks are combined into a
+            # comprehensive answer.
             if top_chunk_type == CHUNK_TYPE_FAQ:
-                answer = self._extract_faq_answer(top.content)
-                state.response_message = answer
-                state.sources = [
-                    {
-                        "type": "policy_faq_chunk",
-                        "document_key": top.document_key,
-                        "section_title": top.section_title,
-                        "chunk_index": top.chunk_index,
-                        "vector_score": round(top.vector_score, 4),
-                        "keyword_score": round(top.keyword_score, 4),
-                        "combined_score": round(top.combined_score, 4),
-                        "source_file": (top.metadata or {}).get("source_file", top.source_file),
-                        "row_number": (top.metadata or {}).get("row_number"),
-                        "kb_stats": kb_stats,
-                    }
-                ]
-                state.routing_agent = "policy_agent"
+                faq_question = (top.metadata or {}).get("question", top.section_title or "")
+                q_similarity = self._question_similarity(retrieval_query, faq_question)
                 logger.info(
-                    "Policy agent used FAQ chunk for employee %s score=%.4f",
+                    "FAQ question similarity for employee %s: user_q=%r faq_q=%r similarity=%.4f",
                     state.employee_id,
-                    best_score,
+                    retrieval_query,
+                    faq_question,
+                    q_similarity,
                 )
-                return state
+                if q_similarity >= 0.72:
+                    answer = self._extract_faq_answer(top.content)
+                    state.response_message = answer
+                    state.sources = [
+                        {
+                            "type": "policy_faq_chunk",
+                            "document_key": top.document_key,
+                            "section_title": top.section_title,
+                            "chunk_index": top.chunk_index,
+                            "vector_score": round(top.vector_score, 4),
+                            "keyword_score": round(top.keyword_score, 4),
+                            "combined_score": round(top.combined_score, 4),
+                            "question_similarity": round(q_similarity, 4),
+                            "source_file": (top.metadata or {}).get("source_file", top.source_file),
+                            "row_number": (top.metadata or {}).get("row_number"),
+                            "kb_stats": kb_stats,
+                        }
+                    ]
+                    state.routing_agent = "policy_agent"
+                    logger.info(
+                        "Policy agent used FAQ direct answer for employee %s score=%.4f q_sim=%.4f",
+                        state.employee_id,
+                        best_score,
+                        q_similarity,
+                    )
+                    return state
+                # Broad query — fall through to LLM grounding below.
+                logger.info(
+                    "Policy agent: FAQ question similarity %.4f < 0.72 — routing to LLM for employee %s",
+                    q_similarity,
+                    state.employee_id,
+                )
 
-            # Policy document chunks — ground through LLM.
+            # Policy document chunks (and broad FAQ queries) — ground through LLM.
             state.response_message = await self._build_grounded_policy_answer(state, all_matches)
             state.sources = [
                 {
@@ -237,7 +262,7 @@ class PolicyAgent(BaseAgent):
             ] + [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
             state.routing_agent = "policy_agent"
             logger.info(
-                "Policy agent used doc chunks for employee %s score=%.4f",
+                "Policy agent used LLM grounding for employee %s score=%.4f",
                 state.employee_id,
                 best_score,
             )
@@ -258,6 +283,33 @@ class PolicyAgent(BaseAgent):
         if m:
             return m.group(1).strip()
         return content
+
+    @staticmethod
+    def _question_similarity(user_query: str, faq_question: str) -> float:
+        """
+        Token-Jaccard similarity between the user query and a FAQ question.
+        Returns a value in [0, 1].  A score ≥ 0.72 means the two questions share
+        enough tokens to be considered the same specific question.
+        A lower score means the user's query is broader or covers a different angle.
+        """
+        stop = {
+            "a", "an", "the", "is", "are", "was", "were", "be", "been",
+            "what", "when", "where", "which", "who", "how", "why",
+            "me", "my", "i", "tell", "give", "please", "about", "for",
+            "in", "on", "of", "to", "and", "or", "do", "does", "can",
+        }
+        def _tokens(text: str) -> set[str]:
+            return {
+                t for t in re.findall(r"[a-zA-Z0-9]+", text.lower())
+                if len(t) >= 3 and t not in stop
+            }
+        q = _tokens(user_query)
+        f = _tokens(faq_question)
+        if not q or not f:
+            return 0.0
+        inter = len(q & f)
+        union = len(q | f)
+        return inter / union if union else 0.0
 
     def _log_doc_retrieval(
         self,
