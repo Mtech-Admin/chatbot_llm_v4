@@ -18,7 +18,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, declarative_base
 
 from app.config import settings
-from app.knowledge.ingest import PolicyDocChunk
+from app.knowledge.ingest import CHUNK_TYPE_FAQ, PolicyDocChunk, deduplicate_faq_rows
 
 logger = logging.getLogger(__name__)
 Base = declarative_base()
@@ -296,6 +296,70 @@ class PolicyKnowledgeStore:
                     )
             session.commit()
             return session.query(PolicyQA).count()
+
+    def upsert_faq_as_chunks(
+        self,
+        entries: list[dict[str, Any]],
+        *,
+        document_key: str = "faq_kb",
+        document_title: str = "FAQ Knowledge Base",
+        source_file: str = "faq_kb",
+        replace_existing: bool = True,
+    ) -> dict[str, Any]:
+        """
+        Ingest FAQ Q&A pairs as PolicyChunk rows inside a virtual FAQ document.
+
+        Each entry must contain 'question' and 'answer' keys.  The chunk content
+        is stored as "Question: {q}\\nAnswer: {a}" so the same pgvector index and
+        hybrid search covers both FAQ and policy-document chunks in one query.
+
+        Returns the same shape as upsert_policy_document().
+        """
+        if not entries:
+            return {"document_id": -1, "document_key": document_key, "chunk_count": 0}
+
+        entries, removed = deduplicate_faq_rows(entries)
+        if removed:
+            logger.info(
+                "upsert_faq_as_chunks: removed %s duplicate FAQ row(s) before ingestion (document_key=%s)",
+                removed,
+                document_key,
+            )
+
+        chunks: list[PolicyDocChunk] = []
+        for idx, entry in enumerate(entries):
+            question = str(entry.get("question", "")).strip()
+            answer = str(entry.get("answer", "")).strip()
+            if not question or not answer:
+                continue
+            content = f"Question: {question}\nAnswer: {answer}"
+            chunks.append(
+                PolicyDocChunk(
+                    chunk_index=idx,
+                    content=content,
+                    chunk_type=CHUNK_TYPE_FAQ,
+                    section_title=question[:120],
+                    metadata={
+                        "chunk_type": CHUNK_TYPE_FAQ,
+                        "question": question,
+                        "answer": answer,
+                        "source_file": source_file,
+                        "row_number": entry.get("row_number"),
+                    },
+                )
+            )
+
+        if not chunks:
+            return {"document_id": -1, "document_key": document_key, "chunk_count": 0}
+
+        return self.upsert_policy_document(
+            document_key=document_key,
+            title=document_title,
+            source_file=source_file,
+            chunks=chunks,
+            replace_existing=replace_existing,
+            metadata={"ingest_source": "faq", "faq_count": len(chunks)},
+        )
 
     def upsert_policy_document(
         self,

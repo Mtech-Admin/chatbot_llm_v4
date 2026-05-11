@@ -39,6 +39,7 @@ CHUNK_TYPE_TABLE = "table_chunk"
 CHUNK_TYPE_AUTHORITY = "authority_chunk"
 CHUNK_TYPE_OO_INDEX = "oo_index"
 CHUNK_TYPE_CROSS_REF = "cross_ref"
+CHUNK_TYPE_FAQ = "faq_entry"
 
 # Known DMRC HR Compendium chapter letters → titles (updated when a chapter header is found)
 _CHAPTER_TITLES: dict[str, str] = {
@@ -117,6 +118,33 @@ def read_policy_rows(file_path: Path) -> list[dict[str, Any]]:
     if suffix in {".xlsx", ".xlsm"}:
         return _read_xlsx(file_path)
     raise ValueError(f"Unsupported file extension: {suffix}")
+
+
+def deduplicate_faq_rows(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int]:
+    """
+    Remove duplicate FAQ rows using a case-insensitive, whitespace-normalised
+    question as the deduplication key.  The first occurrence of each unique
+    question is kept; subsequent duplicates are silently discarded.
+
+    Returns (deduplicated_rows, duplicate_count).
+    """
+    seen: set[str] = set()
+    unique: list[dict[str, Any]] = []
+    duplicates = 0
+    for row in rows:
+        question = str(row.get("question", "")).strip()
+        if not question:
+            continue
+        key = re.sub(r"\s+", " ", question.lower())
+        if key in seen:
+            duplicates += 1
+            logger.debug("Duplicate FAQ question skipped (row %s): %r", row.get("row_number"), question[:80])
+            continue
+        seen.add(key)
+        unique.append(row)
+    if duplicates:
+        logger.info("FAQ deduplication: %s duplicate(s) removed, %s unique rows kept", duplicates, len(unique))
+    return unique, duplicates
 
 
 def read_policy_docx_chunks(

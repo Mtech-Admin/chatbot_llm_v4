@@ -10,6 +10,7 @@ from app.config import get_llm_client, get_model_name, settings
 from app.knowledge.ingest import (
     CHUNK_TYPE_AUTHORITY,
     CHUNK_TYPE_CHAPTER_SUMMARY,
+    CHUNK_TYPE_FAQ,
     CHUNK_TYPE_OO_INDEX,
     CHUNK_TYPE_RULE,
     CHUNK_TYPE_TABLE,
@@ -85,9 +86,8 @@ class PolicyAgent(BaseAgent):
                 state.employee_id,
                 kb_stats,
             )
-            has_doc_index = kb_stats.get("policy_chunk_count", 0) > 0
-            has_faq_index = kb_stats.get("rows", 0) > 0
-            if not has_doc_index and not has_faq_index:
+            has_chunks = kb_stats.get("policy_chunk_count", 0) > 0
+            if not has_chunks:
                 state.response_message = (
                     "I am unable to find policy information right now. "
                     "Please try again in a little while or contact HR."
@@ -95,177 +95,154 @@ class PolicyAgent(BaseAgent):
                 state.sources = [{"type": "policy_kb", "kb_stats": kb_stats}]
                 return state
 
-            doc_matches = []
-            if settings.POLICY_RAG_ENABLED and has_doc_index:
-                retrieval_query = self._normalize_policy_query(state.user_message)
-                top_k_final = max(1, settings.POLICY_RAG_TOP_K)
-                # Pin to a specific document when configured (prevents stale docs polluting results).
-                doc_key_filter: str | None = settings.POLICY_RAG_DOCUMENT_KEY.strip() or None
-
-                # Step 1: classify query type and attempt targeted chunk-type retrieval.
-                query_type = self._classify_query_type(retrieval_query)
-                logger.info(
-                    "RAG query classification for employee %s: query_type=%s doc_key=%s",
-                    state.employee_id,
-                    query_type,
-                    doc_key_filter or "all",
-                )
-
-                targeted_matches: list[PolicyChunkMatch] = []
-                if query_type != CHUNK_TYPE_RULE:
-                    # Targeted retrieval for non-default query types
-                    targeted_matches = policy_store.search_chunks_by_type(
-                        retrieval_query,
-                        chunk_type=query_type,
-                        top_k=top_k_final,
-                        fallback_if_few=2,
-                        document_key=doc_key_filter,
-                    )
-                    logger.info(
-                        "RAG targeted retrieval employee=%s type=%s found=%s",
-                        state.employee_id,
-                        query_type,
-                        len(targeted_matches),
-                    )
-
-                # Step 2: hybrid vector+lexical broad search (always run for completeness).
-                raw_doc_matches = policy_store.search_chunks(
-                    retrieval_query,
-                    top_k=max(top_k_final * 4, 20),
-                    document_key=doc_key_filter,
-                )
-
-                # Step 3: extract rare/specific terms and do a guaranteed DB lookup.
-                specific_terms = self._specific_query_terms(retrieval_query)
-                exact_matches: list[PolicyChunkMatch] = []
-                if specific_terms:
-                    exact_matches = policy_store.search_chunks_by_exact_terms(
-                        retrieval_query,
-                        specific_terms,
-                        top_k=top_k_final,
-                        document_key=doc_key_filter,
-                    )
-                    logger.info(
-                        "RAG exact-term lookup for employee %s terms=%s found=%s",
-                        state.employee_id,
-                        specific_terms,
-                        len(exact_matches),
-                    )
-
-                # Step 4: merge — targeted hits first, then exact-term, then hybrid.
-                seen_chunk_ids: set[tuple[str, int]] = set()
-                merged: list[PolicyChunkMatch] = []
-                for m in targeted_matches:
-                    key = (m.source_file, m.chunk_index)
-                    if key not in seen_chunk_ids:
-                        seen_chunk_ids.add(key)
-                        merged.append(m)
-                for m in exact_matches:
-                    key = (m.source_file, m.chunk_index)
-                    if key not in seen_chunk_ids:
-                        seen_chunk_ids.add(key)
-                        merged.append(m)
-                for m in raw_doc_matches:
-                    key = (m.source_file, m.chunk_index)
-                    if key not in seen_chunk_ids:
-                        seen_chunk_ids.add(key)
-                        merged.append(m)
-
-                doc_matches = self._select_relevant_doc_matches(
-                    query=retrieval_query,
-                    matches=merged,
-                    top_k=top_k_final,
-                )
-                self._log_doc_retrieval(state.employee_id, retrieval_query, doc_matches)
-
-            ranked_faq = []
-            if has_faq_index:
-                faq_matches = policy_store.search(state.user_message, top_k=10)
-                if faq_matches:
-                    ranked_faq = self._rank_faq_matches(state.user_message, faq_matches)
-
-            best_doc_score = doc_matches[0].combined_score if doc_matches else 0.0
-            best_faq_score = ranked_faq[0]["combined"] if ranked_faq else 0.0
-            logger.info(
-                "Policy merged retrieval for employee %s: best_doc=%.4f best_faq=%.4f",
-                state.employee_id,
-                best_doc_score,
-                best_faq_score,
-            )
-
-            # Use doc path when best chunk score clears the configured threshold.
-            # Default threshold is 0.20 — low enough for semantic-adjacent topics,
-            # high enough to reject total misses.
-            doc_floor = max(0.15, settings.POLICY_RAG_DOC_CONFIDENCE_THRESHOLD)
-            if doc_matches and best_doc_score >= doc_floor:
-                state.response_message = await self._build_grounded_policy_answer(state, doc_matches)
-                sources = [
-                    {
-                        "type": "policy_doc_chunk",
-                        "document_key": m.document_key,
-                        "document_title": m.document_title,
-                        "source_file": m.source_file,
-                        "chunk_index": m.chunk_index,
-                        "section_title": m.section_title,
-                        "page_number": m.page_number,
-                        "chunk_type": (m.metadata or {}).get("chunk_type"),
-                        "chapter": (m.metadata or {}).get("chapter"),
-                        "rule_number": (m.metadata or {}).get("rule_number"),
-                        "vector_score": round(m.vector_score, 4),
-                        "keyword_score": round(m.keyword_score, 4),
-                        "combined_score": round(m.combined_score, 4),
-                    }
-                    for m in doc_matches[:3]
-                ]
-                if ranked_faq:
-                    faq_best = ranked_faq[0]
-                    sources.append(
-                        {
-                            "type": "policy_qa_support",
-                            "question": faq_best["match"].question,
-                            "vector_score": round(faq_best["vector"], 4),
-                            "keyword_score": round(faq_best["keyword"], 4),
-                            "combined_score": round(faq_best["combined"], 4),
-                            "source_file": faq_best["match"].source_file,
-                            "row_number": faq_best["match"].row_number,
-                        }
-                    )
-                state.sources = sources + [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
-                state.routing_agent = "policy_agent"
-                logger.info(
-                    "Policy agent selected document path for employee %s doc_score=%.4f faq_score=%.4f",
-                    state.employee_id,
-                    best_doc_score,
-                    best_faq_score,
-                )
+            if not settings.POLICY_RAG_ENABLED:
+                state.response_message = self._general_fallback_response()
+                state.sources = [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
                 return state
 
-            if ranked_faq and best_faq_score >= settings.POLICY_RAG_FAQ_CONFIDENCE_THRESHOLD:
-                best = ranked_faq[0]
-                state.response_message = best["match"].answer
+            retrieval_query = self._normalize_policy_query(state.user_message)
+            top_k_final = max(1, settings.POLICY_RAG_TOP_K)
+            # When POLICY_RAG_DOCUMENT_KEY is set, pin to that document only.
+            # Leave None to search across all documents including faq_kb.
+            doc_key_filter: str | None = settings.POLICY_RAG_DOCUMENT_KEY.strip() or None
+
+            # Step 1: classify query type for targeted retrieval.
+            query_type = self._classify_query_type(retrieval_query)
+            logger.info(
+                "RAG query classification for employee %s: query_type=%s doc_key=%s",
+                state.employee_id,
+                query_type,
+                doc_key_filter or "all",
+            )
+
+            # Step 2: targeted retrieval for non-default (non-rule) query types.
+            targeted_matches: list[PolicyChunkMatch] = []
+            if query_type not in (CHUNK_TYPE_RULE, CHUNK_TYPE_FAQ):
+                targeted_matches = policy_store.search_chunks_by_type(
+                    retrieval_query,
+                    chunk_type=query_type,
+                    top_k=top_k_final,
+                    fallback_if_few=2,
+                    document_key=doc_key_filter,
+                )
+                logger.info(
+                    "RAG targeted retrieval employee=%s type=%s found=%s",
+                    state.employee_id,
+                    query_type,
+                    len(targeted_matches),
+                )
+
+            # Step 3: unified hybrid vector+lexical search (FAQ + doc chunks together).
+            broad_matches = policy_store.search_chunks(
+                retrieval_query,
+                top_k=max(top_k_final * 4, 20),
+                document_key=doc_key_filter,
+            )
+
+            # Step 4: exact-term guaranteed DB lookup for rare/specific terms.
+            specific_terms = self._specific_query_terms(retrieval_query)
+            exact_matches: list[PolicyChunkMatch] = []
+            if specific_terms:
+                exact_matches = policy_store.search_chunks_by_exact_terms(
+                    retrieval_query,
+                    specific_terms,
+                    top_k=top_k_final,
+                    document_key=doc_key_filter,
+                )
+                logger.info(
+                    "RAG exact-term lookup for employee %s terms=%s found=%s",
+                    state.employee_id,
+                    specific_terms,
+                    len(exact_matches),
+                )
+
+            # Step 5: merge — targeted first, then exact-term, then broad.
+            seen_chunk_ids: set[tuple[str, int]] = set()
+            merged: list[PolicyChunkMatch] = []
+            for m in (*targeted_matches, *exact_matches, *broad_matches):
+                key = (m.source_file, m.chunk_index)
+                if key not in seen_chunk_ids:
+                    seen_chunk_ids.add(key)
+                    merged.append(m)
+
+            all_matches = self._select_relevant_doc_matches(
+                query=retrieval_query,
+                matches=merged,
+                top_k=top_k_final,
+            )
+            self._log_doc_retrieval(state.employee_id, retrieval_query, all_matches)
+
+            confidence_floor = max(0.15, settings.POLICY_RAG_DOC_CONFIDENCE_THRESHOLD)
+            best_score = all_matches[0].combined_score if all_matches else 0.0
+            logger.info(
+                "Policy unified retrieval for employee %s: best_score=%.4f threshold=%.4f",
+                state.employee_id,
+                best_score,
+                confidence_floor,
+            )
+
+            if not all_matches or best_score < confidence_floor:
+                state.response_message = self._general_fallback_response()
+                state.sources = [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
+                return state
+
+            top = all_matches[0]
+            top_chunk_type = (top.metadata or {}).get("chunk_type", "")
+
+            # FAQ entries carry a direct answer — return it without an LLM call.
+            if top_chunk_type == CHUNK_TYPE_FAQ:
+                answer = self._extract_faq_answer(top.content)
+                state.response_message = answer
                 state.sources = [
                     {
-                        "type": "policy_qa",
-                        "question": best["match"].question,
-                        "vector_score": round(best["vector"], 4),
-                        "keyword_score": round(best["keyword"], 4),
-                        "combined_score": round(best["combined"], 4),
-                        "source_file": best["match"].source_file,
-                        "row_number": best["match"].row_number,
+                        "type": "policy_faq_chunk",
+                        "document_key": top.document_key,
+                        "section_title": top.section_title,
+                        "chunk_index": top.chunk_index,
+                        "vector_score": round(top.vector_score, 4),
+                        "keyword_score": round(top.keyword_score, 4),
+                        "combined_score": round(top.combined_score, 4),
+                        "source_file": (top.metadata or {}).get("source_file", top.source_file),
+                        "row_number": (top.metadata or {}).get("row_number"),
                         "kb_stats": kb_stats,
                     }
                 ]
                 state.routing_agent = "policy_agent"
                 logger.info(
-                    "Policy agent selected FAQ fallback for employee %s combined=%.4f",
+                    "Policy agent used FAQ chunk for employee %s score=%.4f",
                     state.employee_id,
-                    best["combined"],
+                    best_score,
                 )
                 return state
 
-            state.response_message = self._general_fallback_response()
-            state.sources = [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
+            # Policy document chunks — ground through LLM.
+            state.response_message = await self._build_grounded_policy_answer(state, all_matches)
+            state.sources = [
+                {
+                    "type": "policy_doc_chunk",
+                    "document_key": m.document_key,
+                    "document_title": m.document_title,
+                    "source_file": m.source_file,
+                    "chunk_index": m.chunk_index,
+                    "section_title": m.section_title,
+                    "page_number": m.page_number,
+                    "chunk_type": (m.metadata or {}).get("chunk_type"),
+                    "chapter": (m.metadata or {}).get("chapter"),
+                    "rule_number": (m.metadata or {}).get("rule_number"),
+                    "vector_score": round(m.vector_score, 4),
+                    "keyword_score": round(m.keyword_score, 4),
+                    "combined_score": round(m.combined_score, 4),
+                }
+                for m in all_matches[:3]
+            ] + [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
+            state.routing_agent = "policy_agent"
+            logger.info(
+                "Policy agent used doc chunks for employee %s score=%.4f",
+                state.employee_id,
+                best_score,
+            )
             return state
+
         except Exception as exc:
             logger.error("Policy agent error for employee %s: %s", state.employee_id, str(exc), exc_info=True)
             state.response_message = (
@@ -275,26 +252,12 @@ class PolicyAgent(BaseAgent):
             return state
 
     @staticmethod
-    def _tokenize(text: str) -> set[str]:
-        return set(re.findall(r"[a-zA-Z0-9]+", text.lower()))
-
-    def _keyword_overlap(self, query: str, question: str) -> float:
-        q_tokens = self._tokenize(query)
-        d_tokens = self._tokenize(question)
-        if not q_tokens or not d_tokens:
-            return 0.0
-        inter = len(q_tokens & d_tokens)
-        union = len(q_tokens | d_tokens) or 1
-        return inter / union
-
-    def _rank_faq_matches(self, query: str, matches):
-        ranked = []
-        for m in matches:
-            kw = self._keyword_overlap(query, m.question)
-            combined = 0.85 * float(m.score) + 0.15 * float(kw)
-            ranked.append({"match": m, "vector": float(m.score), "keyword": float(kw), "combined": combined})
-        ranked.sort(key=lambda x: x["combined"], reverse=True)
-        return ranked
+    def _extract_faq_answer(content: str) -> str:
+        """Extract the answer text from a faq_entry chunk ('Question: ...\\nAnswer: ...')."""
+        m = re.search(r"(?i)^Answer:\s*(.+)", content, re.MULTILINE | re.DOTALL)
+        if m:
+            return m.group(1).strip()
+        return content
 
     def _log_doc_retrieval(
         self,
