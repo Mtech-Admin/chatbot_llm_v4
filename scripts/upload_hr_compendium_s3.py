@@ -1,8 +1,14 @@
 """
-Upload the HR Compendium PDF to the same S3 bucket used by DMRC_HRMS_API.
+Upload the HR Compendium PDF to S3.
 
-Loads AWS credentials from DMRC_HRMS_API/.env (same variables as Nest):
+Loads AWS settings from **dmrc_chatbot** env files (same variable names as HRMS):
   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_S3_BUCKET
+
+Copy those four keys from DMRC_HRMS_API/.env into **dmrc_chatbot/.env.local** (do not
+point this script at HRMS .env).
+
+Default env file: dmrc_chatbot/.env.local, then fallback dmrc_chatbot/.env.
+Override with --env-file if needed.
 
 Output URL format matches AwsS3Service.uploadFile:
   https://{bucket}.s3.amazonaws.com/{module}/{filename}
@@ -16,7 +22,7 @@ printed URL). Use **--private** to skip the ACL if you use a locked-down bucket.
 
 Optional: --presign to also print a presigned URL (usually unnecessary when public-read).
 
-Then set in dmrc_chatbot/.env.local:
+After upload, ensure .env.local contains the stable PDF URL:
   HR_COMPENDIUM_PDF_URL=<printed URL>
 """
 
@@ -29,17 +35,35 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
-def _default_api_env() -> Path:
-    """Resolve DMRC_HRMS_API/.env next to dmrc_chatbot or inside it."""
-    chatbot_root = Path(__file__).resolve().parent.parent
-    candidates = [
-        chatbot_root.parent / "DMRC_HRMS_API" / ".env",
-        chatbot_root / "DMRC_HRMS_API" / ".env",
-    ]
-    for path in candidates:
-        if path.is_file():
-            return path
-    return candidates[0]
+def _chatbot_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+def _default_chatbot_env_file() -> Path:
+    """Prefer dmrc_chatbot/.env.local, then .env."""
+    root = _chatbot_root()
+    for name in (".env.local", ".env"):
+        candidate = (root / name).resolve()
+        if candidate.is_file():
+            return candidate
+    return (root / ".env.local").resolve()
+
+
+def _resolve_env_file(arg_path: Path | None) -> Path:
+    if arg_path is not None:
+        p = arg_path.expanduser().resolve()
+        if not p.is_file():
+            raise FileNotFoundError(f"Env file not found: {p}")
+        return p
+    p = _default_chatbot_env_file()
+    if not p.is_file():
+        root = _chatbot_root()
+        raise FileNotFoundError(
+            f"No .env.local or .env under {root}.\n"
+            "Copy into .env.local from DMRC_HRMS_API:\n"
+            "  AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_S3_BUCKET"
+        )
+    return p
 
 
 def _public_object_url(bucket: str, key: str) -> str:
@@ -47,12 +71,14 @@ def _public_object_url(bucket: str, key: str) -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Upload HR Compendium PDF to S3 (HRMS credentials)")
+    parser = argparse.ArgumentParser(
+        description="Upload HR Compendium PDF to S3 (AWS vars from dmrc_chatbot/.env.local)",
+    )
     parser.add_argument(
         "--env-file",
         type=Path,
         default=None,
-        help="Path to DMRC_HRMS_API .env (default: <repo>/DMRC_HRMS_API/.env)",
+        help="Env file to load (default: dmrc_chatbot/.env.local, then .env)",
     )
     parser.add_argument(
         "--file",
@@ -88,14 +114,9 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    env_path = (args.env_file or _default_api_env()).expanduser().resolve()
-    if not env_path.is_file():
-        raise FileNotFoundError(
-            f"Env file not found: {env_path}\n"
-            "Pass --env-file /path/to/DMRC_HRMS_API/.env"
-        )
-
-    load_dotenv(env_path, override=False)
+    env_path = _resolve_env_file(args.env_file)
+    # Let this file define AWS_* for this script run (typical: only set in .env.local).
+    load_dotenv(env_path, override=True)
 
     bucket = (os.environ.get("AWS_S3_BUCKET") or "").strip()
     region = (os.environ.get("AWS_REGION") or "").strip()
@@ -110,7 +131,7 @@ def main() -> None:
 
     local = Path(args.file).expanduser().resolve() if args.file else None
     if local is None:
-        chatbot_root = Path(__file__).resolve().parent.parent
+        chatbot_root = _chatbot_root()
         for name in (
             "Updated_HR_Compendium_-NOV23.pdf",
             "Updated_HR_Compendium_NOV23.pdf",

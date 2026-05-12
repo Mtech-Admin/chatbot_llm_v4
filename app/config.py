@@ -83,7 +83,7 @@ class Settings(BaseSettings):
     # "dmrc_hr_compendium_nov23" for files/dmrc_hr_chunks.json.
     POLICY_RAG_DOCUMENT_KEY: str = ""
     # HTTPS link shown after policy answers (S3 virtual-host URL or long-lived presigned URL).
-    # Set after upload, e.g. scripts/upload_hr_compendium_s3.py using DMRC_HRMS_API/.env.
+    # Set after upload via scripts/upload_hr_compendium_s3.py (AWS_* for that script live in .env.local too).
     HR_COMPENDIUM_PDF_URL: str = Field(
         default="",
         validation_alias=AliasChoices(
