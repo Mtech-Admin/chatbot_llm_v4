@@ -21,8 +21,11 @@
  *   pm2 restart dmrc-hrms-chatbot --update-env
  * so PM2 reapplies variables merged from the ecosystem file (plain restart may keep a stale snapshot).
  *
- * This app is launched as `venv/bin/python -m uvicorn ...`. Do not pair `interpreter: "python3"`
- * with `venv/bin/uvicorn`: PM2 runs the wrapper with system Python → ModuleNotFoundError: uvicorn.
+ * This app runs `venv/bin/uvicorn` with args `app.main:app --host 0.0.0.0 --port …`.
+ * Do NOT set `interpreter` — PM2 must exec the venv `uvicorn` script via its shebang
+ * (venv Python). Setting `interpreter: "python3"` forces system Python → ModuleNotFoundError: uvicorn.
+ * Do NOT pass `-m uvicorn` here: that is a Python flag; if it reaches the uvicorn binary you get
+ * `Error: No such option: -m`.
  */
 
 const fs = require("fs");
@@ -71,31 +74,24 @@ const envFile =
 const envFromFile = loadEnvFile(path.join(root, envFile));
 const listenPort = envFromFile.PORT || process.env.PORT || "8001";
 
-/** Prefer venv interpreter so deps (uvicorn, etc.) resolve correctly under PM2. */
-function resolveVenvPython() {
-  const override = process.env.PM2_PYTHON;
+/** venv `uvicorn` console script — executed directly so its shebang uses the venv interpreter. */
+function resolveVenvUvicorn() {
+  const override = process.env.PM2_UVICORN;
   if (override) return path.resolve(root, override);
-  const candidates = [
-    "venv/bin/python3",
-    "venv/bin/python",
-    ".venv/bin/python3",
-    ".venv/bin/python",
-  ];
+  const candidates = ["venv/bin/uvicorn", ".venv/bin/uvicorn"];
   for (const rel of candidates) {
     const p = path.join(root, rel);
     if (fs.existsSync(p)) return rel;
   }
-  return "venv/bin/python3";
+  return "venv/bin/uvicorn";
 }
 
 module.exports = {
   apps: [
     {
       name: "dmrc-hrms-chatbot",
-      script: resolveVenvPython(),
+      script: resolveVenvUvicorn(),
       args: [
-        "-m",
-        "uvicorn",
         "app.main:app",
         "--host",
         "0.0.0.0",
