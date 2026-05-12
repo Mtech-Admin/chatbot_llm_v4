@@ -82,6 +82,15 @@ class Settings(BaseSettings):
     # Use the key passed to scripts/ingest_dmrc_hr_chunks.py or ingest_policy_kb.py, e.g.
     # "dmrc_hr_compendium_nov23" for files/dmrc_hr_chunks.json.
     POLICY_RAG_DOCUMENT_KEY: str = ""
+    # HTTPS link shown after policy answers (S3 virtual-host URL or long-lived presigned URL).
+    # Set after upload, e.g. scripts/upload_hr_compendium_s3.py using DMRC_HRMS_API/.env.
+    HR_COMPENDIUM_PDF_URL: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "HR_COMPENDIUM_PDF_URL",
+            "POLICY_REFERENCE_PDF_URL",
+        ),
+    )
 
     # HRMS API Configuration
     HRMS_BASE_URL: str = "http://localhost:3001/api"

@@ -110,12 +110,36 @@ Rules:
 3. For listing questions (e.g. types of leave), give a complete numbered list when the context lists items.
 4. For eligibility, mention conditions or exceptions shown in the context.
 5. For amounts and limits, note if the context says figures are subject to revision.
-6. End with a Reference line when possible, e.g. Reference: Rule F.3.10, Chapter F, pages 165-186 (from context)."""
+6. End with a Reference line when possible, e.g. Reference: Rule F.3.10, Chapter F, pages 165-186 (from context).
+7. If an "Official HR Compendium PDF" URL appears in the user message, end your answer with a final line:
+   Full document: <that exact URL> (so users can open the PDF)."""
 
 
 class PolicyAgent(BaseAgent):
     def __init__(self):
         super().__init__("policy_agent", POLICY_AGENT_PROMPT)
+
+    @staticmethod
+    def _reference_pdf_url() -> str:
+        return (settings.HR_COMPENDIUM_PDF_URL or "").strip()
+
+    @staticmethod
+    def _append_reference_document_link(message: str) -> str:
+        url = PolicyAgent._reference_pdf_url()
+        if not url:
+            return message
+        if url in message:
+            return message
+        return f"{message.rstrip()}\n\nFull document: {url}"
+
+    @staticmethod
+    def _kb_stats_source(kb_stats: dict) -> dict:
+        row: dict = {"type": "policy_kb_stats", "kb_stats": kb_stats}
+        url = PolicyAgent._reference_pdf_url()
+        if url:
+            row["reference_document_url"] = url
+            row["reference_document_label"] = "DMRC HR Compendium (PDF, Nov 2023)"
+        return row
 
     async def process(self, state: OrchestratorState) -> OrchestratorState:
         try:
@@ -228,7 +252,7 @@ class PolicyAgent(BaseAgent):
                 )
                 if q_similarity >= 0.72:
                     answer = self._extract_faq_answer(top.content)
-                    state.response_message = answer
+                    state.response_message = self._append_reference_document_link(answer)
                     state.sources = [
                         {
                             "type": "policy_faq_chunk",
@@ -243,7 +267,8 @@ class PolicyAgent(BaseAgent):
                             "source_file": (top.metadata or {}).get("source_file", top.source_file),
                             "row_number": (top.metadata or {}).get("row_number"),
                             "kb_stats": kb_stats,
-                        }
+                        },
+                        self._kb_stats_source(kb_stats),
                     ]
                     state.routing_agent = "policy_agent"
                     return state
@@ -269,7 +294,7 @@ class PolicyAgent(BaseAgent):
                     "combined_score": round(m.combined_score, 4),
                 }
                 for m in all_matches[:5]
-            ] + [{"type": "policy_kb_stats", "kb_stats": kb_stats}]
+            ] + [self._kb_stats_source(kb_stats)]
             state.routing_agent = "policy_agent"
             logger.info(
                 "Policy agent used LLM grounding for employee %s score=%.4f intent=%s",
@@ -627,11 +652,19 @@ class PolicyAgent(BaseAgent):
             )
         evidence = "\n\n".join(context_blocks)
 
+        pdf_url = self._reference_pdf_url()
+        pdf_block = (
+            f"\n\nOfficial HR Compendium PDF (November 2023 — use this exact link in your answer):\n{pdf_url}"
+            if pdf_url
+            else ""
+        )
+
         prompt = (
             "Answer the user question using only the policy excerpts below.\n"
-            "Follow the system rules on citations and uncertainty.\n\n"
+            "Follow the system rules on citations, uncertainty, and the full-document link.\n\n"
             f"User question: {state.user_message}\n\n"
             f"Policy excerpts:\n{evidence}"
+            f"{pdf_block}"
         )
 
         try:
@@ -647,7 +680,7 @@ class PolicyAgent(BaseAgent):
             )
             content = (response.choices[0].message.content or "").strip()
             if content:
-                return content
+                return self._append_reference_document_link(content)
         except Exception as exc:
             logger.warning("Grounded policy answer generation failed: %s", str(exc))
 
@@ -655,11 +688,12 @@ class PolicyAgent(BaseAgent):
         excerpt = best.content[:420].strip()
         suffix = "..." if len(best.content) > 420 else ""
         section = best.section_title or "policy section"
-        return (
+        fallback = (
             f"Based on the policy document ({section}), here is the closest guidance:\n"
             f"{excerpt}{suffix}\n\n"
             "Reference: see excerpt [1] above."
         )
+        return self._append_reference_document_link(fallback)
 
     @staticmethod
     def _general_fallback_response() -> str:
