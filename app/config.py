@@ -60,9 +60,20 @@ class Settings(BaseSettings):
     """Application configuration"""
     
     # LLM Configuration
-    LLM_PROVIDER: Literal["groq", "vllm", "deepinfra"] = "groq"
+    LLM_PROVIDER: Literal["groq", "vllm", "deepinfra", "sarvam"] = "groq"
     GROQ_API_KEY: str = ""
     VLLM_BASE_URL: str = "http://localhost:8000/v1"
+    # Sarvam — OpenAI-compatible chat completions (https://api.sarvam.ai/v1)
+    SARVAM_BASE_URL: str = "https://api.sarvam.ai/v1"
+    SARVAM_API_KEY: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "SARVAM_API_KEY",
+            "SARVAM_SUBSCRIPTION_KEY",
+        ),
+    )
+    # sarvam-30b (64K ctx) | sarvam-105b (128K ctx) — see Sarvam model docs
+    SARVAM_MODEL: str = "sarvam-30b"
     # DeepInfra — OpenAI-compatible API (https://deepinfra.com/dash/api_keys)
     DEEPINFRA_BASE_URL: str = "https://api.deepinfra.com/v1/openai"
     DEEPINFRA_API_KEY: str = Field(
@@ -170,8 +181,16 @@ def _deepinfra_api_key() -> str:
     )
 
 
+def _sarvam_api_key() -> str:
+    return (
+        (settings.SARVAM_API_KEY or "").strip()
+        or os.environ.get("SARVAM_SUBSCRIPTION_KEY", "").strip()
+        or os.environ.get("SARVAM_API_KEY", "").strip()
+    )
+
+
 def get_llm_client():
-    """Return AsyncOpenAI client for Groq, vLLM, or DeepInfra (OpenAI-compatible)."""
+    """Return AsyncOpenAI client for Groq, vLLM, DeepInfra, or Sarvam (OpenAI-compatible)."""
     from openai import AsyncOpenAI
 
     global _llm_client
@@ -189,6 +208,9 @@ def get_llm_client():
     elif provider == "deepinfra":
         api_key = _deepinfra_api_key()
         base_url = settings.DEEPINFRA_BASE_URL.rstrip("/")
+    elif provider == "sarvam":
+        api_key = _sarvam_api_key()
+        base_url = settings.SARVAM_BASE_URL.rstrip("/")
 
     signature = (provider, base_url, api_key)
     if _llm_client is not None and _llm_client_signature == signature:
@@ -225,6 +247,18 @@ def get_llm_client():
         )
         _llm_client_signature = signature
         return _llm_client
+    if settings.LLM_PROVIDER == "sarvam":
+        if not api_key:
+            raise ValueError(
+                "LLM_PROVIDER=sarvam requires SARVAM_API_KEY or SARVAM_SUBSCRIPTION_KEY "
+                "(non-empty). Set it in .env.local or PM2 env."
+            )
+        _llm_client = AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+        )
+        _llm_client_signature = signature
+        return _llm_client
     raise ValueError(f"Unknown LLM provider: {settings.LLM_PROVIDER}")
 
 
@@ -236,6 +270,8 @@ def get_model_name() -> str:
         return "Qwen/Qwen2.5-14B-Instruct-AWQ"
     if settings.LLM_PROVIDER == "deepinfra":
         return settings.DEEPINFRA_MODEL
+    if settings.LLM_PROVIDER == "sarvam":
+        return settings.SARVAM_MODEL
     raise ValueError(f"Unknown LLM provider: {settings.LLM_PROVIDER}")
 
 
