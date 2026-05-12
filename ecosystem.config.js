@@ -16,6 +16,13 @@
  * almost always reading a different file or stale PM2 env: fix the file PM2 merges below,
  * then `pm2 delete dmrc-hrms-chatbot` and `pm2 start ecosystem.config.js` (restart alone
  * can keep old merged env for some keys unless the app process is recreated).
+ *
+ * After editing the env file, prefer:
+ *   pm2 restart dmrc-hrms-chatbot --update-env
+ * so PM2 reapplies variables merged from the ecosystem file (plain restart may keep a stale snapshot).
+ *
+ * This app is launched as `venv/bin/python -m uvicorn ...`. Do not pair `interpreter: "python3"`
+ * with `venv/bin/uvicorn`: PM2 runs the wrapper with system Python → ModuleNotFoundError: uvicorn.
  */
 
 const fs = require("fs");
@@ -64,25 +71,38 @@ const envFile =
 const envFromFile = loadEnvFile(path.join(root, envFile));
 const listenPort = envFromFile.PORT || process.env.PORT || "8001";
 
-function resolveUvicornScript() {
-  const override = process.env.PM2_UVICORN;
+/** Prefer venv interpreter so deps (uvicorn, etc.) resolve correctly under PM2. */
+function resolveVenvPython() {
+  const override = process.env.PM2_PYTHON;
   if (override) return path.resolve(root, override);
-  const candidates = ["venv/bin/uvicorn", ".venv/bin/uvicorn"];
+  const candidates = [
+    "venv/bin/python3",
+    "venv/bin/python",
+    ".venv/bin/python3",
+    ".venv/bin/python",
+  ];
   for (const rel of candidates) {
     const p = path.join(root, rel);
     if (fs.existsSync(p)) return rel;
   }
-  return "venv/bin/uvicorn";
+  return "venv/bin/python3";
 }
 
 module.exports = {
   apps: [
     {
       name: "dmrc-hrms-chatbot",
-      script: resolveUvicornScript(),
-      args: `app.main:app --host 0.0.0.0 --port ${listenPort}`,
+      script: resolveVenvPython(),
+      args: [
+        "-m",
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        String(listenPort),
+      ],
       cwd: root,
-      interpreter: "python3",
       env: {
         PYTHONUNBUFFERED: "1",
         APP_ENV: APP_ENV,
