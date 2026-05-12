@@ -3,12 +3,13 @@ FastAPI Application - Main entry point
 """
 
 import logging
+import os
 import sys
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import settings
+from app.config import get_model_name, settings
 from app.gateway.router import router as chat_router
 from app.gateway.v1_chat_router import router as v1_chat_router
 from app.gateway.session import session_manager
@@ -34,6 +35,12 @@ async def lifespan(app: FastAPI):
     
     # Startup
     logger.info("Starting up DMRC HRMS Chatbot...")
+    logger.info(
+        "LLM active: provider=%s model=%s APP_ENV=%s",
+        settings.LLM_PROVIDER,
+        get_model_name(),
+        (os.environ.get("APP_ENV") or "").strip() or "(unset)",
+    )
     await session_manager.init()
     policy_store.init_schema()
     logger.info("Redis connection initialized")

@@ -6,7 +6,16 @@
  *   pm2 start ecosystem.config.js
  *   pm2 save && pm2 startup
  *
- * Env file override: PM2_ENV_FILE=/path/to/prod.env pm2 start ecosystem.config.js
+ * Which env file is loaded (first match wins):
+ *   1) PM2_ENV_FILE=/absolute/or/relative/path.env
+ *   2) Else .env.${APP_ENV} where APP_ENV defaults to "local" → only .env.local
+ *      Example production: APP_ENV=production pm2 start ecosystem.config.js
+ *      → loads .env.production from this folder (must contain LLM_PROVIDER=sarvam, etc.)
+ *
+ * If the server still uses DeepInfra while your laptop uses Sarvam, the process is
+ * almost always reading a different file or stale PM2 env: fix the file PM2 merges below,
+ * then `pm2 delete dmrc-hrms-chatbot` and `pm2 start ecosystem.config.js` (restart alone
+ * can keep old merged env for some keys unless the app process is recreated).
  */
 
 const fs = require("fs");
