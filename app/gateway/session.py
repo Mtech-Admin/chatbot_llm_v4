@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 from uuid import uuid4
 from app.config import settings
+from app.llm.conversation_budget import trim_conversation_messages
 from app.models.message import SessionData, Message
 
 class SessionManager:
@@ -64,10 +65,12 @@ class SessionManager:
         if not session:
             return
         
-        # Keep only last 8 turns (16 messages)
         session.messages.append(message)
-        if len(session.messages) > 16:
-            session.messages = session.messages[-16:]
+        session.messages = trim_conversation_messages(
+            session.messages,
+            settings.CONVERSATION_SESSION_TOKEN_BUDGET,
+            max_message_count=settings.CONVERSATION_SESSION_MAX_MESSAGES,
+        )
         
         session.last_activity = datetime.utcnow()
         await self.update_session(session)

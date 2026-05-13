@@ -10,6 +10,7 @@ from typing import Any, Dict
 
 from app.agents.base import BaseAgent
 from app.config import get_llm_client, get_model_name
+from app.llm.chat_completions import chat_completions_create
 from app.orchestrator.state import OrchestratorState
 from app.tools.noc_status import NOC_STATUS_LABELS
 from app.tools.noc_tools import (
@@ -112,7 +113,8 @@ class VpfAgent(BaseAgent):
                 state.employee_id,
                 state.session_id,
             )
-            response = await client.chat.completions.create(
+            response = await chat_completions_create(
+                client,
                 model=model,
                 max_tokens=2048,
                 tools=self.tools,
@@ -199,7 +201,8 @@ class VpfAgent(BaseAgent):
                     "content": vpf_tool_json_for_llm(tr["result"]),
                 }
             )
-        final_response = await client.chat.completions.create(
+        final_response = await chat_completions_create(
+            client,
             model=model,
             max_tokens=2048,
             messages=messages,

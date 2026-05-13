@@ -10,6 +10,7 @@ from typing import Any
 
 from app.agents.base import BaseAgent
 from app.config import get_llm_client, get_model_name
+from app.llm.chat_completions import chat_completions_create
 from app.orchestrator.state import OrchestratorState
 from app.tools.profile_tools import get_my_employee_profile
 
@@ -56,7 +57,8 @@ class ProfileAgent(BaseAgent):
                 state.session_id,
             )
 
-            response = await client.chat.completions.create(
+            response = await chat_completions_create(
+                client,
                 model=model,
                 max_tokens=2048,
                 messages=[

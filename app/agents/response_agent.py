@@ -10,6 +10,7 @@ import re
 from typing import Optional
 
 from app.config import get_llm_client, get_review_model_fallback_chain
+from app.llm.chat_completions import chat_completions_create
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +103,8 @@ async def review_user_response(user_message: str, draft_response: str, language:
     last_exc: Optional[Exception] = None
     for model in get_review_model_fallback_chain():
         try:
-            response = await client.chat.completions.create(
+            response = await chat_completions_create(
+                client,
                 model=model,
                 max_tokens=300,
                 temperature=0.2,

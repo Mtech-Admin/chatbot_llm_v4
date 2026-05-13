@@ -15,6 +15,12 @@ from app.agents.base import BaseAgent
 from app.config import get_llm_client, get_model_name, settings
 from app.knowledge.ingest import CHUNK_TYPE_FAQ
 from app.knowledge.store import PolicyChunkMatch, policy_store
+from app.llm.chat_completions import chat_completions_create
+from app.llm.conversation_budget import (
+    effective_context_limit_tokens,
+    estimate_text_tokens,
+    trim_text_to_estimated_tokens,
+)
 from app.orchestrator.state import OrchestratorState
 
 logger = logging.getLogger(__name__)
@@ -659,22 +665,43 @@ class PolicyAgent(BaseAgent):
             else ""
         )
 
-        prompt = (
+        completion_cap = 620
+        prompt_head = (
             "Answer the user question using only the policy excerpts below.\n"
             "Follow the system rules on citations, uncertainty, and the full-document link.\n\n"
             f"User question: {state.user_message}\n\n"
-            f"Policy excerpts:\n{evidence}"
-            f"{pdf_block}"
+            "Policy excerpts:\n"
         )
+        system_content = self._build_context_prompt(state)
+        prompt_tail = pdf_block
+
+        evidence_budget_tokens = effective_context_limit_tokens() - (
+            estimate_text_tokens(system_content)
+            + estimate_text_tokens(prompt_head)
+            + estimate_text_tokens(prompt_tail)
+            + completion_cap
+            + settings.LLM_PROMPT_RESERVED_COMPLETION_SPACE
+            + settings.POLICY_PROMPT_SAFETY_TOKENS
+        )
+        if evidence_budget_tokens < 2048:
+            logger.warning(
+                "Policy RAG evidence budget is tight (%s est. tokens); trimming context.",
+                evidence_budget_tokens,
+            )
+        evidence_budget_tokens = max(512, evidence_budget_tokens)
+        evidence = trim_text_to_estimated_tokens(evidence, evidence_budget_tokens)
+
+        prompt = f"{prompt_head}{evidence}{prompt_tail}"
 
         try:
             client = get_llm_client()
             model = get_model_name()
-            response = await client.chat.completions.create(
+            response = await chat_completions_create(
+                client,
                 model=model,
-                max_tokens=620,
+                max_tokens=completion_cap,
                 messages=[
-                    {"role": "system", "content": self._build_context_prompt(state)},
+                    {"role": "system", "content": system_content},
                     {"role": "user", "content": prompt},
                 ],
             )

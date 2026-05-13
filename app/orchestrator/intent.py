@@ -5,7 +5,9 @@ Intent Classification - Determines routing for user query
 import logging
 import re
 from typing import Literal, Optional
-from app.config import get_llm_client, get_model_name
+from app.config import get_llm_client, get_model_name, settings
+from app.llm.chat_completions import chat_completions_create
+from app.llm.conversation_budget import format_trimmed_history_block
 from app.orchestrator.state import OrchestratorState
 
 logger = logging.getLogger(__name__)
@@ -116,6 +118,9 @@ Rules:
 - If there's ANY ambiguity about actions vs viewing, prefer "redirect_to_portal" to be safe
 - Respond ONLY with the intent name, nothing else
 
+Prior conversation turns (helps resolve pronouns/follow-ups; may be "(none)" on the first query):
+{history_snippet}
+
 User message: {user_message}
 
 Intent:"""
@@ -155,13 +160,24 @@ async def classify_intent(
         client = get_llm_client()
         model = get_model_name()
         
-        prompt = INTENT_CLASSIFIER_PROMPT.format(user_message=state.user_message)
-        
-        response = await client.chat.completions.create(
+        history_snippet = format_trimmed_history_block(
+            state.conversation_history or [],
+            settings.CONVERSATION_INTENT_HISTORY_TOKEN_BUDGET,
+            header="Prior conversation:",
+            empty_text="(none)",
+        ).strip()
+
+        prompt = INTENT_CLASSIFIER_PROMPT.format(
+            history_snippet=history_snippet,
+            user_message=state.user_message,
+        )
+
+        response = await chat_completions_create(
+            client,
             model=model,
             max_tokens=20,
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3  # Low temperature for deterministic classification
+            temperature=0.3,  # Low temperature for deterministic classification
         )
         intent_text = (response.choices[0].message.content or "").strip().lower()
         logger.info(

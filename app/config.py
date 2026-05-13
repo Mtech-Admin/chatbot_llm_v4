@@ -72,8 +72,11 @@ class Settings(BaseSettings):
             "SARVAM_SUBSCRIPTION_KEY",
         ),
     )
-    # sarvam-30b (64K ctx) | sarvam-105b (128K ctx) — see Sarvam model docs
+    # sarvam-30b (64K ctx) | sarvam-105b (128K ctx) — see Sarvam chat completion overview
+    # https://docs.sarvam.ai/api-reference-docs/api-guides-tutorials/chat-completion/overview
     SARVAM_MODEL: str = "sarvam-30b"
+    SARVAM_CONTEXT_WINDOW_TOKENS_30B: int = 64000
+    SARVAM_CONTEXT_WINDOW_TOKENS_105B: int = 128000
     # DeepInfra — OpenAI-compatible API (https://deepinfra.com/dash/api_keys)
     DEEPINFRA_BASE_URL: str = "https://api.deepinfra.com/v1/openai"
     DEEPINFRA_API_KEY: str = Field(
@@ -81,6 +84,21 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("DEEPINFRA_API_KEY", "DEEPINFRA_TOKEN"),
     )
     DEEPINFRA_MODEL: str = "deepseek-ai/DeepSeek-V3"
+    VLLM_CONTEXT_WINDOW_FALLBACK_TOKENS: int = 32768
+    DEEPINFRA_CONTEXT_WINDOW_FALLBACK_TOKENS: int = 131072
+    # Override automatic context limits when nonzero (advanced).
+    LLM_CONTEXT_WINDOW_OVERRIDE: int = 0
+    # Session + prompt history — rough token ceilings (estimate_text_tokens heuristic).
+    CONVERSATION_SESSION_TOKEN_BUDGET: int = 28000
+    CONVERSATION_SESSION_MAX_MESSAGES: int = 80
+    CONVERSATION_PROMPT_HISTORY_TOKEN_BUDGET: int = 5200
+    CONVERSATION_INTENT_HISTORY_TOKEN_BUDGET: int = 1200
+    # Sarvam / OpenAI-compatible: exponential backoff when TPM or RPM triggers HTTP 429.
+    LLM_CHAT_RATE_LIMIT_MAX_RETRIES: int = 5
+    LLM_CHAT_RATE_LIMIT_BASE_DELAY_SEC: float = 1.0
+    # Budget headroom subtracted when sizing large RAG blobs inside the active context window.
+    LLM_PROMPT_RESERVED_COMPLETION_SPACE: int = 2800
+    POLICY_PROMPT_SAFETY_TOKENS: int = 900
     # Optional: model id for final response polish only (same OpenAI-compatible API as main LLM).
     # If empty, uses the main model. Set a smaller instruct model to cut ~50% latency on review calls.
     LLM_REVIEW_MODEL: str = "Qwen/Qwen3.5-4B"

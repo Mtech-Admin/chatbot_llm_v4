@@ -6,6 +6,8 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional
 from app.orchestrator.state import OrchestratorState
 from app.models.message import Message
+from app.config import settings
+from app.llm.conversation_budget import format_trimmed_history_block
 import logging
 
 logger = logging.getLogger(__name__)
@@ -44,15 +46,11 @@ class BaseAgent(ABC):
         pass
     
     def _format_conversation_history(self, messages: List[Message]) -> str:
-        """Format conversation history for LLM context"""
-        if not messages:
-            return "No previous conversation history."
-        
-        formatted = "Recent conversation:\n"
-        for msg in messages[-8:]:  # Last 8 turns
-            formatted += f"{msg.role.value}: {msg.content}\n"
-        
-        return formatted
+        """Format conversation history for LLM context (token-budgeted)."""
+        return format_trimmed_history_block(
+            messages,
+            settings.CONVERSATION_PROMPT_HISTORY_TOKEN_BUDGET,
+        )
     
     def _build_context_prompt(self, state: OrchestratorState) -> str:
         """Build system prompt with context"""

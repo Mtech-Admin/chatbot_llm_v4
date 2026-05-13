@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional, Tuple
 from app.config import get_llm_client, get_model_name
 from app.agents.base import BaseAgent
+from app.llm.chat_completions import chat_completions_create
 from app.orchestrator.state import OrchestratorState
 from app.llm_tool_payload_compact import serialize_tool_result_for_llm
 from app.tools.attendance_tools import (
@@ -87,7 +88,8 @@ class AttendanceAgent(BaseAgent):
             )
             
             # Call LLM with tools
-            response = await client.chat.completions.create(
+            response = await chat_completions_create(
+                client,
                 model=model,
                 max_tokens=2048,
                 tools=self.tools,
@@ -215,7 +217,8 @@ class AttendanceAgent(BaseAgent):
                     }
                 )
 
-            final_response = await client.chat.completions.create(
+            final_response = await chat_completions_create(
+                client,
                 model=model,
                 max_tokens=2048,
                 messages=messages,
