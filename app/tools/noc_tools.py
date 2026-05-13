@@ -8,6 +8,9 @@ NOC types (internal keys used by tools / agent):
 - noc_outsidejobs           → POST /noc/find-all-noc-outjob-requests, noc-outjob-details-by-id
 - noc_onlinecourses         → POST /noc-onlinecourses/find-all, find-one
 - noc_higherstudies         → POST /noc-higherstudies/find-all, find-one
+
+Latest single request (cross-type or scoped):
+- POST /noc-common/last-noc-request  (Request.data optional noc_type API key)
 """
 
 from __future__ import annotations
@@ -35,6 +38,54 @@ VALID_NOC_TYPES = frozenset(
         "noc_higherstudies",
     }
 )
+
+# HRMS POST /noc-common/last-noc-request — `Request.data.noc_type` values.
+LAST_NOC_REQUEST_API_TYPES = frozenset(
+    {
+        "ex_india",
+        "visa_passport",
+        "outside_job",
+        "higher_education",
+        "reimbursement",
+        "online_course",
+    }
+)
+
+_INTERNAL_NOC_KEY_TO_LAST_API: Dict[str, str] = {
+    "noc_exindia_requests": "ex_india",
+    "noc_visa_passport": "visa_passport",
+    "noc_outsidejobs": "outside_job",
+    "noc_higherstudies": "higher_education",
+    "noc_reimbursement": "reimbursement",
+    "noc_onlinecourses": "online_course",
+}
+
+_LAST_API_TYPE_LABELS: Dict[str, str] = {
+    "ex_india": "ex-India travel",
+    "visa_passport": "visa / passport",
+    "outside_job": "outside job",
+    "higher_education": "higher studies",
+    "reimbursement": "reimbursement",
+    "online_course": "online courses",
+}
+
+_LAST_TYPE_ALIASES: Dict[str, str] = {}
+for _api in LAST_NOC_REQUEST_API_TYPES:
+    _LAST_TYPE_ALIASES[_api.lower()] = _api
+for _internal, _api in _INTERNAL_NOC_KEY_TO_LAST_API.items():
+    _LAST_TYPE_ALIASES[_internal.lower()] = _api
+for _phrase, _api in (
+    ("ex-india", "ex_india"),
+    ("exindia", "ex_india"),
+    ("india travel", "ex_india"),
+    ("visa passport", "visa_passport"),
+    ("higher studies", "higher_education"),
+    ("higher study", "higher_education"),
+    ("outside employment", "outside_job"),
+    ("online courses", "online_course"),
+    ("online course", "online_course"),
+):
+    _LAST_TYPE_ALIASES[_phrase.lower()] = _api
 
 NOC_TOOLS = [
     {
@@ -114,6 +165,31 @@ NOC_TOOLS = [
                     },
                 },
                 "required": ["noc_type", "request_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_my_last_noc_request",
+            "description": (
+                "Return the employee's most recently created NOC (any type), or the latest for one type when "
+                "`noc_type` is provided (ex_india, visa_passport, outside_job, higher_education, reimbursement, "
+                "online_course). Use for questions like 'last NOC request', 'latest/ex-India NOC', "
+                "'my most recent passport NOC'."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "noc_type": {
+                        "type": "string",
+                        "description": (
+                            "Optional API key: ex_india | visa_passport | outside_job | higher_education | "
+                            "reimbursement | online_course. Omit for the latest request across all six types."
+                        ),
+                    },
+                },
+                "required": [],
             },
         },
     },
@@ -226,7 +302,153 @@ async def get_noc_request_details(jwt_token: str, noc_type: str, request_id: str
     return _success_payload(payload)
 
 
-def _friendly_error(code: str) -> str:
+def normalize_last_noc_api_type_param(raw: Optional[str]) -> Optional[str]:
+    """
+    Map user/LLM/internal strings to canonical last-noc-request API keys.
+    Returns None when raw is empty (caller = no filter). Raises nothing; invalid → None for invalid non-empty.
+    """
+    if raw is None:
+        return None
+    s = str(raw).strip().lower().replace("-", "_")
+    if not s:
+        return None
+    if s in LAST_NOC_REQUEST_API_TYPES:
+        return s
+    mapped = _LAST_TYPE_ALIASES.get(s)
+    if mapped:
+        return mapped
+    if s.replace("_", "") == "exindia":
+        return "ex_india"
+    return None
+
+
+async def get_last_noc_request(
+    jwt_token: str,
+    noc_type: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    POST /noc-common/last-noc-request with body { Request: { data } }.
+    Omit noc_type in data for HRMS-wide latest; otherwise pass noc_type API key.
+    """
+    normalized: Optional[str] = None
+    if noc_type is not None and str(noc_type).strip():
+        normalized = normalize_last_noc_api_type_param(str(noc_type))
+        if not normalized:
+            allowed = ", ".join(sorted(LAST_NOC_REQUEST_API_TYPES))
+            return _error_result(
+                "invalid_noc_type",
+                f"noc_type must be one of: {allowed}, or leave empty for the latest among all types.",
+            )
+
+    inner: Dict[str, Any] = {}
+    if normalized:
+        inner["noc_type"] = normalized
+    body = {"Request": {"data": inner}}
+    result = await hrms_client.call_api(
+        "/noc-common/last-noc-request",
+        jwt_token,
+        method="POST",
+        body=body,
+        json_body_direct=True,
+    )
+    if "error" in result:
+        return _error_result(result["error"], _friendly_error(result["error"]))
+
+    payload = _unwrap_hrms_payload(result)
+    return _success_payload(payload)
+
+
+def message_asks_for_last_noc_request(user_message: str) -> bool:
+    """True when the user wants their latest single NOC (not a paginated list or count)."""
+    if message_asks_for_noc_count(user_message):
+        return False
+    m = (user_message or "").lower()
+    if not m.strip():
+        return False
+    if not (re.search(r"\bnoc\b", m) or re.search(r"\bno\s*objection\b", m)):
+        return False
+    return bool(
+        re.search(r"\b(last|latest|most\s+recent|newest)\b", m)
+        or re.search(r"\brecent\s+noc\b", m)
+    )
+
+
+def infer_last_noc_api_type_from_message(user_message: str) -> Optional[str]:
+    """Infer optional `/last-noc-request` noc_type API key from free text."""
+    inferred_internal = infer_noc_type_from_message(user_message or "")
+    if inferred_internal:
+        return _INTERNAL_NOC_KEY_TO_LAST_API.get(inferred_internal)
+
+    ml = (user_message or "").lower()
+    for alias in sorted(_LAST_TYPE_ALIASES.keys(), key=len, reverse=True):
+        if not alias:
+            continue
+        if " " in alias:
+            if alias in ml:
+                return _LAST_TYPE_ALIASES[alias]
+        elif re.search(rf"\b{re.escape(alias)}\b", ml):
+            return _LAST_TYPE_ALIASES[alias]
+    return None
+
+
+def format_last_noc_answer(payload: Any) -> str:
+    """Short user-facing summary from expanded last-noc API payload."""
+    if not isinstance(payload, dict):
+        return "I could not read your latest NOC from HRMS right now."
+
+    ntype_raw = payload.get("nocType") or payload.get("noc_type") or ""
+    ntype_api = normalize_last_noc_api_type_param(str(ntype_raw)) if str(ntype_raw).strip() else None
+    type_phrase = _LAST_API_TYPE_LABELS.get(ntype_api or "", "") if ntype_api else ""
+    if not type_phrase and ntype_raw:
+        type_phrase = str(ntype_raw).replace("_", " ")
+
+    last_at = payload.get("lastRequestedAt") or payload.get("last_requested_at")
+    req = payload.get("request")
+
+    if req is None or (isinstance(req, dict) and not any(req.values()) and not req.get("id")):
+        scope = f" ({type_phrase})" if type_phrase else " across NOC types"
+        return f"There is no stored last NOC request{scope} on your record."
+    if not isinstance(req, dict):
+        return "The last NOC response from HRMS was not in the expected format."
+
+    ref = req.get("referenceNumber") or req.get("reference_number") or ""
+    st = req.get("status") or ""
+    rs = req.get("requestStatus") or req.get("request_status") or ""
+    purpose = req.get("purposeOfVisit") or req.get("natureOfOutsideJob") or req.get("purpose") or ""
+    place = req.get("placeOfVisitNoc") or req.get("placeOfVisit") or ""
+    created = req.get("requestCreationDate") or req.get("created_at") or ""
+    wf = req.get("workflowID") or req.get("WorkflowID") or ""
+
+    head = "Your most recent NOC"
+    if type_phrase:
+        head += f" ({type_phrase})"
+    head += " is"
+    parts = [head]
+    if ref:
+        parts.append(f"reference {ref}")
+    if st:
+        parts.append(f"status {st}")
+    if rs and str(rs) != str(st):
+        parts.append(f"workflow status {rs}")
+    if place:
+        parts.append(f"place / destination: {place}")
+    if purpose:
+        parts.append(f"purpose: {purpose}")
+    if created:
+        parts.append(f"request date: {created}")
+    if last_at:
+        parts.append(f"last activity in HRMS: {last_at}")
+    if wf:
+        parts.append(f"workflow id: {wf}")
+
+    sentence = "; ".join(p for p in parts if p)
+    rid = req.get("id")
+    suffix = ""
+    if rid is not None:
+        suffix = f" Internal request id {rid}. Ask if you need the full breakdown for this request."
+    return sentence + "." + suffix
+
+
     return {
         "access_denied": "You do not have access to this NOC information.",
         "not_found": "No matching NOC request was found.",

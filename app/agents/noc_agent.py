@@ -17,13 +17,17 @@ from app.tools.noc_tools import (
     NOC_TOOLS,
     NOC_TYPE_LABELS,
     count_noc_requests_for_employee,
+    format_last_noc_answer,
+    get_last_noc_request,
     get_noc_request_details,
+    infer_last_noc_api_type_from_message,
     infer_noc_type_from_message,
     list_my_noc_requests,
+    message_asks_for_last_noc_request,
     message_asks_for_noc_count,
     noc_tool_json_for_llm,
-    parse_workflow_status_codes_for_count_breakdown,
     parse_month_filter_from_message,
+    parse_workflow_status_codes_for_count_breakdown,
 )
 
 logger = logging.getLogger(__name__)
@@ -48,13 +52,18 @@ Tool results already expand `status` and `requestStatus` fields to full labels. 
 Letter → label reference (for your understanding only; prefer wording from tool JSON):
 {_STATUS_LEGEND}
 
-If the user does not name a module, ask which NOC type they mean, or list recent items from the most likely module if they gave enough context.
+If the user asks for lists or searches without naming a module, ask which NOC type they mean, or pick the likely module only when context is explicit (not for generic “latest NOC” queries — use last-NOC tooling there).
 
 Never paste raw JSON blobs; summarize clearly (reference number, dates, status, key fields).
 
 Never infer counts, totals, or averages by reading preview rows. If you need how many requests exist,
 the user should ask in plain language and the system will compute totals separately — only use a `total`
 field when the tool summary explicitly includes it.
+
+When the user asks for their single latest or most recent NOC (with or without naming a category),
+prefer `get_my_last_noc_request`. Pass `noc_type` only when they clearly mean one module API key:
+ex_india, visa_passport, outside_job, higher_education, reimbursement, online_course otherwise omit `noc_type`
+for HRMS-wide “last created among all types”.
 
 Never mention APIs, endpoints, tools, or internal keys unless the user explicitly asks how the system classifies modules.
 """
@@ -135,6 +144,20 @@ class NocAgent(BaseAgent):
                 state.routing_agent = "noc_agent"
                 return state
 
+            if message_asks_for_last_noc_request(msg):
+                state.skip_response_review = True
+                api_filter = infer_last_noc_api_type_from_message(msg)
+                last_payload = await get_last_noc_request(state.jwt_token, api_filter)
+                if last_payload.get("status") != "success":
+                    state.response_message = last_payload.get(
+                        "message",
+                        "I could not retrieve your latest NOC request right now. Please try again in a moment.",
+                    )
+                else:
+                    state.response_message = format_last_noc_answer(last_payload.get("data"))
+                state.routing_agent = "noc_agent"
+                return state
+
             client = get_llm_client()
             model = get_model_name()
             context_prompt = self._build_context_prompt(state)
@@ -208,6 +231,11 @@ class NocAgent(BaseAgent):
                     state.jwt_token,
                     args.get("noc_type", ""),
                     str(args.get("request_id", "")),
+                )
+            elif name == "get_my_last_noc_request":
+                result = await get_last_noc_request(
+                    state.jwt_token,
+                    args.get("noc_type"),
                 )
             else:
                 result = {"status": "error", "message": f"Unknown tool: {name}"}
