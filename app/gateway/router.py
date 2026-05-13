@@ -132,6 +132,7 @@ async def send_message(
             detail="An error occurred while processing your message"
         )
 
+@router.post("/chat/session/end")
 @router.post("/session/end")
 async def end_session(
     session_id: str,

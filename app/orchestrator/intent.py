@@ -67,7 +67,18 @@ def _classify_intent_fast(user_message: str) -> Optional[str]:
     if re.search(r"\bleave\b", msg):
         return "leave_inquiry"
 
-    if re.search(r"\b(profile|pan|aadhaar|aadhar|ifsc|department|designation|reporting manager|employee id|date of joining|dob)\b", msg):
+    if re.search(
+        r"\b(profile|pan|aadhaar|aadhar|ifsc|department|designation|reporting\s+manager"
+        r"|employee\s*(?:id|number|no\b)|date\s+of\s+joining|\bdoj\b|\bdob\b"
+        r"|\bfull\s+name\b|\bmy\s+name\b|\bi\s+(?:was\s+)?born\b|\bwho\s+am\s+i\b"
+        r"|\babout\s+(?:myself|me)\b|\bpersonal\s+details?\b"
+        r"|\bi'?m\b|\bi\s+am\b|\b(call(?:ed)?\s+me|my\s+details?)\b|\bmy\s+surname\b"
+        r"|\bmiddle\s+name\b|\blast\s+name\b|\bfamily\s+name\b"
+        # token "name" only with possessive/my/what/am — avoids unrelated "name this"
+        r"|(?:what|who|tell|show|know|remember)\s+.+\s+name\b|\bname\s*\?"
+        r"|\bmy\s+(?:registered\s*)?name\b)",
+        msg,
+    ):
         return "profile_inquiry"
 
     return None
@@ -168,7 +179,7 @@ Analyze the user's message and classify it into ONE of these intents:
 2. "profile_inquiry" - User wants to VIEW their own employee / HR profile facts (read-only)
    Examples: "What is my PAN?", "My Aadhaar on record", "What is my employee ID?", "Who is my reporting manager?",
    "What department am I in?", "What is my designation?", "Show my profile", "What is my bank IFSC in HRMS?",
-   "What is my office location?", "My date of joining"
+   "What is my office location?", "My date of joining", "What is my name?", "Who am I?"
 
 3. "redirect_to_portal" - User is asking to PERFORM an action (not read-only)
    Examples: "Apply for leave", "Update my address", "Submit reimbursement", "Check in"
@@ -294,6 +305,16 @@ async def classify_intent(
             )
             return sticky  # type: ignore[return-value]
 
+        if not intent_text:
+            silent = _classify_intent_fast(orch_get(state, "user_message", "") or "")
+            if silent and silent != "unknown":
+                logger.info(
+                    "Empty classifier reply; using fast heuristic %s (employee %s)",
+                    silent,
+                    orch_get(state, "employee_id"),
+                )
+                return silent  # type: ignore[return-value]
+
         normalized_intent = intent_text.replace("-", "_").replace(" ", "_")
 
         # Parse response with tolerant matching for minor format variations
@@ -382,6 +403,10 @@ async def classify_intent(
                 "employee id",
                 "empid",
                 "my profile",
+                "my name",
+                "full name",
+                "second name",
+                "who am i",
             ]
             if any(p in msg for p in profile_markers) and not has_action:
                 return "profile_inquiry"
