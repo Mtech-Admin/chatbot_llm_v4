@@ -223,6 +223,15 @@ def _success_payload(raw: Any) -> Dict[str, Any]:
     return {"status": "success", "data": expanded}
 
 
+def _friendly_error(code: str) -> str:
+    return {
+        "access_denied": "You do not have access to this NOC information.",
+        "not_found": "No matching NOC request was found.",
+        "unauthorized": "Your session has expired. Please log in again.",
+        "timeout": "The request took too long. Please try again.",
+    }.get(code, "Something went wrong while fetching NOC data.")
+
+
 async def list_my_noc_requests(
     jwt_token: str,
     noc_type: str,
@@ -343,7 +352,7 @@ async def get_last_noc_request(
     inner: Dict[str, Any] = {}
     if normalized:
         inner["noc_type"] = normalized
-    body = {"Request": {"data": inner}}
+    body = {"data": inner}
     result = await hrms_client.call_api(
         "/noc-common/last-noc-request",
         jwt_token,
