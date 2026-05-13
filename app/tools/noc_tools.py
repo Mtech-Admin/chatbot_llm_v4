@@ -352,7 +352,7 @@ async def get_last_noc_request(
     inner: Dict[str, Any] = {}
     if normalized:
         inner["noc_type"] = normalized
-    body = {"data": inner}
+    body = {"Request": {"data": inner}}
     result = await hrms_client.call_api(
         "/noc-common/last-noc-request",
         jwt_token,
