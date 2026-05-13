@@ -1,6 +1,6 @@
 """
-Employee profile tools — read-only. Uses HRMS EmployeesController:
-POST /employees/my-profile (JWT → req.user.id / empId → employeeProfile).
+Employee profile tools — read-only. Uses HRMS:
+POST /employees/full-details with JWT (encrypted transport flags off per HRMS gateway).
 """
 
 from __future__ import annotations
@@ -18,10 +18,12 @@ PROFILE_TOOLS = [
         "function": {
             "name": "get_my_employee_profile",
             "description": (
-                "Fetch the logged-in employee's full HRMS profile (identity, job, contacts, "
-                "addresses, banks, family, education, etc.). Use this to answer questions about "
-                "the employee's own PAN, Aadhaar, department, designation, manager, and other "
-                "profile fields returned by HRMS."
+                "Fetch the logged-in employee's employee full-details record from HRMS: identity, "
+                "job and org structure (wing, department, designation, SAP job text), salary scale, "
+                "shift and work schedule, reporting manager snapshot, PF amount, PAN and other "
+                "IDs in record, contacts, employers history, addresses, banks, dependents/family "
+                "members, education, emergency contacts, approvers and assigned offices "
+                "(names/locations). Use for any read-only profile question grounded in HRMS."
             ),
             "parameters": {
                 "type": "object",
@@ -54,6 +56,8 @@ def _strip_sensitive(obj: Any) -> Any:
         out: Dict[str, Any] = {}
         for key, val in obj.items():
             lk = key.lower()
+            if key == "coordinates":
+                continue
             if key in _SENSITIVE_KEYS or lk in _SENSITIVE_KEYS:
                 continue
             if lk == "image" and isinstance(val, str) and len(val) > 240:
@@ -130,13 +134,16 @@ def _unwrap_hrms_profile_payload(payload: Any) -> Any:
 
 async def get_my_employee_profile(jwt_token: str) -> Dict[str, Any]:
     """
-    Load current user's profile from HRMS (POST /employees/my-profile, empty body).
+    Load current user's full employee details from HRMS (POST /employees/full-details).
+    Sends an empty JSON object and disables enc-req / enc-res for plain JSON payloads.
     """
     result = await hrms_client.call_api(
-        "/employees/my-profile",
+        "/employees/full-details",
         jwt_token,
         method="POST",
         body={},
+        json_body_direct=True,
+        extra_headers={"enc-req": "0", "enc-res": "0"},
     )
 
     if "error" in result:

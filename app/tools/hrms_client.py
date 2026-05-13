@@ -101,40 +101,54 @@ class HRMSClient:
         method: str = "POST",
         body: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, Any]] = None,
+        *,
+        json_body_direct: bool = False,
+        extra_headers: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """
         Call HRMS API with JWT passthrough.
-        
+
         Args:
             endpoint: API endpoint (e.g., '/employee-attendance/my-attendance')
             jwt_token: Employee's JWT token
             method: HTTP method (GET, POST, etc.)
             body: Request body for POST requests
             params: Query parameters for GET requests
-        
+            json_body_direct: If True, POST `body` as JSON as-is (no Header/Request wrapper).
+            extra_headers: Merged onto default headers after Content-Type.
+
         Returns:
             API response as dictionary
         """
+        token = (jwt_token or "").strip()
         headers = {
-            "Authorization": f"Bearer {jwt_token}",
+            "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         }
-        wrapped_body = self._build_hrms_wrapped_body(jwt_token, body)
-        
+        if extra_headers:
+            headers.update(extra_headers)
+
+        post_json: Any
+        if json_body_direct:
+            post_json = body if body is not None else {}
+        else:
+            post_json = self._build_hrms_wrapped_body(jwt_token, body)
+
         url = f"{self.base_url}{endpoint}"
         logger.info("HRMS API request: %s %s", method, endpoint)
         if settings.DEBUG:
             logger.debug(
-                "HRMS request details endpoint=%s params=%s body_keys=%s token=%s",
+                "HRMS request details endpoint=%s params=%s direct=%s body_keys=%s token=%s",
                 endpoint,
                 params,
-                list((body or {}).keys()),
-                self._masked_token(jwt_token),
+                json_body_direct,
+                list((body or {}).keys()) if isinstance(body, dict) else [],
+                self._masked_token(token),
             )
 
         try:
             if method == "POST":
-                response = await self.http_client.post(url, json=wrapped_body, headers=headers)
+                response = await self.http_client.post(url, json=post_json, headers=headers)
             elif method == "GET":
                 response = await self.http_client.get(url, params=params, headers=headers)
             else:
