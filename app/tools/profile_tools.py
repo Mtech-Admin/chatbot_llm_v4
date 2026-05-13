@@ -1,6 +1,7 @@
 """
 Employee profile tools — read-only. Uses HRMS:
-POST /employees/full-details with JWT (encrypted transport flags off per HRMS gateway).
+POST /employees/full-details with JWT; body uses the same `{ Header, Request: { data } }`
+envelope as other HRMS tool APIs (device_type, device_id from latest otp_logs), plus enc-req/enc-res.
 """
 
 from __future__ import annotations
@@ -135,14 +136,14 @@ def _unwrap_hrms_profile_payload(payload: Any) -> Any:
 async def get_my_employee_profile(jwt_token: str) -> Dict[str, Any]:
     """
     Load current user's full employee details from HRMS (POST /employees/full-details).
-    Sends an empty JSON object and disables enc-req / enc-res for plain JSON payloads.
+    Sends the standard wrapped payload: Header (device_type, device_id, device_token, guid)
+    and Request.data (empty object for “full details for token holder”).
     """
     result = await hrms_client.call_api(
         "/employees/full-details",
         jwt_token,
         method="POST",
         body={},
-        json_body_direct=True,
         extra_headers={"enc-req": "0", "enc-res": "0"},
     )
 
