@@ -6,26 +6,7 @@
  *   pm2 start ecosystem.config.js
  *   pm2 save && pm2 startup
  *
- * Which env file is loaded (first match wins):
- *   1) PM2_ENV_FILE=/absolute/or/relative/path.env
- *   2) Else .env.${APP_ENV} where APP_ENV defaults to "local" → only .env.local
- *      Example production: APP_ENV=production pm2 start ecosystem.config.js
- *      → loads .env.production from this folder (must contain LLM_PROVIDER=sarvam, etc.)
- *
- * If the server still uses DeepInfra while your laptop uses Sarvam, the process is
- * almost always reading a different file or stale PM2 env: fix the file PM2 merges below,
- * then `pm2 delete dmrc-hrms-chatbot` and `pm2 start ecosystem.config.js` (restart alone
- * can keep old merged env for some keys unless the app process is recreated).
- *
- * After editing the env file, prefer:
- *   pm2 restart dmrc-hrms-chatbot --update-env
- * so PM2 reapplies variables merged from the ecosystem file (plain restart may keep a stale snapshot).
- *
- * This app runs `venv/bin/uvicorn` with args `app.main:app --host 0.0.0.0 --port …`.
- * Do NOT set `interpreter` — PM2 must exec the venv `uvicorn` script via its shebang
- * (venv Python). Setting `interpreter: "python3"` forces system Python → ModuleNotFoundError: uvicorn.
- * Do NOT pass `-m uvicorn` here: that is a Python flag; if it reaches the uvicorn binary you get
- * `Error: No such option: -m`.
+ * Env file override: PM2_ENV_FILE=/path/to/prod.env pm2 start ecosystem.config.js
  */
 
 const fs = require("fs");
@@ -74,8 +55,7 @@ const envFile =
 const envFromFile = loadEnvFile(path.join(root, envFile));
 const listenPort = envFromFile.PORT || process.env.PORT || "8001";
 
-/** venv `uvicorn` console script — executed directly so its shebang uses the venv interpreter. */
-function resolveVenvUvicorn() {
+function resolveUvicornScript() {
   const override = process.env.PM2_UVICORN;
   if (override) return path.resolve(root, override);
   const candidates = ["venv/bin/uvicorn", ".venv/bin/uvicorn"];
@@ -90,15 +70,10 @@ module.exports = {
   apps: [
     {
       name: "dmrc-hrms-chatbot",
-      script: resolveVenvUvicorn(),
-      args: [
-        "app.main:app",
-        "--host",
-        "0.0.0.0",
-        "--port",
-        String(listenPort),
-      ],
+      script: resolveUvicornScript(),
+      args: `app.main:app --host 0.0.0.0 --port ${listenPort}`,
       cwd: root,
+      interpreter: "python3",
       env: {
         PYTHONUNBUFFERED: "1",
         APP_ENV: APP_ENV,
