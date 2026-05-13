@@ -7,11 +7,11 @@ from pathlib import Path
 import re
 import tempfile
 
-from fastapi import APIRouter, Header, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Body, Header, HTTPException, Query, UploadFile, File, status
 from typing import Optional
 from datetime import datetime
 
-from app.models.message import ChatRequest, ChatResponse, MessageRole, Message
+from app.models.message import ChatRequest, ChatResponse, EndSessionRequest, MessageRole, Message
 from app.gateway.auth import verify_jwt_token, get_token_from_header
 from app.gateway.session import session_manager
 from app.orchestrator.state import OrchestratorState
@@ -135,20 +135,29 @@ async def send_message(
 @router.post("/chat/session/end")
 @router.post("/session/end")
 async def end_session(
-    session_id: str,
-    authorization: Optional[str] = Header(None)
+    session_id: Optional[str] = Query(None, description="Session id (query string)"),
+    body: Optional[EndSessionRequest] = Body(None),
+    authorization: Optional[str] = Header(None),
 ) -> dict:
     """
-    End a chat session
+    End a chat session. Accepts `session_id` as a query parameter and/or in the JSON body
+    (e.g. `{"session_id": "..."}`) so mobile and web clients do not get 422.
     """
     
     try:
+        sid = session_id or (body.session_id if body else None)
+        if not sid or not str(sid).strip():
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="session_id is required (query parameter or JSON body)",
+            )
+
         # Verify JWT
         jwt_token = get_token_from_header(authorization)
         auth_info = verify_jwt_token(jwt_token)
         
         # Validate session
-        session_data = await session_manager.get_session(session_id)
+        session_data = await session_manager.get_session(str(sid).strip())
         if not session_data or session_data.employee_id != auth_info["employee_id"]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -156,8 +165,8 @@ async def end_session(
             )
         
         # End session
-        await session_manager.end_session(session_id)
-        logger.info(f"Session {session_id} ended")
+        await session_manager.end_session(str(sid).strip())
+        logger.info(f"Session {sid} ended")
         
         return {"status": "success", "message": "Session ended"}
     

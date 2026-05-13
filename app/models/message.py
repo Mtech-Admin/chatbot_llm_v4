@@ -31,6 +31,13 @@ class ChatResponse(BaseModel):
     requires_action: bool = False
     action_url: Optional[str] = None
 
+
+class EndSessionRequest(BaseModel):
+    """End session: clients may POST JSON with session_id (or send session_id as a query param)."""
+
+    session_id: Optional[str] = None
+
+
 class SessionData(BaseModel):
     """Session data stored in Redis"""
     session_id: str

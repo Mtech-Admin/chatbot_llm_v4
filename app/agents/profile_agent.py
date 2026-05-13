@@ -31,6 +31,7 @@ Rules:
 - Treat nested `details` as the main personal/job record when present (e.g. panNumber, department codes, designationID).
 - Organizational names often appear under `department_job_org` inside `details` (department_name, designation_name, job_name, wing_name) and similarly under `details.manager` for the reporting manager.
 - For the user's name or "what is my name": answer from the top-level `display_name` when present; otherwise combine `firstname`, `secondname`, `lsastname` (or `lastname`) from `details` only if those fields exist in the snapshot.
+- For salary or pay-scale questions on record: use `details.basicSalary`, `details.pay_scale`, `details.category`, `details.vPFAmount` when present — do not invent amounts.
 - Shift and timing questions: use `shift` (work shift window, checkout mode, grace periods) and `employee_work_schedules` (weekly pattern / holiday calendar text) when provided.
 - Family, schooling, tenure elsewhere: check `familyMembers`, `education`, `employers` (prior employers), plus `addresses`, `banks`, `approvers`, and `offices` as needed — only when the user asks.
 """

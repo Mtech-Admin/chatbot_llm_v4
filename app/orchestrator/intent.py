@@ -40,14 +40,33 @@ def _has_action_intent(msg: str) -> bool:
 
 
 def _classify_intent_fast(user_message: str) -> Optional[str]:
-    msg = (user_message or "").lower().strip()
-    if not msg:
+    raw = (user_message or "").strip()
+    if not raw:
         return "unknown"
 
+    msg = raw.lower()
     has_action = _has_action_intent(msg)
 
     if has_action:
         return "redirect_to_portal"
+
+    # Devanagari/Hindi: viewing own name or pay on HR record (avoid relying on Latin-only regex)
+    if re.search(r"[\u0900-\u097F]", raw):
+        if re.search(
+            r"मेरा\s+नाम|मेरे\s+नाम|नाम\s+क्या|क्या\s+मेरा\s+नाम|मैं\s+कौन|कौन\s+हूं|कौन\s+हूँ|शुभ\s+नाम",
+            raw,
+        ):
+            return "profile_inquiry"
+        if re.search(r"सैलरी|वेतन|मूल\s*वेतन|वेतनमान|तनख्वाह|कार्यवेतन", raw):
+            return "profile_inquiry"
+
+    # Roman Hindi / Hinglish for same topics
+    if re.search(
+        r"\b(mera|meri)\s+naam\b|\bnaam\s+kya\b|\bnaam\s+(hai|batao|bataiye)\b"
+        r"|\b(main|mai)\s+kaun\b|\bmeri\s+salary\b|\bsalary\s+kya\b",
+        msg,
+    ):
+        return "profile_inquiry"
 
     if re.search(r"\b(attendance|present|absent|late|early leaving|punch|check[- ]?in time|check[- ]?out time)\b", msg):
         return "attendance_inquiry"
@@ -70,6 +89,8 @@ def _classify_intent_fast(user_message: str) -> Optional[str]:
     if re.search(
         r"\b(profile|pan|aadhaar|aadhar|ifsc|department|designation|reporting\s+manager"
         r"|employee\s*(?:id|number|no\b)|date\s+of\s+joining|\bdoj\b|\bdob\b"
+        r"|\bsalary\b|\bpay\s*scale\b|\bbasic\s+salary\b|\bremuneration\b"
+        r"|\b(my|gross|net)\s+pay\b|\bpay\s+slip\b|\bpay\s+band\b"
         r"|\bfull\s+name\b|\bmy\s+name\b|\bi\s+(?:was\s+)?born\b|\bwho\s+am\s+i\b"
         r"|\babout\s+(?:myself|me)\b|\bpersonal\s+details?\b"
         r"|\bi'?m\b|\bi\s+am\b|\b(call(?:ed)?\s+me|my\s+details?)\b|\bmy\s+surname\b"
@@ -179,7 +200,8 @@ Analyze the user's message and classify it into ONE of these intents:
 2. "profile_inquiry" - User wants to VIEW their own employee / HR profile facts (read-only)
    Examples: "What is my PAN?", "My Aadhaar on record", "What is my employee ID?", "Who is my reporting manager?",
    "What department am I in?", "What is my designation?", "Show my profile", "What is my bank IFSC in HRMS?",
-   "What is my office location?", "My date of joining", "What is my name?", "Who am I?"
+   "What is my office location?", "My date of joining", "What is my name?", "Who am I?",
+   "What is my salary?", "My pay scale"
 
 3. "redirect_to_portal" - User is asking to PERFORM an action (not read-only)
    Examples: "Apply for leave", "Update my address", "Submit reimbursement", "Check in"
@@ -407,6 +429,10 @@ async def classify_intent(
                 "full name",
                 "second name",
                 "who am i",
+                "salary",
+                "pay scale",
+                "basic salary",
+                "remuneration",
             ]
             if any(p in msg for p in profile_markers) and not has_action:
                 return "profile_inquiry"
