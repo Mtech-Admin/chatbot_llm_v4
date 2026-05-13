@@ -65,17 +65,24 @@ async def send_message(
             logger.info(f"Created new session {session_id}")
         else:
             # Validate session belongs to this employee
-            session_data = await session_manager.get_session(session_id)
-            if not session_data or session_data.employee_id != employee_id:
+            existing = await session_manager.get_session(session_id)
+            if not existing or existing.employee_id != employee_id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Session does not belong to this employee"
                 )
-        
-        # Step 3: Retrieve conversation history
-        conversation_history = await session_manager.get_conversation_history(session_id)
-        
-        # Step 4: Build orchestrator state
+
+        session_data = await session_manager.get_session(session_id)
+        if not session_data:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not load session",
+            )
+
+        conversation_history = session_data.messages
+        ctx = session_data.context or {}
+        last_intent = ctx.get("last_intent")
+
         state = OrchestratorState(
             user_message=request.message,
             employee_id=employee_id,
@@ -83,10 +90,11 @@ async def send_message(
             jwt_token=jwt_token,
             session_id=session_id,
             language=request.language,
-            conversation_history=conversation_history
+            conversation_history=conversation_history,
+            last_intent=last_intent if isinstance(last_intent, str) else None,
         )
         
-        # Step 5: Process message through orchestrator
+        # Process message through orchestrator
         state = await process_message(state)
 
         # Step 6: Build response

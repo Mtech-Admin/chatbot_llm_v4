@@ -4,11 +4,13 @@ Intent Classification - Determines routing for user query
 
 import logging
 import re
-from typing import Literal, Optional
+from typing import Literal, Optional, Any, List
+
 from app.config import get_llm_client, get_model_name, settings
 from app.llm.chat_completions import chat_completions_create
 from app.llm.conversation_budget import format_trimmed_history_block
-from app.orchestrator.state import OrchestratorState
+from app.models.message import MessageRole
+from app.orchestrator.state import OrchestratorState, orch_get
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +72,92 @@ def _classify_intent_fast(user_message: str) -> Optional[str]:
 
     return None
 
+
+_STICKY_ELIGIBLE_INTENTS = frozenset(
+    {
+        "attendance_inquiry",
+        "profile_inquiry",
+        "noc_inquiry",
+        "vpf_inquiry",
+        "policy_inquiry",
+        "holiday_inquiry",
+        "leave_inquiry",
+    }
+)
+
+
+def _looks_like_contextual_followup(user_message: str, conversation_history: List[Any]) -> bool:
+    """True when the utterance plausibly continues the last specialist answer (not a fresh topic)."""
+    if not conversation_history:
+        return False
+    tail = conversation_history[-10:]
+    if not any(getattr(m, "role", None) == MessageRole.ASSISTANT for m in tail):
+        return False
+
+    ml = (user_message or "").strip().lower()
+    if not ml:
+        return False
+
+    standalone_greeting = bool(
+        re.fullmatch(r"(hi|hello|hey|namaste)(\s+there)?[\s!.]*", ml, flags=re.I)
+    )
+    if standalone_greeting and len(ml) < 36:
+        return False
+
+    continuation_markers = (
+        r"^\s*(yes|yeah|yep|nope|no|sure|ok|okay|please)\b",
+        r"\b(full|more|complete)\s+breakdown\b",
+        r"\b(more|full|complete)\s+details?\b",
+        r"\bcomplete\s+information\b",
+        r"\belaborate\b",
+        r"\bwalk\s+me\s+through\b",
+        r"\btell\s+me\s+(more|everything)\b",
+        r"\bwhat\s+about\b",
+        r"\bhow\s+about\b",
+        r"\band\s+(for\s+|the\s+)?(same|that|those|above|previous|last)\b",
+        r"\b(and|also)\s+then\b",
+        r"\b(can|could)\s+you\s+(explain|expand|break\s*down)\b",
+        r"\bas\s+I\s+said\b",
+        r"\bgo\s+(ahead\s+)?(and\s+)?(continue|tell)\b",
+        r"\bin\s+that\s+(case|matter)\b",
+        r"\bprovide\b.+?\b(breakdown|details?)\b",
+        r"\bgive\s+me\s+.+?\b(breakdown|details?)\b",
+    )
+    if any(re.search(p, ml, re.I) for p in continuation_markers):
+        return True
+
+    if re.search(
+        r"\b(it|they|them|that\s+record|that\s+request|this\s+(one|request)|those|same\s+one"
+        r"|the\s+above|previous\s+(reply|answer|month|period)|your\s+(last\s+)?(reply|answer))\b",
+        ml,
+        re.I,
+    ):
+        return True
+
+    narrow_question = (
+        bool(re.search(r"[?。？]", ml))
+        and len(ml) <= 200
+        and len(ml.split()) <= 22
+        and bool(re.search(r"^\s*(why|when|where|how|who|which)\s+", ml, re.I))
+    )
+    return narrow_question
+
+
+def _infer_sticky_topic_intent(state: Any) -> Optional[str]:
+    """
+    Re-use the session's last successful specialist routing when the user clearly continues that thread.
+    """
+    last = orch_get(state, "last_intent")
+    if not last or last not in _STICKY_ELIGIBLE_INTENTS:
+        return None
+    if not _looks_like_contextual_followup(
+        orch_get(state, "user_message", "") or "",
+        orch_get(state, "conversation_history") or [],
+    ):
+        return None
+    return last
+
+
 INTENT_CLASSIFIER_PROMPT = """You are an expert intent classifier for an HR chatbot.
 
 Analyze the user's message and classify it into ONE of these intents:
@@ -115,6 +203,7 @@ Rules:
 - If user wants to VIEW leave balances, leave types, their leave requests/status, or leave calendar (not applying) → "leave_inquiry"
 - If user asks about public holidays / holiday list / upcoming holidays (organizational calendar) → "holiday_inquiry"
 - If the question is about leave *policy* or *rules* (admissibility, eligibility), prefer "policy_inquiry" over "leave_inquiry"
+- If the PRIOR ASSISTANT turn answered using one specialist domain above and the new user message CLEARLY CONTINUES that thread (follow-up detail, affirmation, narrower question about the same matter), classify as the SAME intent again — do NOT switch domains.
 - If there's ANY ambiguity about actions vs viewing, prefer "redirect_to_portal" to be safe
 - Respond ONLY with the intent name, nothing else
 
@@ -148,20 +237,29 @@ async def classify_intent(
         Intent classification
     """
     try:
-        heuristic_intent = _classify_intent_fast(state.user_message)
+        heuristic_intent = _classify_intent_fast(orch_get(state, "user_message", "") or "")
         if heuristic_intent:
             logger.info(
                 "Intent classified by fast heuristic for employee %s: %s",
-                state.employee_id,
+                orch_get(state, "employee_id"),
                 heuristic_intent,
             )
             return heuristic_intent  # type: ignore[return-value]
+
+        sticky = _infer_sticky_topic_intent(state)
+        if sticky:
+            logger.info(
+                "Intent sticky-continuity for employee %s: %s",
+                orch_get(state, "employee_id"),
+                sticky,
+            )
+            return sticky  # type: ignore[return-value]
 
         client = get_llm_client()
         model = get_model_name()
         
         history_snippet = format_trimmed_history_block(
-            state.conversation_history or [],
+            orch_get(state, "conversation_history") or [],
             settings.CONVERSATION_INTENT_HISTORY_TOKEN_BUDGET,
             header="Prior conversation:",
             empty_text="(none)",
@@ -169,7 +267,7 @@ async def classify_intent(
 
         prompt = INTENT_CLASSIFIER_PROMPT.format(
             history_snippet=history_snippet,
-            user_message=state.user_message,
+            user_message=orch_get(state, "user_message", "") or "",
         )
 
         response = await chat_completions_create(
@@ -179,13 +277,23 @@ async def classify_intent(
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,  # Low temperature for deterministic classification
         )
+        sticky = _infer_sticky_topic_intent(state)
+
         intent_text = (response.choices[0].message.content or "").strip().lower()
         logger.info(
             "Intent classifier raw response for employee %s: %s",
-            state.employee_id,
+            orch_get(state, "employee_id"),
             intent_text,
         )
-        
+
+        if not intent_text and sticky:
+            logger.info(
+                "Empty classifier reply; using sticky intent %s (employee %s)",
+                sticky,
+                orch_get(state, "employee_id"),
+            )
+            return sticky  # type: ignore[return-value]
+
         normalized_intent = intent_text.replace("-", "_").replace(" ", "_")
 
         # Parse response with tolerant matching for minor format variations
@@ -213,7 +321,7 @@ async def classify_intent(
             return "holiday_inquiry"
         else:
             # Heuristic fallbacks when the LLM intent string is off.
-            msg = (state.user_message or "").lower()
+            msg = (orch_get(state, "user_message", "") or "").lower()
             action_markers = [
                 "update",
                 "change",
@@ -311,9 +419,16 @@ async def classify_intent(
                 return "leave_inquiry"
             if re.search(r"\bleave\b", msg) and not has_action and "policy" not in msg:
                 return "leave_inquiry"
+            if sticky:
+                logger.info(
+                    "Intent recovered via sticky continuity as %s (employee %s)",
+                    sticky,
+                    orch_get(state, "employee_id"),
+                )
+                return sticky  # type: ignore[return-value]
             logger.warning(
                 "Intent classifier fallback to unknown for employee %s, raw='%s'",
-                state.employee_id,
+                orch_get(state, "employee_id"),
                 intent_text,
             )
             return "unknown"
@@ -321,7 +436,7 @@ async def classify_intent(
     except Exception as e:
         logger.error(
             "Error classifying intent for employee %s: %s",
-            state.employee_id,
+            orch_get(state, "employee_id"),
             str(e),
             exc_info=True,
         )

@@ -458,12 +458,83 @@ def format_last_noc_answer(payload: Any) -> str:
     return sentence + "." + suffix
 
 
-    return {
-        "access_denied": "You do not have access to this NOC information.",
-        "not_found": "No matching NOC request was found.",
-        "unauthorized": "Your session has expired. Please log in again.",
-        "timeout": "The request took too long. Please try again.",
-    }.get(code, "Something went wrong while fetching NOC data.")
+def noc_display_label_to_internal(label: str) -> Optional[str]:
+    """Map phrases from `format_last_noc_answer` (e.g. 'online courses') to list/detail internal keys."""
+    s = (label or "").strip().lower()
+    if not s:
+        return None
+    for internal, friendly in NOC_TYPE_LABELS.items():
+        fl = friendly.lower()
+        if s == fl or s in fl or fl in s:
+            return internal
+    if "ex-india" in s or "india travel" in s:
+        return "noc_exindia_requests"
+    if "outside job" in s or "outside employment" in s:
+        return "noc_outsidejobs"
+    if "higher" in s and "stud" in s:
+        return "noc_higherstudies"
+    if "online" in s and "course" in s:
+        return "noc_onlinecourses"
+    return None
+
+
+def extract_noc_detail_hint_from_history(messages: List[Any]) -> Optional[Tuple[str, str]]:
+    """
+    If a recent assistant turn was our compact last-NOC line, recover
+    (internal_noc_type_key, request_id) for find-one calls.
+    """
+    from app.models.message import MessageRole
+
+    if not messages:
+        return None
+    for msg in reversed(messages):
+        if msg.role != MessageRole.ASSISTANT:
+            continue
+        text = msg.content or ""
+        rid_m = re.search(r"Internal request id\s*(\d+)", text, re.I)
+        if not rid_m:
+            continue
+        rid = rid_m.group(1).strip()
+        type_m = re.search(r"most recent NOC\s*\(([^)]+)\)", text, re.I)
+        if not type_m:
+            continue
+        internal = noc_display_label_to_internal(type_m.group(1))
+        if internal:
+            return (internal, rid)
+    return None
+
+
+def message_asks_for_noc_detail_followup(user_message: str) -> bool:
+    """User wants an expanded NOC record (follow-up to a short last-NOC bot reply)."""
+    raw = (user_message or "").strip()
+    if not raw:
+        return False
+    if message_asks_for_noc_count(raw) or message_asks_for_last_noc_request(raw):
+        return False
+    ml = raw.lower()
+    strong = bool(
+        re.search(r"\bfull\s+breakdown\b", ml)
+        or re.search(r"\b(more|full|complete)\s+details?\b", ml)
+        or re.search(r"\belaborate\b", ml)
+        or (
+            re.search(r"\bprovide\b", ml)
+            and re.search(r"\b(breakdown|details?)\b", ml)
+        )
+    )
+    bare = bool(
+        re.fullmatch(r"(yes|yeah|yep|sure|ok|okay|please)[\s!.]*", ml, flags=re.IGNORECASE)
+    )
+    head_yes = bool(
+        re.match(
+            r"^\s*(yes|yeah|yep|sure|ok|okay|please)\b[,.\s]",
+            ml,
+            flags=re.IGNORECASE,
+        )
+    )
+    wants_detail = bool(
+        re.search(r"\b(breakdown|details?|everything|information|all\s+fields?)\b", ml)
+    )
+    return strong or bare or (head_yes and wants_detail)
 
 
 # --- Count / type inference (no LLM): use HRMS `total` from list endpoints --------------------

@@ -6,6 +6,16 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
 from app.models.message import Message
 
+
+def orch_get(state: Any, key: str, default: Any = None) -> Any:
+    """Read field from LangGraph state (dict-like or dataclass-like)."""
+    if state is None:
+        return default
+    if isinstance(state, dict):
+        return state.get(key, default)
+    return getattr(state, key, default)
+
+
 @dataclass
 class OrchestratorState:
     """State passed through LangGraph nodes"""
@@ -21,7 +31,10 @@ class OrchestratorState:
     # Context
     employee_profile: Optional[Dict[str, Any]] = None
     conversation_history: List[Message] = field(default_factory=list)
-    
+
+    # Last routed specialist intent for this Redis session (continuity across turns).
+    last_intent: Optional[str] = None
+
     # Processing
     intent: Optional[str] = None  # e.g., "attendance_inquiry", "redirect_to_portal"
     routing_agent: Optional[str] = None  # e.g., "attendance_agent"

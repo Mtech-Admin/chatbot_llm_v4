@@ -5,7 +5,7 @@ LangGraph Orchestrator - Coordinates conversation flow using state graph
 import logging
 from typing import Dict, Any
 from langgraph.graph import StateGraph, END
-from app.orchestrator.state import OrchestratorState
+from app.orchestrator.state import OrchestratorState, orch_get
 from app.orchestrator.intent import classify_intent
 from app.orchestrator.router import route_request
 from app.gateway.session import session_manager
@@ -46,18 +46,29 @@ def build_orchestrator_graph() -> StateGraph:
         # Save user message
         user_msg = Message(
             role=MessageRole.USER,
-            content=state.user_message
+            content=orch_get(state, "user_message", "") or "",
         )
-        await session_manager.add_message(state.session_id, user_msg)
-        
+        sid = orch_get(state, "session_id")
+        await session_manager.add_message(sid, user_msg)
+
         # Save assistant response
         assistant_msg = Message(
             role=MessageRole.ASSISTANT,
-            content=state.response_message
+            content=orch_get(state, "response_message", "") or "",
         )
-        await session_manager.add_message(state.session_id, assistant_msg)
-        
-        logger.info(f"Saved conversation to memory for session {state.session_id}")
+        await session_manager.add_message(sid, assistant_msg)
+
+        routed = orch_get(state, "intent")
+        if routed and routed not in ("unknown", "redirect_to_portal"):
+            await session_manager.merge_session_context(
+                sid,
+                {"last_intent": routed},
+            )
+
+        logger.info(
+            "Saved conversation to memory for session %s",
+            orch_get(state, "session_id"),
+        )
         return {}
     
     # Add nodes
@@ -105,6 +116,7 @@ async def process_message(state: OrchestratorState) -> OrchestratorState:
         "language": state.language,
         "employee_profile": state.employee_profile,
         "conversation_history": state.conversation_history,
+        "last_intent": state.last_intent,
         "intent": state.intent,
         "routing_agent": state.routing_agent,
         "response_message": state.response_message,

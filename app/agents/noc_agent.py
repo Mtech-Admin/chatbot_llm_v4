@@ -17,6 +17,7 @@ from app.tools.noc_tools import (
     NOC_TOOLS,
     NOC_TYPE_LABELS,
     count_noc_requests_for_employee,
+    extract_noc_detail_hint_from_history,
     format_last_noc_answer,
     get_last_noc_request,
     get_noc_request_details,
@@ -25,6 +26,7 @@ from app.tools.noc_tools import (
     list_my_noc_requests,
     message_asks_for_last_noc_request,
     message_asks_for_noc_count,
+    message_asks_for_noc_detail_followup,
     noc_tool_json_for_llm,
     parse_month_filter_from_message,
     parse_workflow_status_codes_for_count_breakdown,
@@ -62,8 +64,12 @@ field when the tool summary explicitly includes it.
 
 When the user asks for their single latest or most recent NOC (with or without naming a category),
 prefer `get_my_last_noc_request`. Pass `noc_type` only when they clearly mean one module API key:
-ex_india, visa_passport, outside_job, higher_education, reimbursement, online_course otherwise omit `noc_type`
+ex_india, visa_passport, outside_job, higher_education, reimbursement, online_course; otherwise omit `noc_type`
 for HRMS-wide “last created among all types”.
+
+When the user asks for detailed fields right after they saw a compact “last NOC” summary containing
+an internal request id, retrieve that row with find-one (`get_noc_request_details`) using the module and id from context
+(e.g. they may say “full breakdown”, “more details”, or “yes”).
 
 Never mention APIs, endpoints, tools, or internal keys unless the user explicitly asks how the system classifies modules.
 """
@@ -157,6 +163,58 @@ class NocAgent(BaseAgent):
                     state.response_message = format_last_noc_answer(last_payload.get("data"))
                 state.routing_agent = "noc_agent"
                 return state
+
+            if message_asks_for_noc_detail_followup(msg):
+                hint = extract_noc_detail_hint_from_history(state.conversation_history or [])
+                if hint:
+                    internal_t, rid = hint
+                    state.skip_response_review = True
+                    detail = await get_noc_request_details(
+                        state.jwt_token,
+                        internal_t,
+                        str(rid),
+                    )
+                    if detail.get("status") != "success":
+                        state.response_message = detail.get(
+                            "message",
+                            "I could not load full NOC details right now. Please try again in a moment.",
+                        )
+                        state.routing_agent = "noc_agent"
+                        return state
+                    client = get_llm_client()
+                    model = get_model_name()
+                    ctx = self._build_context_prompt(state)
+                    summ = await chat_completions_create(
+                        client,
+                        model=model,
+                        max_tokens=2048,
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": (
+                                    f"{ctx}\n\n"
+                                    "The user wants a clear, structured breakdown of their NOC record. "
+                                    "Use ONLY the JSON snapshot below. Expand every important field in plain language "
+                                    "(reference, dates, statuses, amounts, destinations, notes, approvers if present). "
+                                    "Do not dump raw JSON."
+                                ),
+                            },
+                            {
+                                "role": "user",
+                                "content": (
+                                    f"Request: {msg}\n\n"
+                                    "NOC detail snapshot:\n"
+                                    f"{noc_tool_json_for_llm(detail, max_chars=12000)}"
+                                ),
+                            },
+                        ],
+                    )
+                    state.response_message = (
+                        summ.choices[0].message.content
+                        or "I retrieved your NOC details but could not format them cleanly. Please ask again."
+                    )
+                    state.routing_agent = "noc_agent"
+                    return state
 
             client = get_llm_client()
             model = get_model_name()

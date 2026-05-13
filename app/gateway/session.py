@@ -1,8 +1,9 @@
 import redis.asyncio as redis
 import json
 from datetime import datetime, timedelta
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from uuid import uuid4
+
 from app.config import settings
 from app.llm.conversation_budget import trim_conversation_messages
 from app.models.message import SessionData, Message
@@ -74,12 +75,25 @@ class SessionManager:
         
         session.last_activity = datetime.utcnow()
         await self.update_session(session)
-    
+
+    async def merge_session_context(self, session_id: str, updates: Dict[str, Any]) -> None:
+        """Merge key/values into SessionData.context (preserves other context keys)."""
+        if not updates:
+            return
+        session = await self.get_session(session_id)
+        if not session:
+            return
+        ctx: Dict[str, Any] = dict(session.context or {})
+        ctx.update(updates)
+        session.context = ctx
+        session.last_activity = datetime.utcnow()
+        await self.update_session(session)
+
     async def get_conversation_history(self, session_id: str) -> List[Message]:
         """Get conversation history for context injection"""
         session = await self.get_session(session_id)
         return session.messages if session else []
-    
+
     async def end_session(self, session_id: str):
         """End session and remove from Redis"""
         await self.redis_client.delete(f"session:{session_id}")
