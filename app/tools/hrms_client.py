@@ -85,12 +85,17 @@ class HRMSClient:
     ) -> Dict[str, Any]:
         """
         Convert payload to RequestInterceptor-friendly shape:
-        { Header: {device_id, device_type}, Request: { data: <original body> } }.
+        { Header: { device_type, device_id, device_token, guid }, Request: { data: <dto> } }.
         """
         emp_id = self._extract_emp_id_from_token(jwt_token)
         header = self._latest_device_header_for_emp(emp_id)
         return {
-            "Header": header,
+            "Header": {
+                "device_type": str(header.get("device_type") or "WEB"),
+                "device_id": str(header.get("device_id") or ""),
+                "device_token": "",
+                "guid": "",
+            },
             "Request": {"data": body or {}},
         }
     

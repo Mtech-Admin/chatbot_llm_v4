@@ -10,7 +10,7 @@ NOC types (internal keys used by tools / agent):
 - noc_higherstudies         → POST /noc-higherstudies/find-all, find-one
 
 Latest single request (cross-type or scoped):
-- POST /noc-common/last-noc-request  (Request.data optional noc_type API key)
+- POST /noc-common/last-noc-request — full body `{ Header, Request: { data } }` (Interceptor shape)
 """
 
 from __future__ import annotations
@@ -336,8 +336,8 @@ async def get_last_noc_request(
     noc_type: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    POST /noc-common/last-noc-request with body { Request: { data } }.
-    Omit noc_type in data for HRMS-wide latest; otherwise pass noc_type API key.
+    POST /noc-common/last-noc-request — full interceptor envelope:
+    Header (device fields) + Request.data (optional noc_type).
     """
     normalized: Optional[str] = None
     if noc_type is not None and str(noc_type).strip():
@@ -352,7 +352,7 @@ async def get_last_noc_request(
     inner: Dict[str, Any] = {}
     if normalized:
         inner["noc_type"] = normalized
-    body = {"Request": {"data": inner}}
+    body = hrms_client._build_hrms_wrapped_body(jwt_token, inner)
     result = await hrms_client.call_api(
         "/noc-common/last-noc-request",
         jwt_token,
