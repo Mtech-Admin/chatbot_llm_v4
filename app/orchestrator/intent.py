@@ -59,6 +59,11 @@ def _classify_intent_fast(user_message: str) -> Optional[str]:
             return "profile_inquiry"
         if re.search(r"सैलरी|वेतन|मूल\s*वेतन|वेतनमान|तनख्वाह|कार्यवेतन", raw):
             return "profile_inquiry"
+        if re.search(
+            r"शिफ्ट|कार्य\s*समय|ड्यूटी|रूस्टर|प्रबंधक|रिपोर्टिंग|नियंत्रण\s+अधिकारी",
+            raw,
+        ):
+            return "profile_inquiry"
 
     # Roman Hindi / Hinglish for same topics
     if re.search(
@@ -66,6 +71,20 @@ def _classify_intent_fast(user_message: str) -> Optional[str]:
         r"|\b(main|mai)\s+kaun\b|\bmeri\s+salary\b|\bsalary\s+kya\b",
         msg,
     ):
+        return "profile_inquiry"
+
+    if re.search(r"\b(mere|meri|mera)\s+shift\b|\bshift\s+(hai|hai\?|kya|lag(?:a|i|e)\s*hui)\b", msg):
+        return "profile_inquiry"
+
+    if re.search(
+        r"\b(?:work\s*)?shift\b|\broster\b|\bwork\s+schedule\b|\bwork\s+timing\b|\bduty\s+shift\b|\bgrace\s+period\b.+\b(?:shift|attendance)\b",
+        msg,
+    ):
+        return "profile_inquiry"
+    if re.search(
+        r"\breporting\s+manager\b|\bcontrolling\s+officer\b|\bmy\s+manager\b|\bmy\s+supervisor\b|\bwho\s+(is|was)\s+my\s+manager\b",
+        msg,
+    ) or re.search(r"\bmy\s+boss\b|\bwho\s+.+\bboss\b", msg):
         return "profile_inquiry"
 
     if re.search(r"\b(attendance|present|absent|late|early leaving|punch|check[- ]?in time|check[- ]?out time)\b", msg):
@@ -201,7 +220,8 @@ Analyze the user's message and classify it into ONE of these intents:
    Examples: "What is my PAN?", "My Aadhaar on record", "What is my employee ID?", "Who is my reporting manager?",
    "What department am I in?", "What is my designation?", "Show my profile", "What is my bank IFSC in HRMS?",
    "What is my office location?", "My date of joining", "What is my name?", "Who am I?",
-   "What is my salary?", "My pay scale"
+   "What is my salary?", "My pay scale", "What shift is assigned to me?", "My work schedule / WS rule",
+   "Who is my manager or controlling officer (CO)?", "मेरा शिफ्ट क्या है?", "मेरा प्रबंधक कौन है?"
 
 3. "redirect_to_portal" - User is asking to PERFORM an action (not read-only)
    Examples: "Apply for leave", "Update my address", "Submit reimbursement", "Check in"
@@ -229,8 +249,8 @@ Analyze the user's message and classify it into ONE of these intents:
 
 Rules:
 - If user wants to DO something (apply, update, submit, check-in, approve) → "redirect_to_portal"
-- If user wants to VIEW/CHECK something about their attendance → "attendance_inquiry"
-- If user wants to VIEW their own profile / identity / job / contact data (not policy, not attendance) → "profile_inquiry"
+- If user wants to VIEW/CHECK something about their attendance (history, daily records, presence/absence) → "attendance_inquiry"
+- If user wants to VIEW their own profile / identity / job / contact / shift-on-record / WS rule / roster / who is their manager or CO (same as reporting manager unless they ask attendance history) → "profile_inquiry"
 - If user wants to VIEW NOC request status or details (any NOC module) → "noc_inquiry"
 - If user wants to VIEW VPF / Voluntary Provident Fund requests or status (not applying or withdrawing) → "vpf_inquiry"
 - If user wants to VIEW leave balances, leave types, their leave requests/status, or leave calendar (not applying) → "leave_inquiry"
@@ -433,6 +453,13 @@ async def classify_intent(
                 "pay scale",
                 "basic salary",
                 "remuneration",
+                "shift",
+                "work schedule",
+                "work timing",
+                "roster",
+                "supervisor",
+                "controlling officer",
+                "my boss",
             ]
             if any(p in msg for p in profile_markers) and not has_action:
                 return "profile_inquiry"

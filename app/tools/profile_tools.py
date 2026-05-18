@@ -10,8 +10,11 @@ import logging
 from typing import Any, Dict
 
 from app.tools.hrms_client import hrms_client
+from app.gateway.session import session_manager
 
 logger = logging.getLogger(__name__)
+
+PROFILE_DETAILS_SESSION_KEY = "profile_details_cache"
 
 PROFILE_TOOLS = [
     {
@@ -129,8 +132,29 @@ def _unwrap_hrms_profile_payload(payload: Any) -> Any:
             cur = nxt
             continue
         return cur
-    logger.warning("Profile unwrap stopped at max depth; keys=%s", list(cur.keys())[:20] if isinstance(cur, dict) else type(cur))
+    logger.warning(
+        "Profile unwrap stopped at max depth; keys=%s", list(cur.keys())[:20] if isinstance(cur, dict) else type(cur)
+    )
     return cur
+
+
+async def persist_profile_details_session_cache(
+    session_id: str,
+    employee_id: str,
+    safe_entity: Dict[str, Any],
+) -> None:
+    """Persist sanitized employee full-details in Redis session for reuse on later profile turns."""
+    if not session_id or not safe_entity:
+        return
+    await session_manager.merge_session_context(
+        session_id,
+        {
+            PROFILE_DETAILS_SESSION_KEY: {
+                "employee_id": str(employee_id).strip(),
+                "data": safe_entity,
+            }
+        },
+    )
 
 
 async def get_my_employee_profile(jwt_token: str) -> Dict[str, Any]:

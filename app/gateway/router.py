@@ -19,6 +19,7 @@ from app.orchestrator.graph import process_message
 from app.knowledge.ingest import read_policy_docx_chunks, read_policy_rows
 from app.knowledge.store import policy_store
 from app.storage.chatbot_conversations import save_conversation
+from app.tools.profile_tools import PROFILE_DETAILS_SESSION_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +83,15 @@ async def send_message(
         conversation_history = session_data.messages
         ctx = session_data.context or {}
         last_intent = ctx.get("last_intent")
+        cached_prof: Optional[dict] = None
+        pcb = ctx.get(PROFILE_DETAILS_SESSION_KEY)
+        if (
+            isinstance(pcb, dict)
+            and str(pcb.get("employee_id", "")).strip() == str(employee_id).strip()
+        ):
+            data = pcb.get("data")
+            if isinstance(data, dict) and data:
+                cached_prof = data
 
         state = OrchestratorState(
             user_message=request.message,
@@ -92,6 +102,7 @@ async def send_message(
             language=request.language,
             conversation_history=conversation_history,
             last_intent=last_intent if isinstance(last_intent, str) else None,
+            cached_profile_snapshot=cached_prof,
         )
         
         # Process message through orchestrator

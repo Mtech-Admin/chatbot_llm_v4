@@ -25,20 +25,28 @@ def build_orchestrator_graph() -> StateGraph:
         intent = await classify_intent(state)
         state.intent = intent
         logger.info(f"Intent classified as: {intent}")
-        return {"intent": intent}
+        updates: Dict[str, Any] = {"intent": intent}
+        cached = orch_get(state, "cached_profile_snapshot")
+        if cached is not None:
+            updates["cached_profile_snapshot"] = cached
+        return updates
     
     # Node 2: Route to agent
     async def route_node(state: OrchestratorState) -> Dict[str, Any]:
         """Route to appropriate agent"""
         logger.info(f"Routing user {state.employee_id} with intent {state.intent}")
         state = await route_request(state)
-        return {
+        out: Dict[str, Any] = {
             "response_message": state.response_message,
             "routing_agent": state.routing_agent,
             "requires_action": state.requires_action,
             "sources": state.sources,
             "skip_response_review": state.skip_response_review,
         }
+        cached = orch_get(state, "cached_profile_snapshot")
+        if cached is not None:
+            out["cached_profile_snapshot"] = cached
+        return out
     
     # Node 3: Save to memory
     async def save_memory_node(state: OrchestratorState) -> Dict[str, Any]:
@@ -69,7 +77,11 @@ def build_orchestrator_graph() -> StateGraph:
             "Saved conversation to memory for session %s",
             orch_get(state, "session_id"),
         )
-        return {}
+        persist_s: Dict[str, Any] = {}
+        cached = orch_get(state, "cached_profile_snapshot")
+        if cached is not None:
+            persist_s["cached_profile_snapshot"] = cached
+        return persist_s
     
     # Add nodes
     workflow.add_node("classify_intent", classify_intent_node)
@@ -115,6 +127,7 @@ async def process_message(state: OrchestratorState) -> OrchestratorState:
         "session_id": state.session_id,
         "language": state.language,
         "employee_profile": state.employee_profile,
+        "cached_profile_snapshot": getattr(state, "cached_profile_snapshot", None),
         "conversation_history": state.conversation_history,
         "last_intent": state.last_intent,
         "intent": state.intent,
@@ -137,5 +150,9 @@ async def process_message(state: OrchestratorState) -> OrchestratorState:
     state.skip_response_review = bool(
         result.get("skip_response_review", state.skip_response_review)
     )
+
+    merged_cache = result.get("cached_profile_snapshot")
+    if merged_cache is not None:
+        state.cached_profile_snapshot = merged_cache
 
     return state

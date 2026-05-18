@@ -32,6 +32,9 @@ class OrchestratorState:
     employee_profile: Optional[Dict[str, Any]] = None
     conversation_history: List[Message] = field(default_factory=list)
 
+    # Sanitized full-details blob from Redis cache (filled in gateway from session.context).
+    cached_profile_snapshot: Optional[Dict[str, Any]] = None
+
     # Last routed specialist intent for this Redis session (continuity across turns).
     last_intent: Optional[str] = None
 
