@@ -221,6 +221,8 @@ class AttendanceAgent(BaseAgent):
                 client,
                 model=model,
                 max_tokens=2048,
+                tools=self.tools,
+                tool_choice="none",
                 messages=messages,
             )
 

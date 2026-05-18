@@ -205,6 +205,8 @@ class VpfAgent(BaseAgent):
             client,
             model=model,
             max_tokens=2048,
+            tools=self.tools,
+            tool_choice="none",
             messages=messages,
         )
         state.response_message = final_response.choices[0].message.content or state.response_message
